@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -30,21 +32,11 @@ class Entity extends Model
     ];
 
     protected $casts = [
-        'is_active'    => 'boolean',
+        'is_active' => 'boolean',
         'show_in_menu' => 'boolean',
-        'menu_order'   => 'integer',
-        'settings'     => 'array',
+        'menu_order' => 'integer',
+        'settings' => 'array',
     ];
-
-    // Auto-generate slug from name
-    protected static function booted(): void
-    {
-        static::creating(function (Entity $entity) {
-            if (empty($entity->slug)) {
-                $entity->slug = Str::slug($entity->name);
-            }
-        });
-    }
 
     public function customFields(): HasMany
     {
@@ -64,5 +56,15 @@ class Entity extends Model
     public function getRecordsCountAttribute(): int
     {
         return $this->records()->count();
+    }
+
+    // Auto-generate slug from name
+    protected static function booted(): void
+    {
+        static::creating(function (Entity $entity) {
+            if (empty($entity->slug)) {
+                $entity->slug = Str::slug($entity->name);
+            }
+        });
     }
 }

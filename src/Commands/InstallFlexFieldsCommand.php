@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Commands;
 
 use Illuminate\Console\Command;
@@ -7,7 +9,8 @@ use Illuminate\Support\Facades\File;
 
 class InstallFlexFieldsCommand extends Command
 {
-    protected $signature   = 'flex-fields:install {--force : Overwrite existing files}';
+    protected $signature = 'flex-fields:install {--force : Overwrite existing files}';
+
     protected $description = 'Install the FlexFields plugin — custom entities & fields for Filament';
 
     public function handle(): int
@@ -17,7 +20,7 @@ class InstallFlexFieldsCommand extends Command
 
         // 1. Publish config
         $this->callSilently('vendor:publish', [
-            '--tag'   => 'flex-fields-config',
+            '--tag' => 'flex-fields-config',
             '--force' => $this->option('force'),
         ]);
         $this->line('  ✅ Config published → config/flex-fields.php');
@@ -28,7 +31,7 @@ class InstallFlexFieldsCommand extends Command
         // 3. Views (optional)
         if ($this->confirm('Would you like to publish views for customization?', false)) {
             $this->callSilently('vendor:publish', [
-                '--tag'   => 'flex-fields-views',
+                '--tag' => 'flex-fields-views',
                 '--force' => $this->option('force'),
             ]);
             $this->line('  ✅ Views published → resources/views/vendor/flex-fields');
@@ -48,15 +51,15 @@ class InstallFlexFieldsCommand extends Command
 
     protected function publishMigrations(): void
     {
-        $source      = __DIR__ . '/../../database/migrations';
+        $source = __DIR__ . '/../../database/migrations';
         $destination = database_path('migrations');
 
         if (! File::isDirectory($source)) {
             return;
         }
 
-        $files   = File::files($source);
-        $copied  = 0;
+        $files = File::files($source);
+        $copied = 0;
         $skipped = 0;
 
         foreach ($files as $file) {
@@ -64,6 +67,7 @@ class InstallFlexFieldsCommand extends Command
 
             if (File::exists($target) && ! $this->option('force')) {
                 $skipped++;
+
                 continue;
             }
 

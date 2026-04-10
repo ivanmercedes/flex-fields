@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Filament\Pages;
 
 use BackedEnum;
@@ -16,9 +18,17 @@ use UnitEnum;
 
 class FlexFieldsDashboard extends Page
 {
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-squares-2x2';
+    public array $stats = [];
 
-    protected static string|UnitEnum|null $navigationGroup = null;
+    public array $entities = [];
+
+    public int $totalFields = 0;
+
+    public int $totalRecords = 0;
+
+    protected static BackedEnum | string | null $navigationIcon = 'heroicon-o-squares-2x2';
+
+    protected static string | UnitEnum | null $navigationGroup = null;
 
     protected static ?string $navigationLabel = null;
 
@@ -28,13 +38,15 @@ class FlexFieldsDashboard extends Page
 
     protected string $view = 'flex-fields::filament.pages.dashboard';
 
-    public array $stats = [];
+    public static function getNavigationGroup(): ?string
+    {
+        return Label::configOrTrans('flex-fields.navigation_group', 'flex-fields::flex-fields.navigation.group');
+    }
 
-    public array $entities = [];
-
-    public int $totalFields = 0;
-
-    public int $totalRecords = 0;
+    public static function getNavigationLabel(): string
+    {
+        return Label::trans('flex-fields::flex-fields.navigation.dashboard');
+    }
 
     public function mount(): void
     {
@@ -46,22 +58,6 @@ class FlexFieldsDashboard extends Page
             'fields' => $this->totalFields,
             'records' => $this->totalRecords,
             'active' => Entity::where('is_active', true)->count(),
-        ];
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            Action::make('new_entity')
-                ->label(Label::trans('flex-fields::flex-fields.dashboard.actions.new_entity'))
-                ->icon('heroicon-o-plus')
-                ->url(EntityResource::getUrl('create')),
-
-            Action::make('new_field')
-                ->label(Label::trans('flex-fields::flex-fields.dashboard.actions.new_field'))
-                ->icon('heroicon-o-variable')
-                ->color('info')
-                ->url(CustomFieldResource::getUrl('create')),
         ];
     }
 
@@ -82,13 +78,19 @@ class FlexFieldsDashboard extends Page
         ]);
     }
 
-    public static function getNavigationGroup(): ?string
+    protected function getHeaderActions(): array
     {
-        return Label::configOrTrans('flex-fields.navigation_group', 'flex-fields::flex-fields.navigation.group');
-    }
+        return [
+            Action::make('new_entity')
+                ->label(Label::trans('flex-fields::flex-fields.dashboard.actions.new_entity'))
+                ->icon('heroicon-o-plus')
+                ->url(EntityResource::getUrl('create')),
 
-    public static function getNavigationLabel(): string
-    {
-        return Label::trans('flex-fields::flex-fields.navigation.dashboard');
+            Action::make('new_field')
+                ->label(Label::trans('flex-fields::flex-fields.dashboard.actions.new_field'))
+                ->icon('heroicon-o-variable')
+                ->color('info')
+                ->url(CustomFieldResource::getUrl('create')),
+        ];
     }
 }

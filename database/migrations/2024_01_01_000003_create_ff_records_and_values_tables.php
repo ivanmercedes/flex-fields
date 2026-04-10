@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -23,11 +25,11 @@ return new class extends Migration
         Schema::create('ff_field_values', function (Blueprint $table) {
             $table->id();
             $table->foreignId('entity_record_id')
-                  ->constrained('ff_entity_records')
-                  ->cascadeOnDelete();
+                ->constrained('ff_entity_records')
+                ->cascadeOnDelete();
             $table->foreignId('custom_field_id')
-                  ->constrained('ff_custom_fields')
-                  ->cascadeOnDelete();
+                ->constrained('ff_custom_fields')
+                ->cascadeOnDelete();
             $table->longText('value')->nullable();
             $table->timestamps();
 

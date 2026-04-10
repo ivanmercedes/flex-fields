@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Resources;
 
 use BackedEnum;
@@ -16,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Resources\CustomFieldResource\Pages;
@@ -26,9 +29,9 @@ class CustomFieldResource extends Resource
 {
     protected static ?string $model = CustomField::class;
 
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-variable';
+    protected static BackedEnum | string | null $navigationIcon = 'heroicon-o-variable';
 
-    protected static string|UnitEnum|null $navigationGroup = null;
+    protected static string | UnitEnum | null $navigationGroup = null;
 
     protected static ?int $navigationSort = 2;
 
@@ -62,7 +65,7 @@ class CustomFieldResource extends Resource
                         ->maxLength(255)
                         ->live(onBlur: true)
                         ->afterStateUpdated(
-                            fn ($state, Set $set) => $set('key', \Illuminate\Support\Str::snake($state))
+                            fn ($state, Set $set) => $set('key', Str::snake($state))
                         ),
 
                     Forms\Components\TextInput::make('key')

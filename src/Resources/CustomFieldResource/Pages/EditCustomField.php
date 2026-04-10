@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Resources\CustomFieldResource\Pages;
 
 use Filament\Actions;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Resources;
 
 use BackedEnum;
@@ -25,9 +27,9 @@ class EntityDataResource extends Resource
 {
     protected static ?string $model = EntityRecord::class;
 
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-table-cells';
+    protected static BackedEnum | string | null $navigationIcon = 'heroicon-o-table-cells';
 
-    protected static string|UnitEnum|null $navigationGroup = null;
+    protected static string | UnitEnum | null $navigationGroup = null;
 
     protected static ?int $navigationSort = 3;
 

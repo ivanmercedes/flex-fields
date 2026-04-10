@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Support;
 
 use Filament\Tables;
-use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\CustomField;
+use IvanMercedes\FlexFields\Models\Entity;
 
 /**
  * DynamicTableBuilder
@@ -56,24 +58,27 @@ class DynamicTableBuilder
                     ->label($field->label)
                     ->boolean()
                     ->getStateUsing(fn ($record) => $record->getValue($field->key));
+
                 break;
 
             case 'color':
                 $column = Tables\Columns\ColorColumn::make('field_' . $field->key)
                     ->label($field->label)
                     ->getStateUsing(fn ($record) => $record->getValue($field->key));
+
                 break;
 
             case 'image':
                 $column = Tables\Columns\ImageColumn::make('field_' . $field->key)
                     ->label($field->label)
                     ->getStateUsing(fn ($record) => $record->getValue($field->key));
+
                 break;
 
             case 'select':
             case 'multiselect':
                 $options = $field->parsed_options;
-                $column  = Tables\Columns\TextColumn::make('field_' . $field->key)
+                $column = Tables\Columns\TextColumn::make('field_' . $field->key)
                     ->label($field->label)
                     ->badge()
                     ->getStateUsing(function ($record) use ($field, $options) {
@@ -81,8 +86,10 @@ class DynamicTableBuilder
                         if (is_array($val)) {
                             return implode(', ', array_map(fn ($v) => $options[$v] ?? $v, $val));
                         }
+
                         return $options[$val] ?? $val;
                     });
+
                 break;
 
             case 'tags':
@@ -92,8 +99,10 @@ class DynamicTableBuilder
                     ->separator(',')
                     ->getStateUsing(function ($record) use ($field) {
                         $val = $record->getValue($field->key);
+
                         return is_array($val) ? implode(',', $val) : $val;
                     });
+
                 break;
 
             case 'date':
@@ -101,6 +110,7 @@ class DynamicTableBuilder
                     ->label($field->label)
                     ->date()
                     ->getStateUsing(fn ($record) => $record->getValue($field->key));
+
                 break;
 
             case 'datetime':
@@ -108,6 +118,7 @@ class DynamicTableBuilder
                     ->label($field->label)
                     ->dateTime()
                     ->getStateUsing(fn ($record) => $record->getValue($field->key));
+
                 break;
 
             case 'richtext':
@@ -116,6 +127,7 @@ class DynamicTableBuilder
                     ->html()
                     ->limit(80)
                     ->getStateUsing(fn ($record) => $record->getValue($field->key));
+
                 break;
 
             default:
@@ -125,6 +137,7 @@ class DynamicTableBuilder
                     ->tooltip(fn (Tables\Columns\TextColumn $col) => strlen($col->getState()) > 60 ? $col->getState() : null)
                     ->searchable($field->is_searchable)
                     ->getStateUsing(fn ($record) => $record->getValue($field->key));
+
                 break;
         }
 

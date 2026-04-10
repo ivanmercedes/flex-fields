@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -33,16 +36,16 @@ class FieldValue extends Model
      */
     public function getCastedValue(): mixed
     {
-        $raw  = $this->value;
+        $raw = $this->value;
         $type = optional($this->customField)->type ?? 'text';
 
-        return match($type) {
-            'number'                    => is_numeric($raw) ? (float) $raw : null,
-            'boolean'                   => filter_var($raw, FILTER_VALIDATE_BOOLEAN),
-            'date'                      => $raw ? \Carbon\Carbon::parse($raw)->toDateString() : null,
-            'datetime'                  => $raw ? \Carbon\Carbon::parse($raw)->toDateTimeString() : null,
-            'json', 'multiselect','tags'=> is_string($raw) ? json_decode($raw, true) : $raw,
-            default                     => $raw,
+        return match ($type) {
+            'number' => is_numeric($raw) ? (float) $raw : null,
+            'boolean' => filter_var($raw, FILTER_VALIDATE_BOOLEAN),
+            'date' => $raw ? Carbon::parse($raw)->toDateString() : null,
+            'datetime' => $raw ? Carbon::parse($raw)->toDateTimeString() : null,
+            'json', 'multiselect','tags' => is_string($raw) ? json_decode($raw, true) : $raw,
+            default => $raw,
         };
     }
 }

@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields;
 
 // use Filament\Support\Facades\FilamentView;
-use Filament\Support\Facades\FilamentAsset;
-// use Filament\View\PanelsRenderHook;
-use Illuminate\Support\ServiceProvider;
 use Filament\Support\Assets\Css;
+// use Filament\View\PanelsRenderHook;
+use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Support\ServiceProvider;
+use IvanMercedes\FlexFields\Commands\InstallFlexFieldsCommand;
 
 class FlexFieldsServiceProvider extends ServiceProvider
 {
@@ -41,7 +44,6 @@ class FlexFieldsServiceProvider extends ServiceProvider
             Css::make('flex-fields', __DIR__ . '/../resources/dist/flex-fields.css'),
         ], package: 'ivanmercedes/flex-fields');
 
-
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__ . '/../database/migrations' => database_path('migrations'),
@@ -55,9 +57,8 @@ class FlexFieldsServiceProvider extends ServiceProvider
                 __DIR__ . '/../resources/views' => resource_path('views/vendor/flex-fields'),
             ], 'flex-fields-views');
 
-
             $this->commands([
-                \IvanMercedes\FlexFields\Commands\InstallFlexFieldsCommand::class,
+                InstallFlexFieldsCommand::class,
             ]);
         }
     }

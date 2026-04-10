@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;

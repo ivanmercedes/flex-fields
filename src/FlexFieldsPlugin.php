@@ -1,19 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
-use IvanMercedes\FlexFields\Resources\EntityResource;
-use IvanMercedes\FlexFields\Resources\CustomFieldResource;
-use IvanMercedes\FlexFields\Resources\EntityDataResource;
 use IvanMercedes\FlexFields\Filament\Pages\FlexFieldsDashboard;
 use IvanMercedes\FlexFields\Filament\Widgets\EntitiesOverviewWidget;
+use IvanMercedes\FlexFields\Resources\CustomFieldResource;
+use IvanMercedes\FlexFields\Resources\EntityDataResource;
+use IvanMercedes\FlexFields\Resources\EntityResource;
 
 class FlexFieldsPlugin implements Plugin
 {
     protected bool $showDashboardPage = true;
+
     protected bool $showOverviewWidget = true;
+
+    public static function make(): static
+    {
+        return app(static::class);
+    }
 
     public function getId(): string
     {
@@ -53,17 +61,14 @@ class FlexFieldsPlugin implements Plugin
     public function showDashboardPage(bool $show = true): static
     {
         $this->showDashboardPage = $show;
+
         return $this;
     }
 
     public function showOverviewWidget(bool $show = true): static
     {
         $this->showOverviewWidget = $show;
-        return $this;
-    }
 
-    public static function make(): static
-    {
-        return app(static::class);
+        return $this;
     }
 }

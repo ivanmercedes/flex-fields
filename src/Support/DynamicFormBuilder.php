@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Support;
 
 use Filament\Forms;
 use Filament\Schemas\Components\Component as SchemaComponent;
 use Filament\Schemas\Components\Placeholder;
 use Filament\Schemas\Components\Section;
+use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 
@@ -70,6 +73,7 @@ class DynamicFormBuilder
                     ->placeholder($field->placeholder ?? '')
                     ->default($field->default_value)
                     ->maxLength(255);
+
                 break;
 
             case 'textarea':
@@ -78,6 +82,7 @@ class DynamicFormBuilder
                     ->placeholder($field->placeholder ?? '')
                     ->default($field->default_value)
                     ->rows(4);
+
                 break;
 
             case 'number':
@@ -86,6 +91,7 @@ class DynamicFormBuilder
                     ->placeholder($field->placeholder ?? '')
                     ->default($field->default_value)
                     ->numeric();
+
                 break;
 
             case 'email':
@@ -94,6 +100,7 @@ class DynamicFormBuilder
                     ->placeholder($field->placeholder ?? 'email@example.com')
                     ->default($field->default_value)
                     ->email();
+
                 break;
 
             case 'url':
@@ -102,24 +109,28 @@ class DynamicFormBuilder
                     ->placeholder($field->placeholder ?? 'https://')
                     ->default($field->default_value)
                     ->url();
+
                 break;
 
             case 'date':
                 $component = Forms\Components\DatePicker::make($key)
                     ->label($field->label)
                     ->default($field->default_value);
+
                 break;
 
             case 'datetime':
                 $component = Forms\Components\DateTimePicker::make($key)
                     ->label($field->label)
                     ->default($field->default_value);
+
                 break;
 
             case 'boolean':
                 $component = Forms\Components\Toggle::make($key)
                     ->label($field->label)
                     ->default((bool) $field->default_value);
+
                 break;
 
             case 'select':
@@ -128,6 +139,7 @@ class DynamicFormBuilder
                     ->options($field->parsed_options)
                     ->default($field->default_value)
                     ->searchable();
+
                 break;
 
             case 'multiselect':
@@ -137,18 +149,21 @@ class DynamicFormBuilder
                     ->default($field->default_value ? json_decode($field->default_value, true) : null)
                     ->multiple()
                     ->searchable();
+
                 break;
 
             case 'color':
                 $component = Forms\Components\ColorPicker::make($key)
                     ->label($field->label)
                     ->default($field->default_value);
+
                 break;
 
             case 'file':
                 $component = Forms\Components\FileUpload::make($key)
                     ->label($field->label)
-                    ->directory('flex-fields/' . \Illuminate\Support\Str::slug($field->label));
+                    ->directory('flex-fields/' . Str::slug($field->label));
+
                 break;
 
             case 'image':
@@ -157,6 +172,7 @@ class DynamicFormBuilder
                     ->image()
                     ->imageEditor()
                     ->directory('flex-fields/images');
+
                 break;
 
             case 'richtext':
@@ -168,6 +184,7 @@ class DynamicFormBuilder
                         'link', 'bulletList', 'orderedList',
                         'h2', 'h3', 'blockquote', 'codeBlock',
                     ]);
+
                 break;
 
             case 'json':
@@ -176,12 +193,14 @@ class DynamicFormBuilder
                     ->placeholder(Label::trans('flex-fields::flex-fields.record.placeholders.json'))
                     ->rows(6)
                     ->helperText(Label::trans('flex-fields::flex-fields.record.helpers.json'));
+
                 break;
 
             case 'tags':
                 $component = Forms\Components\TagsInput::make($key)
                     ->label($field->label)
                     ->placeholder($field->placeholder ?? Label::trans('flex-fields::flex-fields.record.placeholders.tags'));
+
                 break;
 
             default:

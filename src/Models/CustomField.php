@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
@@ -38,27 +40,15 @@ class CustomField extends Model
     ];
 
     protected $casts = [
-        'options'          => 'array',
+        'options' => 'array',
         'validation_rules' => 'array',
-        'settings'         => 'array',
-        'order'            => 'integer',
-        'is_required'      => 'boolean',
-        'is_active'        => 'boolean',
-        'is_searchable'    => 'boolean',
+        'settings' => 'array',
+        'order' => 'integer',
+        'is_required' => 'boolean',
+        'is_active' => 'boolean',
+        'is_searchable' => 'boolean',
         'is_shown_in_list' => 'boolean',
     ];
-
-    protected static function booted(): void
-    {
-        static::creating(function (CustomField $field) {
-            if (empty($field->key)) {
-                $field->key = Str::snake($field->label);
-            }
-            if (is_null($field->order)) {
-                $field->order = static::where('entity_id', $field->entity_id)->max('order') + 1;
-            }
-        });
-    }
 
     public function entity(): BelongsTo
     {
@@ -75,13 +65,13 @@ class CustomField extends Model
      */
     public function getFilamentColumnType(): string
     {
-        return match($this->type) {
-            'boolean'  => 'IconColumn',
-            'image'    => 'ImageColumn',
-            'color'    => 'ColorColumn',
-            'date'     => 'TextColumn',
+        return match ($this->type) {
+            'boolean' => 'IconColumn',
+            'image' => 'ImageColumn',
+            'color' => 'ColorColumn',
+            'date' => 'TextColumn',
             'datetime' => 'TextColumn',
-            default    => 'TextColumn',
+            default => 'TextColumn',
         };
     }
 
@@ -90,16 +80,16 @@ class CustomField extends Model
      */
     public function getFieldCastType(): string
     {
-        return match($this->type) {
-            'number'      => 'float',
-            'boolean'     => 'boolean',
-            'date'        => 'date',
-            'datetime'    => 'datetime',
-            'json'        => 'array',
-            'select'      => 'string',
+        return match ($this->type) {
+            'number' => 'float',
+            'boolean' => 'boolean',
+            'date' => 'date',
+            'datetime' => 'datetime',
+            'json' => 'array',
+            'select' => 'string',
             'multiselect' => 'array',
-            'tags'        => 'array',
-            default       => 'string',
+            'tags' => 'array',
+            default => 'string',
         };
     }
 
@@ -117,6 +107,19 @@ class CustomField extends Model
         if (isset($opts[0]) && is_array($opts[0])) {
             return collect($opts)->pluck('label', 'value')->toArray();
         }
+
         return $opts;
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (CustomField $field) {
+            if (empty($field->key)) {
+                $field->key = Str::snake($field->label);
+            }
+            if (is_null($field->order)) {
+                $field->order = static::where('entity_id', $field->entity_id)->max('order') + 1;
+            }
+        });
     }
 }

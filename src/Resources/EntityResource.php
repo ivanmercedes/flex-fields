@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IvanMercedes\FlexFields\Resources;
 
 use BackedEnum;
@@ -17,6 +19,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Resources\EntityResource\Pages;
 use IvanMercedes\FlexFields\Support\Label;
@@ -26,9 +29,9 @@ class EntityResource extends Resource
 {
     protected static ?string $model = Entity::class;
 
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-cube';
+    protected static BackedEnum | string | null $navigationIcon = 'heroicon-o-cube';
 
-    protected static string|UnitEnum|null $navigationGroup = null;
+    protected static string | UnitEnum | null $navigationGroup = null;
 
     protected static ?int $navigationSort = 1;
 
@@ -47,7 +50,7 @@ class EntityResource extends Resource
                             ->maxLength(255)
                             ->live(onBlur: true)
                             ->afterStateUpdated(
-                                fn ($state, Set $set) => $set('slug', \Illuminate\Support\Str::slug($state))
+                                fn ($state, Set $set) => $set('slug', Str::slug($state))
                             ),
 
                         Forms\Components\TextInput::make('slug')
