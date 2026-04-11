@@ -29,17 +29,6 @@ class FlexFieldsServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'flex-fields');
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-        // if (class_exists(FilamentView::class) && class_exists(PanelsRenderHook::class)) {
-        //     $stylesPath = __DIR__ . '/../resources/dist/flex-fields.css';
-
-        //     FilamentView::registerRenderHook(
-        //         PanelsRenderHook::HEAD_END,
-        //         fn(): string => is_file($stylesPath)
-        //         ? '<style data-flex-fields-dashboard>' . file_get_contents($stylesPath) . '</style>'
-        //         : '',
-        //     );
-        // }
-
         FilamentAsset::register([
             Css::make('flex-fields', __DIR__ . '/../resources/dist/flex-fields.css'),
         ], package: 'ivanmercedes/flex-fields');

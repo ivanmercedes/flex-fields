@@ -23,7 +23,7 @@ class InstallFlexFieldsCommand extends Command
             '--tag' => 'flex-fields-config',
             '--force' => $this->option('force'),
         ]);
-        $this->line('  ✅ Config published → config/flex-fields.php');
+        $this->line('Config published → config/flex-fields.php');
 
         // 2. Copy migrations
         $this->publishMigrations();
@@ -34,11 +34,11 @@ class InstallFlexFieldsCommand extends Command
                 '--tag' => 'flex-fields-views',
                 '--force' => $this->option('force'),
             ]);
-            $this->line('  ✅ Views published → resources/views/vendor/flex-fields');
+            $this->line('Views published → resources/views/vendor/flex-fields');
         }
 
         $this->newLine();
-        $this->info('✨ FlexFields installed successfully!');
+        $this->info('FlexFields installed successfully!');
         $this->newLine();
         $this->line('  Next steps:');
         $this->line('  1. Add <comment>FlexFieldsPlugin::make()</comment> to your Panel Provider');
