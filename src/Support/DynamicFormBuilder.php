@@ -37,6 +37,7 @@ class DynamicFormBuilder
             Section::make($entity->name . ' ' . Label::trans('flex-fields::flex-fields.record.sections.fields_suffix'))
                 ->description($entity->description)
                 ->schema(self::buildFieldComponents($fields->all()))
+                ->columnSpanFull()
                 ->columns(12),
         ];
     }
