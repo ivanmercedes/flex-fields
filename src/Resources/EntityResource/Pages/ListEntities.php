@@ -13,11 +13,11 @@ use IvanMercedes\FlexFields\Resources\EntityResource;
 
 class ListEntities extends ListRecords
 {
+    public array $entities = [];
+
     protected static string $resource = EntityResource::class;
 
     protected string $view = 'flex-fields::filament.pages.list-entities';
-
-    public array $entities = [];
 
     public function mount(): void
     {
