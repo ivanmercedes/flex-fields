@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace IvanMercedes\FlexFields;
 
 use Filament\Contracts\Plugin;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use IvanMercedes\FlexFields\Filament\Pages\FlexFieldsDashboard;
 use IvanMercedes\FlexFields\Filament\Widgets\EntitiesOverviewWidget;
+use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Resources\CustomFieldResource;
 use IvanMercedes\FlexFields\Resources\EntityDataResource;
 use IvanMercedes\FlexFields\Resources\EntityResource;
@@ -55,7 +57,27 @@ class FlexFieldsPlugin implements Plugin
 
     public function boot(Panel $panel): void
     {
-        //
+        $entities = Entity::query()
+            ->where('is_active', true)
+            ->where('show_in_menu', true)
+            ->orderBy('menu_order')
+            ->get();
+
+        $navigationItems = [];
+
+        foreach ($entities as $entity) {
+            $navigationItems[] = NavigationItem::make("entity-{$entity->slug}")
+                ->label($entity->name)
+                ->icon($entity->icon ?? 'heroicon-o-cube')
+                ->url(fn (): string => EntityDataResource::getUrl('index', ['entity' => $entity->id]))
+                ->sort($entity->menu_order + 100)
+                ->isActiveWhen(fn (): bool => request()->get('entity') == $entity->id
+                    && request()->routeIs('filament.*.resources.ff-data.*'));
+        }
+
+        if (! empty($navigationItems)) {
+            $panel->navigationItems($navigationItems);
+        }
     }
 
     public function showDashboardPage(bool $show = true): static
