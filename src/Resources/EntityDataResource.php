@@ -126,15 +126,13 @@ class EntityDataResource extends Resource
 
     public static function getCurrentEntity(): ?Entity
     {
-        $entityId = request()->get('entity')
-            ?? request()->route('entity')
-            ?? session('ff_current_entity');
+        if ($entityId = self::resolveEntityId()) {
+            session(['ff_current_entity' => $entityId]);
 
-        if ($entityId) {
             return Entity::find($entityId);
         }
 
-        return Entity::where('is_active', true)->first();
+        return self::getDefaultEntity();
     }
 
     public static function getPages(): array
@@ -164,6 +162,72 @@ class EntityDataResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return Label::trans('flex-fields::flex-fields.record.plural_label');
+    }
+
+    protected static function resolveEntityId(): ?string
+    {
+        $entityId = request()->get('entity')
+            ?? request()->route('entity')
+            ?? self::getFromRouteRecord()
+            ?? self::getFromReferer()
+            ?? session('ff_current_entity');
+
+        return $entityId !== null ? (string) $entityId : null;
+    }
+
+    protected static function getFromRouteRecord(): ?int
+    {
+        $record = request()->route('record');
+
+        if (! $record) {
+            return null;
+        }
+
+        if (! $record instanceof EntityRecord) {
+            $record = EntityRecord::find($record);
+        }
+
+        return $record?->entity_id;
+    }
+
+    protected static function getFromReferer(): ?int
+    {
+        $referer = request()->header('Referer');
+
+        if (! $referer) {
+            return null;
+        }
+
+        // Query string (?entity=1)
+        $query = parse_url($referer, PHP_URL_QUERY);
+
+        if ($query) {
+            parse_str($query, $params);
+
+            if (! empty($params['entity'])) {
+                return (int) $params['entity'];
+            }
+        }
+
+        // URL tipo /ff-data/{id}/edit
+        $path = parse_url($referer, PHP_URL_PATH);
+
+        if ($path && preg_match('#/ff-data/([^/?]+)/edit#', $path, $matches)) {
+            return EntityRecord::find($matches[1])?->entity_id;
+        }
+
+        return null;
+    }
+
+    protected static function getDefaultEntity(): ?Entity
+    {
+        $entity = Entity::where('is_active', true)->first();
+
+        if ($entity) {
+            session(['ff_current_entity' => $entity->id]);
+        }
+
+        return $entity;
     }
 
     protected static function getStatusOptions(): array
