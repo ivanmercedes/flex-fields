@@ -27,6 +27,8 @@ class EntityDataResource extends Resource
 {
     protected static ?string $model = EntityRecord::class;
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static BackedEnum | string | null $navigationIcon = 'heroicon-o-table-cells';
 
     protected static string | UnitEnum | null $navigationGroup = null;
