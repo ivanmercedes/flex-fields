@@ -47,7 +47,7 @@ class ListEntities extends ListRecords
     public function getManageFieldsUrl(int $entityId): string
     {
         return CustomFieldResource::getUrl('index', [
-            'tableFilters[entity_id][value]' => $entityId,
+            'filters[entity_id][value]' => $entityId,
         ]);
     }
 
