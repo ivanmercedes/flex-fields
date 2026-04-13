@@ -6,8 +6,9 @@ namespace IvanMercedes\FlexFields\Support;
 
 use Filament\Forms;
 use Filament\Schemas\Components\Component as SchemaComponent;
-use Filament\Schemas\Components\Placeholder;
+use Filament\Schemas\Components\EmptyState;
 use Filament\Schemas\Components\Section;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
@@ -26,9 +27,9 @@ class DynamicFormBuilder
 
         if ($fields->isEmpty()) {
             return [
-                Placeholder::make('no_fields')
-                    ->label('')
-                    ->content(Label::trans('flex-fields::flex-fields.record.helpers.empty_fields'))
+                EmptyState::make('')
+                    ->description(Label::trans('flex-fields::flex-fields.record.helpers.empty_fields'))
+                    ->icon(Heroicon::ArchiveBox)
                     ->columnSpanFull(),
             ];
         }
@@ -181,9 +182,17 @@ class DynamicFormBuilder
                     ->label($field->label)
                     ->default($field->default_value)
                     ->toolbarButtons([
-                        'bold', 'italic', 'underline', 'strike',
-                        'link', 'bulletList', 'orderedList',
-                        'h2', 'h3', 'blockquote', 'codeBlock',
+                        'bold',
+                        'italic',
+                        'underline',
+                        'strike',
+                        'link',
+                        'bulletList',
+                        'orderedList',
+                        'h2',
+                        'h3',
+                        'blockquote',
+                        'codeBlock',
                     ]);
 
                 break;
