@@ -36,7 +36,6 @@ return [
         ],
         'helpers' => [
             'slug' => 'Used internally. Auto-generated from name.',
-            'icon' => 'Any Heroicons v2 name (e.g. heroicon-o-star)',
             'is_active' => 'Inactive entities are hidden everywhere.',
         ],
         'table' => [
