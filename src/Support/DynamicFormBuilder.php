@@ -181,6 +181,7 @@ class DynamicFormBuilder
                 $component = Forms\Components\RichEditor::make($key)
                     ->label($field->label)
                     ->default($field->default_value)
+                    ->extraInputAttributes(['style' => 'min-height: 20rem; max-height: 50vh; overflow-y: auto;'])
                     ->toolbarButtons([
                         'bold',
                         'italic',
