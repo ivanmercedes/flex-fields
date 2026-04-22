@@ -45,8 +45,8 @@ class FieldValue extends Model
             'date' => $raw ? Carbon::parse($raw)->toDateString() : null,
             'datetime' => $raw ? Carbon::parse($raw)->toDateTimeString() : null,
             'json', 'multiselect', 'tags' => is_string($raw) ? json_decode($raw, true) : $raw,
-            'image', 'file' => (is_string($raw) && (str_starts_with($raw, '{') || str_starts_with($raw, '['))) 
-                ? (array_values(json_decode($raw, true) ?? [])[0] ?? $raw) 
+            'image', 'file' => (is_string($raw) && (str_starts_with($raw, '{') || str_starts_with($raw, '[')))
+                ? (array_values(json_decode($raw, true) ?? [])[0] ?? $raw)
                 : $raw,
             default => $raw,
         };
