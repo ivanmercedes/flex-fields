@@ -88,6 +88,20 @@ When adding records to an entity, the form elements and structure are dynamicall
 
 ---
 
+## Schema Builder (Code-First Entities)
+
+FlexFields includes a Schema Builder that allows you to define your Entities and Custom Fields programmatically, similar to Laravel migrations.
+
+```bash
+php artisan flex:make-schema Product
+php artisan flex:migrate
+php artisan flex:rollback
+```
+
+For full details, read the [Schema Builder Documentation](docs/schema-builder.md).
+
+---
+
 ## Usage in Code
 
 You can easily interact with entities and their records directly from your models:
