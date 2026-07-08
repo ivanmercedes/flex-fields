@@ -11,6 +11,7 @@ use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Resources\CustomFieldResource;
+use IvanMercedes\FlexFields\Resources\EntityCategoryResource;
 use IvanMercedes\FlexFields\Resources\EntityDataResource;
 use IvanMercedes\FlexFields\Resources\EntityResource;
 use IvanMercedes\FlexFields\Support\Label;
@@ -74,8 +75,13 @@ class FlexFieldsDashboard extends Page
     public function getManageFieldsUrl(int $entityId): string
     {
         return CustomFieldResource::getUrl('index', [
-            'filters[entity_id][value]' => $entityId,
+            'tableFilters[entity_id][value]' => $entityId,
         ]);
+    }
+
+    public function getManageCategoriesUrl(int $entityId): string
+    {
+        return EntityCategoryResource::getUrl('index', ['entity' => $entityId]);
     }
 
     protected function getHeaderActions(): array
