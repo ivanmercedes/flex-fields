@@ -103,6 +103,21 @@ return [
             'add_option' => 'Add option',
         ],
     ],
+    'category' => [
+        'label' => 'Category',
+        'plural_label' => 'Categories',
+        'navigation_label' => 'Categories',
+        'fields' => [
+            'name' => 'Name',
+            'slug' => 'Slug',
+            'parent' => 'Parent Category',
+            'description' => 'Description',
+            'updated_at' => 'Updated At',
+        ],
+        'helpers' => [
+            'slug' => 'Auto-generated if left empty.',
+        ],
+    ],
     'record' => [
         'label' => 'Record',
         'plural_label' => 'Records',
@@ -119,6 +134,7 @@ return [
             'id' => 'ID',
             'title_column' => 'Title',
             'updated_at' => 'Updated',
+            'categories' => 'Categories',
         ],
         'placeholders' => [
             'title' => 'Optional title / identifier',

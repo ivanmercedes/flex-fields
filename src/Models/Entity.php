@@ -48,6 +48,11 @@ class Entity extends Model
         return $this->hasMany(EntityRecord::class);
     }
 
+    public function categories(): HasMany
+    {
+        return $this->hasMany(EntityCategory::class);
+    }
+
     public function getActiveFieldsAttribute()
     {
         return $this->customFields()->where('is_active', true)->get();

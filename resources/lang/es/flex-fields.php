@@ -104,6 +104,21 @@ return [
             'add_option' => 'Agregar opción',
         ],
     ],
+    'category' => [
+        'label' => 'Categoría',
+        'plural_label' => 'Categorías',
+        'navigation_label' => 'Categorías',
+        'fields' => [
+            'name' => 'Nombre',
+            'slug' => 'Slug',
+            'parent' => 'Categoría Superior',
+            'description' => 'Descripción',
+            'updated_at' => 'Actualizado',
+        ],
+        'helpers' => [
+            'slug' => 'Se genera automáticamente si se deja vacío.',
+        ],
+    ],
     'record' => [
         'label' => 'Registro',
         'plural_label' => 'Registros',
@@ -120,6 +135,7 @@ return [
             'id' => 'ID',
             'title_column' => 'Título',
             'updated_at' => 'Actualizado',
+            'categories' => 'Categorías',
         ],
         'placeholders' => [
             'title' => 'Título o identificador opcional',

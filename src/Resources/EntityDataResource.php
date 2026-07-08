@@ -55,6 +55,12 @@ class EntityDataResource extends Resource
                 ->options(static::getStatusOptions())
                 ->default('published')
                 ->required(),
+
+            Forms\Components\Select::make('categories')
+                ->label(Label::trans('flex-fields::flex-fields.record.fields.categories'))
+                ->multiple()
+                ->relationship('categories', 'name', fn (Builder $query) => $query->where('entity_id', $entity?->id ?? 0))
+                ->preload(),
         ];
 
         if ($entity) {

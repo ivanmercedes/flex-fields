@@ -43,6 +43,16 @@ class EntityRecord extends Model
         return $this->hasMany(FieldValue::class, 'entity_record_id');
     }
 
+    public function categories(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            EntityCategory::class,
+            'ff_entity_record_category',
+            'entity_record_id',
+            'entity_category_id'
+        );
+    }
+
     /**
      * Get all field values as a flat key=>value array.
      */
