@@ -10,6 +10,9 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
 use IvanMercedes\FlexFields\Commands\InstallFlexFieldsCommand;
+use IvanMercedes\FlexFields\Commands\MakeSchemaCommand;
+use IvanMercedes\FlexFields\Commands\MigrateSchemasCommand;
+use IvanMercedes\FlexFields\Commands\RollbackSchemasCommand;
 
 class FlexFieldsServiceProvider extends ServiceProvider
 {
@@ -48,6 +51,9 @@ class FlexFieldsServiceProvider extends ServiceProvider
 
             $this->commands([
                 InstallFlexFieldsCommand::class,
+                MakeSchemaCommand::class,
+                MigrateSchemasCommand::class,
+                RollbackSchemasCommand::class,
             ]);
         }
     }

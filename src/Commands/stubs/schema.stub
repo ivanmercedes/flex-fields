@@ -1,0 +1,30 @@
+<?php
+
+use IvanMercedes\FlexFields\Schema\Flex;
+use IvanMercedes\FlexFields\Schema\Blueprint;
+
+return new class
+{
+    /**
+     * Run the schema.
+     */
+    public function up(): void
+    {
+        Flex::create('DummyName', function (Blueprint $entity) {
+            $entity->icon('heroicon-o-document-text');
+            $entity->entityColor('#3b82f6');
+            
+            // Define your fields here:
+            // $entity->text('title', 'Title')->required();
+            // $entity->number('price', 'Price');
+        });
+    }
+
+    /**
+     * Reverse the schema.
+     */
+    public function down(): void
+    {
+        Flex::drop('dummy-slug');
+    }
+};
