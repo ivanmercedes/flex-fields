@@ -1,7 +1,4 @@
-<div class="ff-entity-card relative rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-sm hover:shadow transition-shadow overflow-hidden">
-
-    {{-- Color bar --}}
-    <div class="ff-entity-card__bar h-1.5 w-full" style="background-color: {{ $entity['color'] ?? '#6366f1' }}"></div>
+<div class="ff-entity-card relative rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 transition-shadow overflow-hidden">
 
     <div class="ff-entity-card__body p-5">
         {{-- Header --}}
@@ -52,23 +49,46 @@
         </div>
 
         {{-- Actions --}}
-        <div class="ff-entity-card__actions flex gap-2">
-            <a href="{{ $this->getEntityDataUrl($entity['id']) }}"
-               class="ff-entity-card__action ff-entity-card__action--primary flex-1 text-center text-xs font-medium px-2 py-2 rounded-lg bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 transition-colors">
+        <div class="flex flex-wrap items-center gap-2 pt-2">
+            <x-filament::button
+                tag="a"
+                href="{{ $this->getEntityDataUrl($entity['id']) }}"
+                color="primary"
+                size="xs"
+                outlined
+            >
                 Records
-            </a>
-            <a href="{{ $this->getManageFieldsUrl($entity['id']) }}"
-               class="ff-entity-card__action ff-entity-card__action--info flex-1 text-center text-xs font-medium px-2 py-2 rounded-lg bg-info-50 dark:bg-info-500/10 text-info-600 dark:text-info-400 hover:bg-info-100 transition-colors">
+            </x-filament::button>
+
+            <x-filament::button
+                tag="a"
+                href="{{ $this->getManageFieldsUrl($entity['id']) }}"
+                color="info"
+                size="xs"
+                outlined
+            >
                 Fields
-            </a>
-            <a href="{{ $this->getManageCategoriesUrl($entity['id']) }}"
-               class="ff-entity-card__action ff-entity-card__action--warning flex-1 text-center text-xs font-medium px-2 py-2 rounded-lg bg-warning-50 dark:bg-warning-500/10 text-warning-600 dark:text-warning-400 hover:bg-warning-100 transition-colors">
+            </x-filament::button>
+
+            <x-filament::button
+                tag="a"
+                href="{{ $this->getManageCategoriesUrl($entity['id']) }}"
+                color="warning"
+                size="xs"
+                outlined
+            >
                 Categories
-            </a>
-            <a href="{{ $this->getEditEntityUrl($entity['id']) }}"
-               class="ff-entity-card__action ff-entity-card__action--neutral text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 transition-colors">
+            </x-filament::button>
+
+            <x-filament::button
+                tag="a"
+                href="{{ $this->getEditEntityUrl($entity['id']) }}"
+                color="gray"
+                size="xs"
+                outlined
+            >
                 Edit
-            </a>
+            </x-filament::button>
         </div>
     </div>
 </div>
