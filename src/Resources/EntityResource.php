@@ -169,7 +169,7 @@ class EntityResource extends Resource
                     ->icon('heroicon-o-tag')
                     ->color('warning')
                     ->url(
-                        fn (Entity $record) => \IvanMercedes\FlexFields\Resources\EntityCategoryResource::getUrl('index', ['entity' => $record->id])
+                        fn (Entity $record) => EntityCategoryResource::getUrl('index', ['entity' => $record->id])
                     ),
 
                 EditAction::make(),

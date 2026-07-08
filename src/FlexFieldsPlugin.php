@@ -11,6 +11,7 @@ use IvanMercedes\FlexFields\Filament\Pages\FlexFieldsDashboard;
 use IvanMercedes\FlexFields\Filament\Widgets\EntitiesOverviewWidget;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Resources\CustomFieldResource;
+use IvanMercedes\FlexFields\Resources\EntityCategoryResource;
 use IvanMercedes\FlexFields\Resources\EntityDataResource;
 use IvanMercedes\FlexFields\Resources\EntityResource;
 
@@ -36,7 +37,7 @@ class FlexFieldsPlugin implements Plugin
             EntityResource::class,
             CustomFieldResource::class,
             EntityDataResource::class,
-            \IvanMercedes\FlexFields\Resources\EntityCategoryResource::class,
+            EntityCategoryResource::class,
         ];
 
         $pages = [];

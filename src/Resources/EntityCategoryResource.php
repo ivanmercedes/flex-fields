@@ -55,6 +55,7 @@ class EntityCategoryResource extends Resource
                     if ($entity) {
                         return $rule->where('entity_id', $entity->id);
                     }
+
                     return $rule;
                 })
                 ->helperText(Label::trans('flex-fields::flex-fields.category.helpers.slug')),

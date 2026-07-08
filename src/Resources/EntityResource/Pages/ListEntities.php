@@ -8,6 +8,7 @@ use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Resources\CustomFieldResource;
+use IvanMercedes\FlexFields\Resources\EntityCategoryResource;
 use IvanMercedes\FlexFields\Resources\EntityDataResource;
 use IvanMercedes\FlexFields\Resources\EntityResource;
 
@@ -53,7 +54,7 @@ class ListEntities extends ListRecords
 
     public function getManageCategoriesUrl(int $entityId): string
     {
-        return \IvanMercedes\FlexFields\Resources\EntityCategoryResource::getUrl('index', ['entity' => $entityId]);
+        return EntityCategoryResource::getUrl('index', ['entity' => $entityId]);
     }
 
     protected function getHeaderActions(): array

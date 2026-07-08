@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -43,7 +44,7 @@ class EntityRecord extends Model
         return $this->hasMany(FieldValue::class, 'entity_record_id');
     }
 
-    public function categories(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function categories(): BelongsToMany
     {
         return $this->belongsToMany(
             EntityCategory::class,
