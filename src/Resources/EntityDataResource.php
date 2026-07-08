@@ -23,7 +23,6 @@ use IvanMercedes\FlexFields\Models\EntityCategory;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Resources\EntityDataResource\Pages;
 use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
-use IvanMercedes\FlexFields\Support\DynamicTableBuilder;
 use IvanMercedes\FlexFields\Support\Label;
 use UnitEnum;
 
@@ -165,7 +164,6 @@ class EntityDataResource extends Resource
     public static function table(Table $table): Table
     {
         $entity = static::getCurrentEntity();
-        $columns = DynamicTableBuilder::build($entity);
 
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($entity) {
@@ -175,7 +173,7 @@ class EntityDataResource extends Resource
                     $query->where('entity_id', $entity->id);
                 }
             })
-            ->columns(array_merge([
+            ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label(Label::trans('flex-fields::flex-fields.record.fields.id'))
                     ->sortable()
@@ -197,12 +195,12 @@ class EntityDataResource extends Resource
                         'archived' => 'gray',
                         default => 'gray',
                     }),
-            ], $columns, [
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label(Label::trans('flex-fields::flex-fields.record.fields.updated_at'))
                     ->since()
                     ->sortable(),
-            ]))
+            ])
             ->filters([
                 Tables\Filters\SelectFilter::make('entity_id')
                     ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.entity'))

@@ -26,7 +26,6 @@ return new class extends Migration
             $table->boolean('is_required')->default(false);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_searchable')->default(false);
-            $table->boolean('is_shown_in_list')->default(true);
             $table->string('width')->default('full');     // full | half | third
             $table->timestamps();
 

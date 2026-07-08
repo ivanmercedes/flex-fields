@@ -123,10 +123,6 @@ class CustomFieldResource extends Resource
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.is_searchable'))
                         ->default(false),
 
-                    Forms\Components\Toggle::make('is_shown_in_list')
-                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.is_shown_in_list'))
-                        ->default(true),
-
                     Forms\Components\Toggle::make('is_active')
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.is_active'))
                         ->default(true),
@@ -202,10 +198,6 @@ class CustomFieldResource extends Resource
 
                 Tables\Columns\IconColumn::make('is_required')
                     ->label(Label::trans('flex-fields::flex-fields.custom_field.table.required_short'))
-                    ->boolean(),
-
-                Tables\Columns\IconColumn::make('is_shown_in_list')
-                    ->label(Label::trans('flex-fields::flex-fields.custom_field.table.in_list'))
                     ->boolean(),
 
                 Tables\Columns\IconColumn::make('is_active')
