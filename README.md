@@ -17,6 +17,7 @@
 - **16+ Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, and tags.
 - **Dynamic Forms & Tables:** Forms for each entity are generated automatically from its field definitions. Tables are populated dynamically with fields marked as "Show in list".
 - **Drag-and-Drop Reordering:** Easily rearrange custom fields within an entity.
+- **Entity Categories:** Create hierarchical categories and subcategories per entity, and categorize your records easily.
 - **EAV Storage:** Robust and scalable Entity-Attribute-Value storage pattern natively adapted for Eloquent.
 - **Built-in Dashboard & Widget:** Visual overview of all entities, fields, and records, plus an embeddable stats widget.
 - **Field Width & Validation:** Define grid widths (full, half, one-third) and toggle constraints (required, searchable, active) per field.
@@ -79,6 +80,9 @@ An **Entity** represents a custom data type. For example: `Product` (slug: `prod
 ### Custom Fields
 A **Custom Field** is attached to an Entity. It defines the type of data, a unique machine-readable key (auto-generated from the label), layout formatting (order, width), and behavior toggles (searchable, required, shown in list).
 
+### Entity Categories
+Entities support isolated **Categories and Subcategories**. You can build hierarchical taxonomies specific to an entity and assign them dynamically to your records.
+
 ### Entity Records
 When adding records to an entity, the form elements and structure are dynamically built via the Filament form builder using the definitions from your custom fields. All input is securely stored using the EAV pattern in `ff_field_values`.
 
@@ -108,6 +112,9 @@ if ($records->isNotEmpty()) {
     // Retrieve all values as an array
     // Example: ['price' => 99.99, 'product_name' => 'Awesome Widget']
     $data = $firstRecord->data; 
+
+    // Retrieve the record's assigned categories
+    $categories = $firstRecord->categories;
 
     // Update or set a new value programmatically
     $firstRecord->setValue('price', 149.99);
@@ -170,7 +177,9 @@ For those curious about the underlying EAV (Entity-Attribute-Value) structure:
 
 - **`ff_entities`**: Defines the "type" of the data grouping (e.g., Products, Services).
 - **`ff_custom_fields`**: Serves as the "columns/attributes" logic mapped to an entity.
+- **`ff_entity_categories`**: Stores hierarchical categories specifically scoped to an entity.
 - **`ff_entity_records`**: A master identifier that holds one row per recorded entry.
+- **`ff_entity_record_category`**: Pivot table mapping records to their assigned categories.
 - **`ff_field_values`**: Holds the individual data values mapped. Effectively one row per (record × field) pair.
 
 ---
