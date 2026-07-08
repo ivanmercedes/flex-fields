@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/packagist/l/ivanmercedes/flex-fields.svg?style=flat-square)](https://packagist.org/packages/ivanmercedes/flex-fields)
 [![PHP version support](https://img.shields.io/packagist/php-v/ivanmercedes/flex-fields.svg?style=flat-square)](https://packagist.org/packages/ivanmercedes/flex-fields)
 [![Run Laravel Pint](https://github.com/ivanmercedes/flex-fields/actions/workflows/laravel-pint.yml/badge.svg)](https://github.com/ivanmercedes/flex-fields/actions/workflows/laravel-pint.yml)
+
+
 **FlexFields** brings the power of dynamic schemas to Laravel and the [Filament](https://filamentphp.com) admin panel. Think of it as **Advanced Custom Fields (ACF)** adapted to the Filament ecosystem. It allows you to create Custom Entities (like post types: "Products", "Employees", "Events") and attach customizable fields to them on the fly—without having to modify your database schema every time.
 
 ---
