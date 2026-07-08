@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * EntityRecord — a single row/entry for a given Entity.
@@ -24,6 +25,7 @@ class EntityRecord extends Model
     protected $fillable = [
         'entity_id',
         'title',
+        'slug',
         'status',   // draft | published | archived
         'order',
         'meta',     // JSON: any extra metadata
@@ -89,5 +91,29 @@ class EntityRecord extends Model
             ['custom_field_id' => $field->id],
             ['value' => is_array($value) ? json_encode($value) : $value]
         );
+    }
+
+    protected static function booted(): void
+    {
+        $generateUniqueSlug = function (EntityRecord $record) {
+            if (empty($record->slug)) {
+                $slug = Str::slug($record->title);
+                $originalSlug = $slug;
+                $count = 1;
+
+                while (static::where('slug', $slug)
+                    ->where('entity_id', $record->entity_id)
+                    ->where('id', '!=', $record->id)
+                    ->exists()) {
+                    $slug = $originalSlug . '-' . $count;
+                    $count++;
+                }
+
+                $record->slug = $slug;
+            }
+        };
+
+        static::creating($generateUniqueSlug);
+        static::updating($generateUniqueSlug);
     }
 }

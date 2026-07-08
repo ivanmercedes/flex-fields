@@ -15,7 +15,6 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -50,13 +49,22 @@ class EntityResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(
-                                fn ($state, Set $set) => $set('slug', Str::slug($state))
-                            ),
+                            ->afterStateUpdated(function ($state, $set, $record) {
+                                if (empty($state)) {
+                                    return;
+                                }
+                                $slug = Str::slug($state);
+                                $originalSlug = $slug;
+                                $count = 1;
+                                while (Entity::where('slug', $slug)->where('id', '!=', $record?->id)->exists()) {
+                                    $slug = $originalSlug . '-' . $count;
+                                    $count++;
+                                }
+                                $set('slug', $slug);
+                            }),
 
                         Forms\Components\TextInput::make('slug')
                             ->label(Label::trans('flex-fields::flex-fields.entity.fields.slug'))
-                            ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
                             ->helperText(Label::trans('flex-fields::flex-fields.entity.helpers.slug')),

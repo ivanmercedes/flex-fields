@@ -66,10 +66,22 @@ class Entity extends Model
     // Auto-generate slug from name
     protected static function booted(): void
     {
-        static::creating(function (Entity $entity) {
+        $generateUniqueSlug = function (Entity $entity) {
             if (empty($entity->slug)) {
-                $entity->slug = Str::slug($entity->name);
+                $slug = Str::slug($entity->name);
+                $originalSlug = $slug;
+                $count = 1;
+
+                while (static::where('slug', $slug)->where('id', '!=', $entity->id)->exists()) {
+                    $slug = $originalSlug . '-' . $count;
+                    $count++;
+                }
+
+                $entity->slug = $slug;
             }
-        });
+        };
+
+        static::creating($generateUniqueSlug);
+        static::updating($generateUniqueSlug);
     }
 }

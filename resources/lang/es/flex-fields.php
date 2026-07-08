@@ -132,6 +132,7 @@ return [
         ],
         'fields' => [
             'title' => 'Título del registro',
+            'slug' => 'Slug',
             'status' => 'Estado',
             'id' => 'ID',
             'title_column' => 'Título',
@@ -144,6 +145,7 @@ return [
             'tags' => 'Agregar tags...',
         ],
         'helpers' => [
+            'slug' => 'Se genera automáticamente si se deja vacío.',
             'empty_fields' => 'Esta entidad no tiene campos personalizados activos todavía. Agrégalos en la sección de campos personalizados.',
             'json' => 'Introduce un JSON válido.',
         ],

@@ -131,6 +131,7 @@ return [
         ],
         'fields' => [
             'title' => 'Record Title',
+            'slug' => 'Slug',
             'status' => 'Status',
             'id' => 'ID',
             'title_column' => 'Title',
@@ -143,6 +144,7 @@ return [
             'tags' => 'Add tags...',
         ],
         'helpers' => [
+            'slug' => 'Auto-generated if left empty.',
             'empty_fields' => 'This entity has no active custom fields yet. Add some in the Custom Fields section.',
             'json' => 'Enter valid JSON.',
         ],

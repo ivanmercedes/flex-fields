@@ -11,7 +11,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -50,7 +49,23 @@ class EntityCategoryResource extends Resource
                 ->required()
                 ->maxLength(255)
                 ->live(onBlur: true)
-                ->afterStateUpdated(fn ($state, Set $set) => $set('slug', Str::slug($state ?? ''))),
+                ->afterStateUpdated(function ($state, $set, $get, $record) {
+                    if (empty($state)) {
+                        return;
+                    }
+                    $slug = Str::slug($state);
+                    $originalSlug = $slug;
+                    $count = 1;
+                    $entityId = $get('entity_id');
+                    while (EntityCategory::where('slug', $slug)
+                        ->where('entity_id', $entityId)
+                        ->where('id', '!=', $record?->id)
+                        ->exists()) {
+                        $slug = $originalSlug . '-' . $count;
+                        $count++;
+                    }
+                    $set('slug', $slug);
+                }),
 
             Forms\Components\TextInput::make('slug')
                 ->label(Label::trans('flex-fields::flex-fields.category.fields.slug'))

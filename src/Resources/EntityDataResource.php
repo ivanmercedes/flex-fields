@@ -13,7 +13,6 @@ use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -53,7 +52,41 @@ class EntityDataResource extends Resource
             Forms\Components\TextInput::make('title')
                 ->label(Label::trans('flex-fields::flex-fields.record.fields.title'))
                 ->placeholder(Label::trans('flex-fields::flex-fields.record.placeholders.title'))
-                ->maxLength(255),
+                ->maxLength(255)
+                ->live(onBlur: true)
+                ->afterStateUpdated(function ($state, $set, $get, $record) {
+                    if (empty($state)) {
+                        return;
+                    }
+                    $slug = Str::slug($state);
+                    $originalSlug = $slug;
+                    $count = 1;
+                    $entityId = $get('entity_id');
+                    while (EntityRecord::where('slug', $slug)
+                        ->where('entity_id', $entityId)
+                        ->where('id', '!=', $record?->id)
+                        ->exists()) {
+                        $slug = $originalSlug . '-' . $count;
+                        $count++;
+                    }
+                    $set('slug', $slug);
+                }),
+
+            Forms\Components\TextInput::make('slug')
+                ->label(Label::trans('flex-fields::flex-fields.record.fields.slug'))
+                ->maxLength(255)
+                ->unique(
+                    EntityRecord::class,
+                    'slug',
+                    modifyRuleUsing: function ($rule, $get) {
+                        $entityId = $get('entity_id');
+                        if ($entityId) {
+                            return $rule->where('entity_id', $entityId);
+                        }
+
+                        return $rule;
+                    }
+                ),
 
             Forms\Components\Select::make('status')
                 ->label(Label::trans('flex-fields::flex-fields.record.fields.status'))
@@ -75,7 +108,22 @@ class EntityDataResource extends Resource
                         ->required()
                         ->maxLength(255)
                         ->live(onBlur: true)
-                        ->afterStateUpdated(fn ($state, Set $set) => $set('slug', Str::slug($state ?? ''))),
+                        ->afterStateUpdated(function ($state, $set, $get) {
+                            if (empty($state)) {
+                                return;
+                            }
+                            $slug = Str::slug($state);
+                            $originalSlug = $slug;
+                            $count = 1;
+                            $entityId = $get('entity_id');
+                            while (EntityCategory::where('slug', $slug)
+                                ->where('entity_id', $entityId)
+                                ->exists()) {
+                                $slug = $originalSlug . '-' . $count;
+                                $count++;
+                            }
+                            $set('slug', $slug);
+                        }),
 
                     Forms\Components\TextInput::make('slug')
                         ->label(Label::trans('flex-fields::flex-fields.category.fields.slug'))

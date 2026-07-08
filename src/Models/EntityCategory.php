@@ -52,10 +52,25 @@ class EntityCategory extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (EntityCategory $category) {
+        $generateUniqueSlug = function (EntityCategory $category) {
             if (empty($category->slug)) {
-                $category->slug = Str::slug($category->name);
+                $slug = Str::slug($category->name);
+                $originalSlug = $slug;
+                $count = 1;
+
+                while (static::where('slug', $slug)
+                    ->where('entity_id', $category->entity_id)
+                    ->where('id', '!=', $category->id)
+                    ->exists()) {
+                    $slug = $originalSlug . '-' . $count;
+                    $count++;
+                }
+
+                $category->slug = $slug;
             }
-        });
+        };
+
+        static::creating($generateUniqueSlug);
+        static::updating($generateUniqueSlug);
     }
 }

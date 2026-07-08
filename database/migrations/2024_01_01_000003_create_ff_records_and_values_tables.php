@@ -14,6 +14,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('entity_id')->constrained('ff_entities')->cascadeOnDelete();
             $table->string('title')->nullable();
+            $table->string('slug')->nullable();
             $table->string('status')->default('published'); // draft | published | archived
             $table->integer('order')->default(0);
             $table->json('meta')->nullable();
