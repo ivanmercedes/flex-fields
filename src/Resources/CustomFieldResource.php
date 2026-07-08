@@ -135,11 +135,6 @@ class CustomFieldResource extends Resource
                             'third' => Label::trans('flex-fields::flex-fields.custom_field.widths.third'),
                         ])
                         ->default('full'),
-
-                    Forms\Components\TextInput::make('order')
-                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.order'))
-                        ->numeric()
-                        ->default(0),
                 ]),
 
             Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.default_value'))
