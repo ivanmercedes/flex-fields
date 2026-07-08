@@ -11,10 +11,12 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityCategory;
 use IvanMercedes\FlexFields\Resources\EntityCategoryResource\Pages;
@@ -46,7 +48,9 @@ class EntityCategoryResource extends Resource
             Forms\Components\TextInput::make('name')
                 ->label(Label::trans('flex-fields::flex-fields.category.fields.name'))
                 ->required()
-                ->maxLength(255),
+                ->maxLength(255)
+                ->live(onBlur: true)
+                ->afterStateUpdated(fn ($state, Set $set) => $set('slug', Str::slug($state ?? ''))),
 
             Forms\Components\TextInput::make('slug')
                 ->label(Label::trans('flex-fields::flex-fields.category.fields.slug'))

@@ -10,12 +10,16 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Entity;
+use IvanMercedes\FlexFields\Models\EntityCategory;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Resources\EntityDataResource\Pages;
 use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
@@ -60,7 +64,46 @@ class EntityDataResource extends Resource
                 ->label(Label::trans('flex-fields::flex-fields.record.fields.categories'))
                 ->multiple()
                 ->relationship('categories', 'name', fn (Builder $query) => $query->where('entity_id', $entity?->id ?? 0))
-                ->preload(),
+                ->preload()
+                ->createOptionForm([
+                    Forms\Components\Hidden::make('entity_id')
+                        ->default($entity?->id),
+
+                    Forms\Components\TextInput::make('name')
+                        ->label(Label::trans('flex-fields::flex-fields.category.fields.name'))
+                        ->required()
+                        ->maxLength(255)
+                        ->live(onBlur: true)
+                        ->afterStateUpdated(fn ($state, Set $set) => $set('slug', Str::slug($state ?? ''))),
+
+                    Forms\Components\TextInput::make('slug')
+                        ->label(Label::trans('flex-fields::flex-fields.category.fields.slug'))
+                        ->maxLength(255)
+                        ->unique(
+                            EntityCategory::class,
+                            'slug',
+                            modifyRuleUsing: function ($rule, Get $get) {
+                                $entityId = $get('entity_id');
+                                if ($entityId) {
+                                    return $rule->where('entity_id', $entityId);
+                                }
+
+                                return $rule;
+                            }
+                        )
+                        ->helperText(Label::trans('flex-fields::flex-fields.category.helpers.slug')),
+
+                    Forms\Components\Select::make('parent_id')
+                        ->label(Label::trans('flex-fields::flex-fields.category.fields.parent'))
+                        ->relationship('parent', 'name', fn (Builder $query) => $query->where('entity_id', $entity?->id ?? 0))
+                        ->searchable()
+                        ->preload(),
+
+                    Forms\Components\Textarea::make('description')
+                        ->label(Label::trans('flex-fields::flex-fields.category.fields.description'))
+                        ->maxLength(65535)
+                        ->columnSpanFull(),
+                ]),
         ];
 
         if ($entity) {
