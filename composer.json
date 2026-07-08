@@ -30,6 +30,11 @@
             "IvanMercedes\\FlexFields\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -38,11 +43,17 @@
         }
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require-dev": {
-        "laravel/pint": "^1.29"
+        "laravel/pint": "^1.29",
+        "orchestra/testbench": "^11.1",
+        "pestphp/pest": "^4.7",
+        "pestphp/pest-plugin-laravel": "^4.1"
     }
 }
