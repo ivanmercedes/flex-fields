@@ -50,6 +50,7 @@ return [
         'actions' => [
             'manage_fields' => 'Campos',
             'view_records' => 'Registros',
+            'manage_categories' => 'Categorías',
         ],
         'notifications' => [
             'cannot_delete_title' => 'No se puede eliminar',

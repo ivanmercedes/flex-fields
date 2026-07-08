@@ -36,6 +36,7 @@ class FlexFieldsPlugin implements Plugin
             EntityResource::class,
             CustomFieldResource::class,
             EntityDataResource::class,
+            \IvanMercedes\FlexFields\Resources\EntityCategoryResource::class,
         ];
 
         $pages = [];

@@ -49,6 +49,7 @@ return [
         'actions' => [
             'manage_fields' => 'Fields',
             'view_records' => 'Records',
+            'manage_categories' => 'Categories',
         ],
         'notifications' => [
             'cannot_delete_title' => 'Cannot delete',

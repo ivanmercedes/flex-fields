@@ -54,12 +54,16 @@
         {{-- Actions --}}
         <div class="ff-entity-card__actions flex gap-2">
             <a href="{{ $this->getEntityDataUrl($entity['id']) }}"
-               class="ff-entity-card__action ff-entity-card__action--primary flex-1 text-center text-xs font-medium px-3 py-2 rounded-lg bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 transition-colors">
-                View Records
+               class="ff-entity-card__action ff-entity-card__action--primary flex-1 text-center text-xs font-medium px-2 py-2 rounded-lg bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 transition-colors">
+                Records
             </a>
             <a href="{{ $this->getManageFieldsUrl($entity['id']) }}"
-               class="ff-entity-card__action ff-entity-card__action--info flex-1 text-center text-xs font-medium px-3 py-2 rounded-lg bg-info-50 dark:bg-info-500/10 text-info-600 dark:text-info-400 hover:bg-info-100 transition-colors">
-                Manage Fields
+               class="ff-entity-card__action ff-entity-card__action--info flex-1 text-center text-xs font-medium px-2 py-2 rounded-lg bg-info-50 dark:bg-info-500/10 text-info-600 dark:text-info-400 hover:bg-info-100 transition-colors">
+                Fields
+            </a>
+            <a href="{{ $this->getManageCategoriesUrl($entity['id']) }}"
+               class="ff-entity-card__action ff-entity-card__action--warning flex-1 text-center text-xs font-medium px-2 py-2 rounded-lg bg-warning-50 dark:bg-warning-500/10 text-warning-600 dark:text-warning-400 hover:bg-warning-100 transition-colors">
+                Categories
             </a>
             <a href="{{ $this->getEditEntityUrl($entity['id']) }}"
                class="ff-entity-card__action ff-entity-card__action--neutral text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 transition-colors">

@@ -47,8 +47,13 @@ class ListEntities extends ListRecords
     public function getManageFieldsUrl(int $entityId): string
     {
         return CustomFieldResource::getUrl('index', [
-            'filters[entity_id][value]' => $entityId,
+            'tableFilters[entity_id][value]' => $entityId,
         ]);
+    }
+
+    public function getManageCategoriesUrl(int $entityId): string
+    {
+        return \IvanMercedes\FlexFields\Resources\EntityCategoryResource::getUrl('index', ['entity' => $entityId]);
     }
 
     protected function getHeaderActions(): array

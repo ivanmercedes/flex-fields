@@ -164,6 +164,14 @@ class EntityResource extends Resource
                         fn (Entity $record) => EntityDataResource::getUrl('index', ['entity' => $record->id])
                     ),
 
+                Action::make('manage_categories')
+                    ->label(Label::trans('flex-fields::flex-fields.entity.actions.manage_categories'))
+                    ->icon('heroicon-o-tag')
+                    ->color('warning')
+                    ->url(
+                        fn (Entity $record) => \IvanMercedes\FlexFields\Resources\EntityCategoryResource::getUrl('index', ['entity' => $record->id])
+                    ),
+
                 EditAction::make(),
                 DeleteAction::make()
                     ->before(function (Entity $record, DeleteAction $action) {
