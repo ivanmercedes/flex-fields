@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace IvanMercedes\FlexFields\Resources;
 
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -172,6 +173,14 @@ class EntityDataResource extends Resource
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                Action::make('manage_categories')
+                    ->label(Label::trans('flex-fields::flex-fields.entity.actions.manage_categories'))
+                    ->icon('heroicon-o-tag')
+                    ->color('warning')
+                    ->url(fn () => $entity ? EntityCategoryResource::getUrl('index', ['entity' => $entity->id]) : null)
+                    ->visible(fn () => $entity !== null),
             ]);
     }
 
