@@ -198,6 +198,12 @@ For those curious about the underlying EAV (Entity-Attribute-Value) structure:
 
 ---
 
+## Roadmap
+
+Curious about what's coming next? Check out the [ROADMAP.md](ROADMAP.md) for planned features and upcoming versions.
+
+---
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
