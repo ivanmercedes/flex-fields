@@ -109,6 +109,14 @@ return [
         'label' => 'Categoría',
         'plural_label' => 'Categorías',
         'navigation_label' => 'Categorías',
+        'sections' => [
+            'details' => 'Detalles de la categoría',
+            'hierarchy' => 'Jerarquía y descripción',
+        ],
+        'descriptions' => [
+            'details' => 'Define un nombre y un slug único para esta categoría.',
+            'hierarchy' => 'Opcionalmente asigna una categoría superior y agrega una descripción.',
+        ],
         'fields' => [
             'name' => 'Nombre',
             'slug' => 'Slug',
@@ -118,6 +126,9 @@ return [
         ],
         'helpers' => [
             'slug' => 'Se genera automáticamente si se deja vacío.',
+        ],
+        'placeholders' => [
+            'parent' => 'Ninguna (categoría de nivel raíz)',
         ],
     ],
     'record' => [

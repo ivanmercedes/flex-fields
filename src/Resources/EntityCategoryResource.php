@@ -11,6 +11,8 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -44,51 +46,66 @@ class EntityCategoryResource extends Resource
             Forms\Components\Hidden::make('entity_id')
                 ->default($entity?->id),
 
-            Forms\Components\TextInput::make('name')
-                ->label(Label::trans('flex-fields::flex-fields.category.fields.name'))
-                ->required()
-                ->maxLength(255)
-                ->live(onBlur: true)
-                ->afterStateUpdated(function ($state, $set, $get, $record) {
-                    if (empty($state)) {
-                        return;
-                    }
-                    $slug = Str::slug($state);
-                    $originalSlug = $slug;
-                    $count = 1;
-                    $entityId = $get('entity_id');
-                    while (EntityCategory::where('slug', $slug)
-                        ->where('entity_id', $entityId)
-                        ->where('id', '!=', $record?->id)
-                        ->exists()) {
-                        $slug = $originalSlug . '-' . $count;
-                        $count++;
-                    }
-                    $set('slug', $slug);
-                }),
+            Section::make(Label::trans('flex-fields::flex-fields.category.sections.details'))
+                ->description(Label::trans('flex-fields::flex-fields.category.descriptions.details'))
+                ->columnSpanFull()
+                ->schema([
+                    Grid::make(2)->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label(Label::trans('flex-fields::flex-fields.category.fields.name'))
+                            ->required()
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function ($state, $set, $get, $record) {
+                                if (empty($state)) {
+                                    return;
+                                }
+                                $slug = Str::slug($state);
+                                $originalSlug = $slug;
+                                $count = 1;
+                                $entityId = $get('entity_id');
+                                while (EntityCategory::where('slug', $slug)
+                                    ->where('entity_id', $entityId)
+                                    ->where('id', '!=', $record?->id)
+                                    ->exists()) {
+                                    $slug = $originalSlug . '-' . $count;
+                                    $count++;
+                                }
+                                $set('slug', $slug);
+                            }),
 
-            Forms\Components\TextInput::make('slug')
-                ->label(Label::trans('flex-fields::flex-fields.category.fields.slug'))
-                ->maxLength(255)
-                ->unique(ignoreRecord: true, modifyRuleUsing: function ($rule) use ($entity) {
-                    if ($entity) {
-                        return $rule->where('entity_id', $entity->id);
-                    }
+                        Forms\Components\TextInput::make('slug')
+                            ->label(Label::trans('flex-fields::flex-fields.category.fields.slug'))
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true, modifyRuleUsing: function ($rule) use ($entity) {
+                                if ($entity) {
+                                    return $rule->where('entity_id', $entity->id);
+                                }
 
-                    return $rule;
-                })
-                ->helperText(Label::trans('flex-fields::flex-fields.category.helpers.slug')),
+                                return $rule;
+                            })
+                            ->helperText(Label::trans('flex-fields::flex-fields.category.helpers.slug')),
+                    ]),
+                ]),
 
-            Forms\Components\Select::make('parent_id')
-                ->label(Label::trans('flex-fields::flex-fields.category.fields.parent'))
-                ->relationship('parent', 'name', fn (Builder $query) => $query->where('entity_id', $entity?->id ?? 0))
-                ->searchable()
-                ->preload(),
+            Section::make(Label::trans('flex-fields::flex-fields.category.sections.hierarchy'))
+                ->description(Label::trans('flex-fields::flex-fields.category.descriptions.hierarchy'))
+                ->columnSpanFull()
+                ->schema([
+                    Forms\Components\Select::make('parent_id')
+                        ->label(Label::trans('flex-fields::flex-fields.category.fields.parent'))
+                        ->relationship('parent', 'name', fn (Builder $query) => $query->where('entity_id', $entity?->id ?? 0))
+                        ->searchable()
+                        ->preload()
+                        ->placeholder(Label::trans('flex-fields::flex-fields.category.placeholders.parent'))
+                        ->columnSpanFull(),
 
-            Forms\Components\Textarea::make('description')
-                ->label(Label::trans('flex-fields::flex-fields.category.fields.description'))
-                ->maxLength(65535)
-                ->columnSpanFull(),
+                    Forms\Components\Textarea::make('description')
+                        ->label(Label::trans('flex-fields::flex-fields.category.fields.description'))
+                        ->maxLength(65535)
+                        ->rows(3)
+                        ->columnSpanFull(),
+                ]),
         ]);
     }
 

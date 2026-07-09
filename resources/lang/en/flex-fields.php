@@ -108,6 +108,14 @@ return [
         'label' => 'Category',
         'plural_label' => 'Categories',
         'navigation_label' => 'Categories',
+        'sections' => [
+            'details' => 'Category Details',
+            'hierarchy' => 'Hierarchy & Description',
+        ],
+        'descriptions' => [
+            'details' => 'Define a name and a unique slug for this category.',
+            'hierarchy' => 'Optionally assign a parent category and add a description.',
+        ],
         'fields' => [
             'name' => 'Name',
             'slug' => 'Slug',
@@ -117,6 +125,9 @@ return [
         ],
         'helpers' => [
             'slug' => 'Auto-generated if left empty.',
+        ],
+        'placeholders' => [
+            'parent' => 'None (top-level category)',
         ],
     ],
     'record' => [
