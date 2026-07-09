@@ -147,19 +147,14 @@ To customize the default settings, publish the configuration file to your projec
 php artisan vendor:publish --tag="flex-fields-config"
 ```
 
-In `config/flex-fields.php`, you can do things like mapping additional custom field types or changing the default navigation group:
+In `config/flex-fields.php`, you can change the default navigation group name:
 
 ```php
 return [
-    'field_types' => [
-        // ... existing types ...
-        'my_custom_type' => 'My Custom UI Type',
-    ],
     'navigation_group' => 'Content',
 ];
 ```
 
-*Note: For new custom fields to map correctly to a Filament component, you must extend the core `DynamicFormBuilder::makeComponent()` macro to handle your new type's rendering logic.*
 
 ### Override Views
 
