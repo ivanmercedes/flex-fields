@@ -26,8 +26,8 @@
 
 ## Requirements
 
-- PHP 8.1 or higher
-- Filament 3.x / 4.x
+- PHP 8.3 or higher
+- Filament 4.x / 5.x
 
 ---
 
