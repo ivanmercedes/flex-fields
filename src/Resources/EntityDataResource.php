@@ -10,6 +10,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Navigation\NavigationItem;
@@ -19,6 +20,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use IvanMercedes\FlexFields\FlexFieldsPlugin;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityCategory;
 use IvanMercedes\FlexFields\Models\EntityRecord;
@@ -261,6 +263,13 @@ class EntityDataResource extends Resource
 
     public static function getNavigationItems(): array
     {
+        /** @var FlexFieldsPlugin|null $plugin */
+        $plugin = Filament::getCurrentPanel()?->getPlugin('flex-fields');
+
+        if ($plugin && ! $plugin->shouldShowEntitiesInMenu()) {
+            return [];
+        }
+
         $entities = Entity::currentTenant()
             ->where('is_active', true)
             ->where('show_in_menu', true)

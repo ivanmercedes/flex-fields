@@ -10,6 +10,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -111,7 +112,8 @@ class EntityResource extends Resource
 
                     Forms\Components\Toggle::make('show_in_menu')
                         ->label(Label::trans('flex-fields::flex-fields.entity.fields.show_in_menu'))
-                        ->default(true),
+                        ->default(true)
+                        ->visible(fn () => Filament::getCurrentPanel()?->getPlugin('flex-fields')?->shouldShowEntitiesInMenu() ?? true),
                 ]),
         ]);
     }
@@ -149,11 +151,13 @@ class EntityResource extends Resource
 
                 Tables\Columns\IconColumn::make('show_in_menu')
                     ->label(Label::trans('flex-fields::flex-fields.entity.table.in_menu'))
-                    ->boolean(),
+                    ->boolean()
+                    ->visible(fn () => Filament::getCurrentPanel()?->getPlugin('flex-fields')?->shouldShowEntitiesInMenu() ?? true),
 
                 Tables\Columns\TextColumn::make('menu_order')
                     ->label(Label::trans('flex-fields::flex-fields.entity.table.order'))
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn () => Filament::getCurrentPanel()?->getPlugin('flex-fields')?->shouldShowEntitiesInMenu() ?? true),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label(Label::trans('flex-fields::flex-fields.entity.table.updated_at'))

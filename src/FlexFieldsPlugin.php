@@ -19,6 +19,8 @@ class FlexFieldsPlugin implements Plugin
 
     protected bool $showOverviewWidget = true;
 
+    protected bool $showEntitiesInMenu = true;
+
     public static function make(): static
     {
         return app(static::class);
@@ -74,5 +76,17 @@ class FlexFieldsPlugin implements Plugin
         $this->showOverviewWidget = $show;
 
         return $this;
+    }
+
+    public function showEntitiesInMenu(bool $show = true): static
+    {
+        $this->showEntitiesInMenu = $show;
+
+        return $this;
+    }
+
+    public function shouldShowEntitiesInMenu(): bool
+    {
+        return $this->showEntitiesInMenu;
     }
 }

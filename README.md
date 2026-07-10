@@ -66,7 +66,8 @@ public function panel(Panel $panel): Panel
         ->plugins([
             FlexFieldsPlugin::make()
                 ->showDashboardPage(true)
-                ->showOverviewWidget(true),
+                ->showOverviewWidget(true)
+                ->showEntitiesInMenu(true), // Globally toggle entities in the sidebar
         ]);
 }
 ```

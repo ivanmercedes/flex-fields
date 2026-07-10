@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Filament Multi-Tenancy Support**: Architected and implemented support for Filament's multi-tenancy system. Models and Resources can now be scoped to a tenant via a configurable `tenant_id` column, managed via `config/flex-fields.php`.
 - **Dynamic Repeater Field Type**: Added support for structured sub-fields within a Repeater field. Includes a fluent `schema()` API on `FieldDefinition` to define nested sub-fields gracefully using closures (e.g., `->schema(function (Blueprint $table) { ... })`). *(Note: This feature was brought forward from the planned v0.4.0 roadmap).*
 - **Laravel Boost Integration**: Added official AI skill documentation (`SKILL.md`) in `resources/boost/skills/flex-fields/` for native auto-discovery by Laravel Boost. This empowers AI assistants with deep context about the package's EAV architecture and Schema Builder.
+- **Plugin Options**: Added `showEntitiesInMenu(bool)` method to `FlexFieldsPlugin` to globally disable/enable rendering entities in the sidebar navigation and automatically hide related UI options in `EntityResource`.
+
+### Fixed
+- **Tenant Isolation**: Fixed an issue where all entities across all tenants were shown in the sidebar menu and could be accessed via URL manipulation. Navigation items and dashboard metrics are now strictly scoped to the active tenant.
 
 ### Changed
 - **UI Adjustments**: Updated the layout of `CustomFieldResource` and `EntityResource` to stack form sections vertically in a single column, significantly improving layout readability.
