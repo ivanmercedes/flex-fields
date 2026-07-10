@@ -117,6 +117,20 @@ class FieldDefinition
         return $this;
     }
 
+    public function schema(\Closure $callback): self
+    {
+        $blueprint = new Blueprint($this->attributes['key'] . '_schema');
+        $callback($blueprint);
+
+        $fields = array_map(function (FieldDefinition $field) {
+            return $field->getAttributes();
+        }, $blueprint->getFields());
+
+        $this->attributes['settings']['schema'] = $fields;
+
+        return $this;
+    }
+
     public function getAttributes(): array
     {
         return $this->attributes;

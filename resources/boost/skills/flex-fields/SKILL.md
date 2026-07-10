@@ -78,24 +78,14 @@ return new class {
                    
             // Defining a Repeater Field (Nested Sub-fields)
             $schema->repeater('features', 'Product Features')
-                   ->settings([
-                       'schema' => [
-                           [
-                               'key' => 'feature_title',
-                               'label' => 'Feature Title',
-                               'type' => 'text',
-                               'width' => 'full',
-                               'is_required' => true,
-                           ],
-                           [
-                               'key' => 'feature_icon',
-                               'label' => 'Icon Name',
-                               'type' => 'text',
-                               'width' => 'half',
-                               'is_required' => false,
-                           ]
-                       ]
-                   ]);
+                   ->schema(function (Blueprint $table) {
+                       $table->text('feature_title', 'Feature Title')
+                             ->width('full')
+                             ->required();
+                             
+                       $table->text('feature_icon', 'Icon Name')
+                             ->width('half');
+                   });
         });
     }
 
@@ -110,7 +100,7 @@ return new class {
 - `$schema->text()`, `->textarea()`, `->rich()`, `->number()`, `->boolean()`, `->date()`, `->datetime()`
 - `$schema->select()`, `->multiselect()`, `->tags()`
 - `$schema->image()`, `->file()`, `->color()`, `->json()`
-- `$schema->repeater()` (requires `->settings(['schema' => [...]])`)
+- `$schema->repeater()` (requires `->schema(function(Blueprint $table) { ... })`)
 
 ### Available Field Modifiers
 - `->required(bool)`, `->placeholder(string)`, `->description(string)`, `->default(mixed)`

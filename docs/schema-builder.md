@@ -53,6 +53,11 @@ return new class
             
             $entity->color('theme_color', 'Product Theme Color');
             $entity->image('cover_image', 'Cover Image');
+            
+            $entity->repeater('features', 'Product Features')->schema(function (Blueprint $table) {
+                $table->string('feature_name', 'Feature')->required();
+                $table->string('feature_value', 'Value')->required();
+            });
         });
     }
 
@@ -101,6 +106,19 @@ The following methods are available on the `$entity` (Blueprint) object to creat
 - `$entity->json('key', 'Label')`
 - `$entity->image('key', 'Label')`
 - `$entity->color('key', 'Label')` (Color Picker)
+- `$entity->repeater('key', 'Label')`
+
+## Repeater Fields
+
+Repeaters allow you to define a set of sub-fields that can be duplicated multiple times by the user. You can define the schema of a repeater using the `schema` method and a closure:
+
+```php
+$entity->repeater('links', 'Useful Links')
+    ->schema(function (Blueprint $table) {
+        $table->string('url', 'URL')->required();
+        $table->string('label', 'Link Label');
+    });
+```
 
 ## Field Modifiers
 
