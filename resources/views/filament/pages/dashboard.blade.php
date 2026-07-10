@@ -36,7 +36,7 @@
                 <x-filament::icon icon="heroicon-o-cube" class="ff-empty-state__icon w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p class="font-medium">No entities yet.</p>
                 <p class="text-sm mt-1">Create your first entity to get started.</p>
-                <x-filament::button tag="a" :href="$this->getEditEntityUrl(0)" class="mt-4" icon="heroicon-o-plus">
+                <x-filament::button tag="a" :href="$this->getCreateEntityUrl()" class="mt-4" icon="heroicon-o-plus">
                     Create Entity
                 </x-filament::button>
             </div>

@@ -67,6 +67,11 @@ class FlexFieldsDashboard extends Page
         return EntityDataResource::getUrl('index', ['entity' => $entityId]);
     }
 
+    public function getCreateEntityUrl(): string
+    {
+        return EntityResource::getUrl('create');
+    }
+
     public function getEditEntityUrl(int $entityId): string
     {
         return EntityResource::getUrl('edit', ['record' => $entityId]);
