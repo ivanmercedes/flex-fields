@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Schema;
 
+use Closure;
 use Illuminate\Support\Str;
 
 class FieldDefinition
@@ -117,7 +118,7 @@ class FieldDefinition
         return $this;
     }
 
-    public function schema(\Closure $callback): self
+    public function schema(Closure $callback): self
     {
         $blueprint = new Blueprint($this->attributes['key'] . '_schema');
         $callback($blueprint);
