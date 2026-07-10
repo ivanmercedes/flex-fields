@@ -39,7 +39,7 @@ class EntityResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->components([
+        return $schema->columns(1)->components([
             Section::make(Label::trans('flex-fields::flex-fields.entity.sections.details'))
                 ->description(Label::trans('flex-fields::flex-fields.entity.descriptions.details'))
                 ->schema([
