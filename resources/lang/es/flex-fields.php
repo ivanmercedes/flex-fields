@@ -66,6 +66,7 @@ return [
         'sections' => [
             'identity' => 'Identidad del campo',
             'options' => 'Opciones',
+            'repeater_schema' => 'Esquema del Repetidor',
             'validation' => 'Validación y comportamiento',
             'default_value' => 'Valor por defecto',
         ],
@@ -77,6 +78,7 @@ return [
             'description' => 'Texto de ayuda / Descripción',
             'placeholder' => 'Placeholder',
             'choices' => 'Opciones',
+            'sub_fields' => 'Sub-campos',
             'option_value' => 'Valor (clave)',
             'option_label' => 'Etiqueta (visible)',
             'is_required' => 'Requerido',
@@ -103,6 +105,7 @@ return [
         ],
         'actions' => [
             'add_option' => 'Agregar opción',
+            'add_sub_field' => 'Agregar sub-campo',
         ],
     ],
     'category' => [
@@ -183,6 +186,7 @@ return [
         'richtext' => 'Editor de texto enriquecido',
         'json' => 'JSON / Código',
         'tags' => 'Etiquetas',
+        'repeater' => 'Repetidor (sub-campos)',
     ],
     'dashboard' => [
         'actions' => [

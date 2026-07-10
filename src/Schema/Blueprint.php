@@ -139,6 +139,11 @@ class Blueprint
         return $this->addField('tags', $key, $label);
     }
 
+    public function repeater(string $key, ?string $label = null): FieldDefinition
+    {
+        return $this->addField('repeater', $key, $label);
+    }
+
     public function json(string $key, ?string $label = null): FieldDefinition
     {
         return $this->addField('json', $key, $label);

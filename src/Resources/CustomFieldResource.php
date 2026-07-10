@@ -112,6 +112,48 @@ class CustomFieldResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.repeater_schema'))
+                ->visible(fn (Get $get) => $get('type') === 'repeater')
+                ->schema([
+                    Forms\Components\Repeater::make('settings.schema')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.sub_fields'))
+                        ->schema([
+                            Grid::make(2)->schema([
+                                Forms\Components\TextInput::make('label')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.label'))
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(
+                                        fn ($state, Set $set, Get $get) => $get('key') ? null : $set('key', Str::snake($state))
+                                    ),
+                                Forms\Components\TextInput::make('key')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.key'))
+                                    ->required(),
+                                Forms\Components\Select::make('type')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.type'))
+                                    ->options($fieldTypes)
+                                    ->default('text')
+                                    ->required(),
+                                Forms\Components\Select::make('width')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.width'))
+                                    ->options([
+                                        'full' => Label::trans('flex-fields::flex-fields.custom_field.widths.full'),
+                                        'half' => Label::trans('flex-fields::flex-fields.custom_field.widths.half'),
+                                        'third' => Label::trans('flex-fields::flex-fields.custom_field.widths.third'),
+                                    ])
+                                    ->default('full'),
+                                Forms\Components\Toggle::make('is_required')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.is_required'))
+                                    ->default(false)
+                                    ->columnSpanFull(),
+                            ]),
+                        ])
+                        ->addActionLabel(Label::trans('flex-fields::flex-fields.custom_field.actions.add_sub_field'))
+                        ->reorderable()
+                        ->collapsible()
+                        ->columnSpanFull(),
+                ]),
+
             Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.validation'))
                 ->columns(3)
                 ->schema([
@@ -181,7 +223,7 @@ class CustomFieldResource extends Resource
                     ->color(fn (string $state): string => match (true) {
                         $state === 'text' => 'gray',
                         $state === 'textarea' => 'info',
-                        in_array($state, ['select', 'multiselect']) => 'warning',
+                        in_array($state, ['select', 'multiselect', 'repeater']) => 'warning',
                         in_array($state, ['boolean', 'toggle']) => 'success',
                         in_array($state, ['file', 'image']) => 'danger',
                         default => 'gray',

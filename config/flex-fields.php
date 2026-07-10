@@ -32,6 +32,7 @@ return [
         'richtext' => 'flex-fields::flex-fields.field_types.richtext',
         'json' => 'flex-fields::flex-fields.field_types.json',
         'tags' => 'flex-fields::flex-fields.field_types.tags',
+        'repeater' => 'flex-fields::flex-fields.field_types.repeater',
     ],
 
     /*

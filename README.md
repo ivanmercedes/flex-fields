@@ -14,7 +14,7 @@
 ## Features
 
 - **Custom Entities:** Define any data structure (like post types) without touching database migrations.
-- **16+ Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, and tags.
+- **17+ Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, tags, and dynamic repeaters.
 - **Dynamic Forms & Tables:** Forms for each entity are generated automatically from its field definitions. Tables are populated dynamically with fields marked as "Show in list".
 - **Drag-and-Drop Reordering:** Easily rearrange custom fields within an entity.
 - **Entity Categories:** Create hierarchical categories and subcategories per entity, and categorize your records easily.

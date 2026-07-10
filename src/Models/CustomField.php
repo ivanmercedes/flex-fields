@@ -89,6 +89,7 @@ class CustomField extends Model
             'select' => 'string',
             'multiselect' => 'array',
             'tags' => 'array',
+            'repeater' => 'array',
             default => 'string',
         };
     }

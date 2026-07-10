@@ -65,6 +65,7 @@ return [
         'sections' => [
             'identity' => 'Field Identity',
             'options' => 'Options',
+            'repeater_schema' => 'Repeater Schema',
             'validation' => 'Validation & Behavior',
             'default_value' => 'Default Value',
         ],
@@ -76,6 +77,7 @@ return [
             'description' => 'Helper Text / Description',
             'placeholder' => 'Placeholder',
             'choices' => 'Choices',
+            'sub_fields' => 'Sub-fields',
             'option_value' => 'Value (key)',
             'option_label' => 'Label (displayed)',
             'is_required' => 'Required',
@@ -102,6 +104,7 @@ return [
         ],
         'actions' => [
             'add_option' => 'Add option',
+            'add_sub_field' => 'Add sub-field',
         ],
     ],
     'category' => [
@@ -182,6 +185,7 @@ return [
         'richtext' => 'Rich text editor',
         'json' => 'JSON / Code',
         'tags' => 'Tags',
+        'repeater' => 'Repeater (sub-fields)',
     ],
     'dashboard' => [
         'actions' => [

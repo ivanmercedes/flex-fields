@@ -214,6 +214,37 @@ class DynamicFormBuilder
 
                 break;
 
+            case 'repeater':
+                $schema = [];
+                $repeaterFields = $field->settings['schema'] ?? [];
+
+                if (is_array($repeaterFields) && count($repeaterFields) > 0) {
+                    foreach ($repeaterFields as $subFieldData) {
+                        // We instantiate a temporary CustomField in memory
+                        // to reuse all the rich field types inside the repeater
+                        $subField = new CustomField($subFieldData);
+                        $subFieldComponent = self::makeComponent($subField);
+                        if ($subFieldComponent) {
+                            $schema[] = $subFieldComponent;
+                        }
+                    }
+                } else {
+                    // Fallback if no schema is defined
+                    $schema[] = Forms\Components\TextInput::make('value')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.option_value'))
+                        ->required();
+                }
+
+                $component = Forms\Components\Repeater::make($key)
+                    ->label($field->label)
+                    ->schema($schema)
+                    ->columns(12)
+                    ->default($field->default_value ? json_decode($field->default_value, true) : null)
+                    ->reorderable()
+                    ->collapsible();
+
+                break;
+
             default:
                 $component = Forms\Components\TextInput::make($key)
                     ->label($field->label);

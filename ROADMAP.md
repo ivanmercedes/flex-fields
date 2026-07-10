@@ -56,7 +56,6 @@ The foundation. Everything needed to get started with dynamic entities and custo
 
 *Focus: power-user field types that cover complex real-world scenarios.*
 
-- [ ] **`repeater` field type** — structured sub-entries (e.g., product variants with size, color, stock)
 - [ ] **`relationship` field type** — link a field to records from another FlexFields entity
 - [ ] **`conditional` field visibility** — show/hide fields based on the value of another (`showWhen`)
 - [ ] **Visual Validation Builder** — UI for adding `required`, `min`, `max`, `regex` rules without raw JSON
