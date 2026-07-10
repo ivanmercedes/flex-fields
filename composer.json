@@ -35,6 +35,9 @@
             "providers": [
                 "IvanMercedes\\FlexFields\\FlexFieldsServiceProvider"
             ]
+        },
+        "boost": {
+            "skills": ".boost/skills"
         }
     },
     "config": {
