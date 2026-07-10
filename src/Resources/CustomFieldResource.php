@@ -41,7 +41,7 @@ class CustomFieldResource extends Resource
     {
         $fieldTypes = Label::options(config('flex-fields.field_types', []));
 
-        return $schema->components([
+        return $schema->columns(1)->components([
             Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.identity'))
                 ->columns(2)
                 ->schema([
