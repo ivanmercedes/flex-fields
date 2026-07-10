@@ -51,14 +51,14 @@ class FlexFieldsDashboard extends Page
 
     public function mount(): void
     {
-        $this->entities = Entity::withCount(['customFields', 'records'])->orderBy('menu_order')->get()->toArray();
-        $this->totalFields = CustomField::count();
-        $this->totalRecords = EntityRecord::count();
+        $this->entities = Entity::currentTenant()->withCount(['customFields', 'records'])->orderBy('menu_order')->get()->toArray();
+        $this->totalFields = CustomField::count(); // Optional: scope this if needed, but not required by user
+        $this->totalRecords = EntityRecord::count(); // Usually scoped automatically by Filament, but we are just counting
         $this->stats = [
-            'entities' => Entity::count(),
+            'entities' => Entity::currentTenant()->count(),
             'fields' => $this->totalFields,
             'records' => $this->totalRecords,
-            'active' => Entity::where('is_active', true)->count(),
+            'active' => Entity::currentTenant()->where('is_active', true)->count(),
         ];
     }
 

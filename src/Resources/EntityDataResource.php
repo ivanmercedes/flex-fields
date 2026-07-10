@@ -12,6 +12,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Get;
+use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -30,7 +31,7 @@ class EntityDataResource extends Resource
 {
     protected static ?string $model = EntityRecord::class;
 
-    protected static bool $shouldRegisterNavigation = false;
+    protected static bool $shouldRegisterNavigation = true;
 
     protected static BackedEnum | string | null $navigationIcon = 'heroicon-o-table-cells';
 
@@ -243,12 +244,42 @@ class EntityDataResource extends Resource
     public static function getCurrentEntity(): ?Entity
     {
         if ($entityId = self::resolveEntityId()) {
-            session(['ff_current_entity' => $entityId]);
+            $entity = Entity::currentTenant()->find($entityId);
 
-            return Entity::find($entityId);
+            if (! $entity) {
+                // If an entity ID was requested but it doesn't belong to the current tenant, abort.
+                abort(404, 'Entity not found or access denied for this tenant.');
+            }
+
+            session(['ff_current_entity' => $entity->id]);
+
+            return $entity;
         }
 
         return self::getDefaultEntity();
+    }
+
+    public static function getNavigationItems(): array
+    {
+        $entities = Entity::currentTenant()
+            ->where('is_active', true)
+            ->where('show_in_menu', true)
+            ->orderBy('menu_order')
+            ->get();
+
+        $navigationItems = [];
+
+        foreach ($entities as $entity) {
+            $navigationItems[] = NavigationItem::make("entity-{$entity->slug}")
+                ->label($entity->name)
+                ->icon($entity->icon ?? 'heroicon-o-cube')
+                ->url(fn (): string => static::getUrl('index', ['entity' => $entity->id]))
+                ->sort($entity->menu_order + 100)
+                ->isActiveWhen(fn (): bool => request()->get('entity') == $entity->id
+                    && request()->routeIs('filament.*.resources.ff-data.*'));
+        }
+
+        return $navigationItems;
     }
 
     public static function getPages(): array
@@ -337,7 +368,7 @@ class EntityDataResource extends Resource
 
     protected static function getDefaultEntity(): ?Entity
     {
-        $entity = Entity::where('is_active', true)->first();
+        $entity = Entity::currentTenant()->where('is_active', true)->first();
 
         if ($entity) {
             session(['ff_current_entity' => $entity->id]);
