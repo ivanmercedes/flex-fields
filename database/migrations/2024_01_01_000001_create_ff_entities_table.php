@@ -12,8 +12,9 @@ return new class extends Migration
     {
         Schema::create('ff_entities', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('tenant_id')->nullable()->index();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->string('icon')->default('heroicon-o-cube');
             $table->string('color')->default('#6366f1');
@@ -22,6 +23,8 @@ return new class extends Migration
             $table->integer('menu_order')->default(0);
             $table->json('settings')->nullable();
             $table->timestamps();
+
+            $table->unique(['tenant_id', 'slug']);
         });
     }
 

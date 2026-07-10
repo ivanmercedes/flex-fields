@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 
 /**
  * EntityRecord — a single row/entry for a given Entity.
@@ -18,11 +19,13 @@ use Illuminate\Support\Str;
  */
 class EntityRecord extends Model
 {
+    use BelongsToFlexTenant;
     use HasFactory;
 
     protected $table = 'ff_entity_records';
 
     protected $fillable = [
+        'tenant_id',
         'entity_id',
         'title',
         'slug',

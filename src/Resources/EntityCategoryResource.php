@@ -38,6 +38,16 @@ class EntityCategoryResource extends Resource
 
     protected static ?string $slug = 'ff-categories';
 
+    public static function isScopedToTenant(): bool
+    {
+        return config('flex-fields.tenancy.enabled', false) && config('flex-fields.tenancy.is_tenant_aware.categories', true);
+    }
+
+    public static function getTenantOwnershipRelationshipName(): string
+    {
+        return 'tenant';
+    }
+
     public static function form(Schema $schema): Schema
     {
         $entity = static::getCurrentEntity();

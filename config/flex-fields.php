@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Models\Team;
 
 return [
     /*
@@ -10,6 +11,26 @@ return [
     */
 
     'enabled' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Multi-Tenancy Support
+    |--------------------------------------------------------------------------
+    */
+    'tenancy' => [
+        'enabled' => false,
+        'tenant_model' => Team::class,
+        'tenant_column' => 'tenant_id',
+
+        // Specify which models should be scoped to a tenant.
+        'is_tenant_aware' => [
+            'entities' => true,
+            'custom_fields' => true,
+            'categories' => true,
+            'records' => true,
+            'field_values' => true,
+        ],
+    ],
 
     /*
     | Field types available when creating custom fields.

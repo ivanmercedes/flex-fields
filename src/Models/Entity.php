@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 
 /**
  * Entity — like a "Post Type" in WordPress/ACF.
@@ -15,11 +16,13 @@ use Illuminate\Support\Str;
  */
 class Entity extends Model
 {
+    use BelongsToFlexTenant;
     use HasFactory;
 
     protected $table = 'ff_entities';
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'slug',
         'description',

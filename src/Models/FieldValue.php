@@ -7,15 +7,19 @@ namespace IvanMercedes\FlexFields\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 
 /**
  * FieldValue — stores the actual value for a field in a record (EAV).
  */
 class FieldValue extends Model
 {
+    use BelongsToFlexTenant;
+
     protected $table = 'ff_field_values';
 
     protected $fillable = [
+        'tenant_id',
         'entity_record_id',
         'custom_field_id',
         'value',

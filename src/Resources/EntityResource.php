@@ -37,6 +37,16 @@ class EntityResource extends Resource
 
     protected static ?string $slug = 'ff-entities';
 
+    public static function isScopedToTenant(): bool
+    {
+        return config('flex-fields.tenancy.enabled', false) && config('flex-fields.tenancy.is_tenant_aware.entities', true);
+    }
+
+    public static function getTenantOwnershipRelationshipName(): string
+    {
+        return 'tenant';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->columns(1)->components([

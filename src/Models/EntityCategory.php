@@ -10,14 +10,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 
 class EntityCategory extends Model
 {
+    use BelongsToFlexTenant;
     use HasFactory;
 
     protected $table = 'ff_entity_categories';
 
     protected $fillable = [
+        'tenant_id',
         'entity_id',
         'parent_id',
         'name',

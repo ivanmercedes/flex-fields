@@ -12,6 +12,7 @@ return new class extends Migration
     {
         Schema::create('ff_entity_categories', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('tenant_id')->nullable()->index();
             $table->foreignId('entity_id')->constrained('ff_entities')->cascadeOnDelete();
             $table->foreignId('parent_id')->nullable()->constrained('ff_entity_categories')->nullOnDelete();
             $table->string('name');
@@ -19,7 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
 
-            $table->unique(['entity_id', 'slug']);
+            $table->unique(['tenant_id', 'entity_id', 'slug'], 'ff_ent_cat_tenant_ent_slug_unique');
         });
 
         Schema::create('ff_entity_record_category', function (Blueprint $table) {

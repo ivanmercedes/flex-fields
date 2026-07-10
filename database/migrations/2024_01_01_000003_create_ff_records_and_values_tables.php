@@ -12,6 +12,7 @@ return new class extends Migration
     {
         Schema::create('ff_entity_records', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('tenant_id')->nullable()->index();
             $table->foreignId('entity_id')->constrained('ff_entities')->cascadeOnDelete();
             $table->string('title')->nullable();
             $table->string('slug')->nullable();
@@ -25,6 +26,7 @@ return new class extends Migration
 
         Schema::create('ff_field_values', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('tenant_id')->nullable()->index();
             $table->foreignId('entity_record_id')
                 ->constrained('ff_entity_records')
                 ->cascadeOnDelete();

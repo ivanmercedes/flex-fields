@@ -15,6 +15,7 @@
 
 - **Custom Entities:** Define any data structure (like post types) without touching database migrations.
 - **17+ Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, tags, and dynamic repeaters.
+ - **Multi-Tenancy Support:** Full compatibility with Filament's multi-tenancy system, allowing scoped entities, fields, and records per tenant.
 - **Dynamic Forms & Tables:** Forms for each entity are generated automatically from its field definitions. Tables are populated dynamically with fields marked as "Show in list".
 - **Drag-and-Drop Reordering:** Easily rearrange custom fields within an entity.
 - **Entity Categories:** Create hierarchical categories and subcategories per entity, and categorize your records easily.
@@ -147,10 +148,16 @@ To customize the default settings, publish the configuration file to your projec
 php artisan vendor:publish --tag="flex-fields-config"
 ```
 
-In `config/flex-fields.php`, you can change the default navigation group name:
+In `config/flex-fields.php`, you can configure Multi-Tenancy, change the default navigation group name, and more:
 
 ```php
 return [
+    'tenancy' => [
+        'enabled' => true,
+        'tenant_model' => App\Models\Team::class,
+        'tenant_column' => 'tenant_id',
+    ],
+    
     'navigation_group' => 'Content',
 ];
 ```

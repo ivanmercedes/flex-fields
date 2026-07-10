@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 
 /**
  * CustomField — a field definition attached to an Entity.
@@ -16,11 +17,13 @@ use Illuminate\Support\Str;
  */
 class CustomField extends Model
 {
+    use BelongsToFlexTenant;
     use HasFactory;
 
     protected $table = 'ff_custom_fields';
 
     protected $fillable = [
+        'tenant_id',
         'entity_id',
         'label',
         'key',

@@ -37,6 +37,16 @@ class CustomFieldResource extends Resource
 
     protected static ?string $slug = 'ff-custom-fields';
 
+    public static function isScopedToTenant(): bool
+    {
+        return config('flex-fields.tenancy.enabled', false) && config('flex-fields.tenancy.is_tenant_aware.custom_fields', true);
+    }
+
+    public static function getTenantOwnershipRelationshipName(): string
+    {
+        return 'tenant';
+    }
+
     public static function form(Schema $schema): Schema
     {
         $fieldTypes = Label::options(config('flex-fields.field_types', []));

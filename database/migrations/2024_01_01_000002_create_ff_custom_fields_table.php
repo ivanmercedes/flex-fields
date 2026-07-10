@@ -12,6 +12,7 @@ return new class extends Migration
     {
         Schema::create('ff_custom_fields', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('tenant_id')->nullable()->index();
             $table->foreignId('entity_id')->constrained('ff_entities')->cascadeOnDelete();
             $table->string('label');
             $table->string('key');
