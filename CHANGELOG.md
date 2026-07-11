@@ -15,10 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Plugin Options**: Added `showEntitiesInMenu(bool)` method to `FlexFieldsPlugin` to globally disable/enable rendering entities in the sidebar navigation and automatically hide related UI options in `EntityResource`.
 
 ### Fixed
+- **Database Migrations**: Resolved a rollback error when dropping the `deleted_at` column by explicitly dropping its index first.
 - **URL Filtering**: Resolved an issue where deep links to the Custom Fields page were not correctly applying the entity filter due to Filament's nested query parameter parsing. Switched to using a simple `?entity=ID` query parameter to pre-fill the table filter securely.
 - **Tenant Isolation**: Fixed an issue where all entities across all tenants were shown in the sidebar menu and could be accessed via URL manipulation. Navigation items and dashboard metrics are now strictly scoped to the active tenant.
 
 ### Changed
+- **Database Optimizations**: Migrated all `json` columns to `jsonb` for significant performance improvements on supported databases (like PostgreSQL) without breaking MySQL/SQLite compatibility. Also added a missing index on the `deleted_at` column and a unique compound index for `[tenant_id, entity_id, slug]` on `ff_entity_records` to optimize frontend lookups.
 - **UI Adjustments**: Updated the layout of `CustomFieldResource` and `EntityResource` to stack form sections vertically in a single column, significantly improving layout readability.
 
 ## [v0.1.1] - 2026-07-09
