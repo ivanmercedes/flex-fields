@@ -2,8 +2,16 @@
 
 This document outlines the planned features and improvements for future versions of **ivanmercedes/flex-fields**.
 
-> **Current stable release:** `v0.1.0`
+> **Current stable release:** `v0.1.3`
 > Community feedback and contributions are always welcome. Feel free to open an issue or discussion on GitHub.
+
+---
+
+## ✅ v0.1.3 — Security & CI Improvements *(current)*
+
+- [x] **Security Policy** — Added `SECURITY.md`
+- [x] **Dependabot** — Configured automated dependency updates
+- [x] **GitHub Actions** — Pinned actions to secure SHAs
 
 ---
 
@@ -13,7 +21,7 @@ This document outlines the planned features and improvements for future versions
 
 ---
 
-## ✅ v0.1.0 — Initial Release *(current)*
+## ✅ v0.1.0 — Initial Release
 The foundation. Everything needed to get started with dynamic entities and custom fields inside Filament.
 
 - Custom Entities (like post types)
