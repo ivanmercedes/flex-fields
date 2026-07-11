@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('show_in_menu')->default(true);
             $table->integer('menu_order')->default(0);
-            $table->json('settings')->nullable();
+            $table->jsonb('settings')->nullable();
             $table->timestamps();
 
             $table->unique(['tenant_id', 'slug']);

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('slug')->nullable();
             $table->string('status')->default('published'); // draft | published | archived
             $table->integer('order')->default(0);
-            $table->json('meta')->nullable();
+            $table->jsonb('meta')->nullable();
             $table->timestamps();
 
             $table->index(['entity_id', 'status']);

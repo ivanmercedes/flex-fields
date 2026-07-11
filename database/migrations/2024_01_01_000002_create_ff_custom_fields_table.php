@@ -20,9 +20,9 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('placeholder')->nullable();
             $table->text('default_value')->nullable();
-            $table->json('options')->nullable();           // for select / multiselect
-            $table->json('validation_rules')->nullable();  // ['required', 'max:255']
-            $table->json('settings')->nullable();          // type-specific extra config
+            $table->jsonb('options')->nullable();           // for select / multiselect
+            $table->jsonb('validation_rules')->nullable();  // ['required', 'max:255']
+            $table->jsonb('settings')->nullable();          // type-specific extra config
             $table->integer('order')->default(0);
             $table->boolean('is_required')->default(false);
             $table->boolean('is_active')->default(true);
