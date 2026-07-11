@@ -257,6 +257,7 @@ class CustomFieldResource extends Resource
                 Tables\Filters\SelectFilter::make('entity_id')
                     ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.entity'))
                     ->options(Entity::pluck('name', 'id'))
+                    ->default(request()->query('entity'))
                     ->searchable(),
 
                 Tables\Filters\SelectFilter::make('type')

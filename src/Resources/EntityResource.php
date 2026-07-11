@@ -175,7 +175,7 @@ class EntityResource extends Resource
                     ->icon('heroicon-o-variable')
                     ->color('info')
                     ->url(
-                        fn (Entity $record) => CustomFieldResource::getUrl('index', ['tableFilters[entity_id][value]' => $record->id])
+                        fn (Entity $record) => CustomFieldResource::getUrl('index', ['entity' => $record->id])
                     ),
 
                 Action::make('view_records')

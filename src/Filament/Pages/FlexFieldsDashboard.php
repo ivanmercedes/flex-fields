@@ -79,9 +79,7 @@ class FlexFieldsDashboard extends Page
 
     public function getManageFieldsUrl(int $entityId): string
     {
-        return CustomFieldResource::getUrl('index', [
-            'tableFilters[entity_id][value]' => $entityId,
-        ]);
+        return CustomFieldResource::getUrl('index', ['entity' => $entityId]);
     }
 
     public function getManageCategoriesUrl(int $entityId): string

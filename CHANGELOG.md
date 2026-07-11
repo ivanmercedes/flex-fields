@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Plugin Options**: Added `showEntitiesInMenu(bool)` method to `FlexFieldsPlugin` to globally disable/enable rendering entities in the sidebar navigation and automatically hide related UI options in `EntityResource`.
 
 ### Fixed
+- **URL Filtering**: Resolved an issue where deep links to the Custom Fields page were not correctly applying the entity filter due to Filament's nested query parameter parsing. Switched to using a simple `?entity=ID` query parameter to pre-fill the table filter securely.
 - **Tenant Isolation**: Fixed an issue where all entities across all tenants were shown in the sidebar menu and could be accessed via URL manipulation. Navigation items and dashboard metrics are now strictly scoped to the active tenant.
 
 ### Changed
