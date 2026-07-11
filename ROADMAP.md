@@ -7,8 +7,13 @@ This document outlines the planned features and improvements for future versions
 
 ---
 
-## ✅ v0.1.0 — Initial Release *(current)*
+## ✅ v0.1.2 — Soft Deletes Update
 
+- [x] **Soft Deletes on `EntityRecord`** — trash bin + restore action in the data resource
+
+---
+
+## ✅ v0.1.0 — Initial Release *(current)*
 The foundation. Everything needed to get started with dynamic entities and custom fields inside Filament.
 
 - Custom Entities (like post types)
@@ -36,7 +41,6 @@ The foundation. Everything needed to get started with dynamic entities and custo
 - [ ] **`DynamicFormBuilder` Macros** — allow third parties to register custom field types without forking
 - [ ] **Field caching** — cache active fields per entity with automatic invalidation on save
 - [ ] **`flex:status` Artisan command** — show entity/field/record count summary in the terminal
-- [ ] **Soft Deletes on `EntityRecord`** — trash bin + restore action in the data resource
 
 ---
 
