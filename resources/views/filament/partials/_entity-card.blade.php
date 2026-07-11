@@ -20,7 +20,7 @@
             </div>
             @if(! $entity['is_active'])
             <span class="ff-entity-card__badge text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">
-                Inactive
+                {{ __('flex-fields::flex-fields.entity.badges.inactive') }}
             </span>
             @endif
         </div>
@@ -37,14 +37,14 @@
                 <p class="text-lg font-bold text-gray-950 dark:text-white">
                     {{ $entity['custom_fields_count'] }}
                 </p>
-                <p class="text-xs text-gray-400">Fields</p>
+                <p class="text-xs text-gray-400">{{ __('flex-fields::flex-fields.entity.table.fields') }}</p>
             </div>
             <div class="ff-entity-card__divider w-px bg-gray-200 dark:bg-white/10"></div>
             <div class="ff-entity-card__counter text-center">
                 <p class="text-lg font-bold text-gray-950 dark:text-white">
                     {{ $entity['records_count'] }}
                 </p>
-                <p class="text-xs text-gray-400">Records</p>
+                <p class="text-xs text-gray-400">{{ __('flex-fields::flex-fields.entity.table.records') }}</p>
             </div>
         </div>
 
@@ -57,7 +57,7 @@
                 size="xs"
                 outlined
             >
-                Records
+                {{ __('flex-fields::flex-fields.entity.actions.view_records') }}
             </x-filament::button>
 
             <x-filament::button
@@ -67,7 +67,7 @@
                 size="xs"
                 outlined
             >
-                Fields
+                {{ __('flex-fields::flex-fields.entity.actions.manage_fields') }}
             </x-filament::button>
 
             <x-filament::button
@@ -77,7 +77,7 @@
                 size="xs"
                 outlined
             >
-                Categories
+                {{ __('flex-fields::flex-fields.entity.actions.manage_categories') }}
             </x-filament::button>
 
             <x-filament::button
@@ -87,7 +87,7 @@
                 size="xs"
                 outlined
             >
-                Edit
+                {{ __('flex-fields::flex-fields.entity.actions.edit') }}
             </x-filament::button>
         </div>
     </div>

@@ -51,6 +51,10 @@ return [
             'manage_fields' => 'Campos',
             'view_records' => 'Registros',
             'manage_categories' => 'Categorías',
+            'edit' => 'Editar',
+        ],
+        'badges' => [
+            'inactive' => 'Inactiva',
         ],
         'notifications' => [
             'cannot_delete_title' => 'No se puede eliminar',
@@ -189,17 +193,26 @@ return [
         'repeater' => 'Repetidor (sub-campos)',
     ],
     'dashboard' => [
+        'heading' => 'Entidades',
+        'description' => 'Administra tus tipos de entidades personalizadas y sus datos.',
         'actions' => [
             'new_entity' => 'Nueva entidad',
             'new_field' => 'Nuevo campo',
         ],
         'stats' => [
+            'total_entities' => 'Entidades totales',
+            'active_entities' => 'Entidades activas',
             'entities' => 'Entidades',
             'custom_fields' => 'Campos personalizados',
             'total_records' => 'Registros totales',
             'active' => ':count activas',
             'across_all_entities' => 'En todas las entidades',
             'all_entity_entries' => 'Todas las entradas',
+        ],
+        'empty_state' => [
+            'title' => 'No hay entidades todavía.',
+            'description' => 'Crea tu primera entidad para comenzar.',
+            'action' => 'Crear entidad',
         ],
     ],
 ];

@@ -50,6 +50,10 @@ return [
             'manage_fields' => 'Fields',
             'view_records' => 'Records',
             'manage_categories' => 'Categories',
+            'edit' => 'Edit',
+        ],
+        'badges' => [
+            'inactive' => 'Inactive',
         ],
         'notifications' => [
             'cannot_delete_title' => 'Cannot delete',
@@ -188,17 +192,26 @@ return [
         'repeater' => 'Repeater (sub-fields)',
     ],
     'dashboard' => [
+        'heading' => 'Entities',
+        'description' => 'Manage your custom entity types and their data.',
         'actions' => [
             'new_entity' => 'New Entity',
             'new_field' => 'New Field',
         ],
         'stats' => [
+            'total_entities' => 'Total Entities',
+            'active_entities' => 'Active Entities',
             'entities' => 'Entities',
             'custom_fields' => 'Custom Fields',
             'total_records' => 'Total Records',
             'active' => ':count active',
             'across_all_entities' => 'Across all entities',
             'all_entity_entries' => 'All entity entries',
+        ],
+        'empty_state' => [
+            'title' => 'No entities yet.',
+            'description' => 'Create your first entity to get started.',
+            'action' => 'Create Entity',
         ],
     ],
 ];
