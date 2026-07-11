@@ -20,6 +20,7 @@ return new class extends Migration
     {
         Schema::table('ff_entity_records', function (Blueprint $table) {
             $table->dropUnique('ff_records_tenant_ent_slug_unique');
+            $table->dropIndex(['deleted_at']);
             $table->dropSoftDeletes();
         });
     }
