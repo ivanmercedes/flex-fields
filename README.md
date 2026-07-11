@@ -209,4 +209,4 @@ Curious about what's coming next? Check out the [ROADMAP.md](ROADMAP.md) for pla
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+The MIT License (MIT). Please see [License File](LICENSE) for more information.
