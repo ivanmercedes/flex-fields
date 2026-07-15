@@ -5,7 +5,7 @@
         "watch:css": "npx @tailwindcss/cli -i ./resources/css/filament/flex-fields.css -o ./resources/dist/flex-fields.css --watch"
     },
     "devDependencies": {
-        "@tailwindcss/cli": "^4.1.11",
+        "@tailwindcss/cli": "^4.3.2",
         "tailwindcss": "^4.3.2"
     },
     "license": "MIT"
