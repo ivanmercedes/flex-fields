@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.2.0] - 2026-08-06
+## [v0.2.1] - 2026-08-06
 
 ### Added
 - **Image Optimization & Conversion**: Added built-in image optimization for custom image fields with configurable format (WebP, JPG, PNG, AVIF), target dimensions (`image_max_width`, `image_max_height`), and compression quality. Includes a multi-engine optimizer (`ImageOptimizer`) supporting Intervention Image v3/v4, Imagick, and native GD with a candidate selection algorithm that guarantees file size reduction.
