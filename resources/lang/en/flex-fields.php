@@ -17,6 +17,7 @@ return [
             'details' => 'Entity Details',
             'appearance' => 'Appearance',
             'visibility' => 'Visibility',
+            'timestamps' => 'Timestamps',
         ],
         'descriptions' => [
             'details' => 'Define a new data entity. Think of it like a custom post type.',
@@ -30,6 +31,8 @@ return [
             'menu_order' => 'Menu Order',
             'is_active' => 'Active',
             'show_in_menu' => 'Show in sidebar menu',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
         ],
         'placeholders' => [
             'icon' => 'heroicon-o-cube',
@@ -44,6 +47,7 @@ return [
             'records' => 'Records',
             'in_menu' => 'In Menu',
             'order' => 'Order',
+            'created_at' => 'Created',
             'updated_at' => 'Updated',
         ],
         'actions' => [
@@ -69,9 +73,11 @@ return [
         'sections' => [
             'identity' => 'Field Identity',
             'options' => 'Options',
+            'image_settings' => 'Image Settings',
             'repeater_schema' => 'Repeater Schema',
             'validation' => 'Validation & Behavior',
             'default_value' => 'Default Value',
+            'timestamps' => 'Timestamps',
         ],
         'fields' => [
             'entity' => 'Entity',
@@ -91,9 +97,19 @@ return [
             'width' => 'Field Width',
             'order' => 'Order',
             'default_value' => 'Default Value',
+            'multiple_images' => 'Allow multiple images',
+            'optimize_images' => 'Optimize images',
+            'image_format' => 'Image format',
+            'image_max_width' => 'Max width (px)',
+            'image_max_height' => 'Max height (px)',
+            'image_quality' => 'Quality (1-100)',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
         ],
         'helpers' => [
             'key' => 'Unique identifier used in code. Auto-generated.',
+            'multiple_images' => 'Allows selecting and uploading multiple images in this field.',
+            'optimize_images' => 'Compresses and optimizes images upon upload to reduce file size.',
         ],
         'widths' => [
             'full' => 'Full width',
@@ -105,6 +121,8 @@ return [
             'width' => 'Width',
             'required_short' => 'Req.',
             'in_list' => 'In List',
+            'created_at' => 'Created',
+            'updated_at' => 'Updated',
         ],
         'actions' => [
             'add_option' => 'Add option',
@@ -118,6 +136,7 @@ return [
         'sections' => [
             'details' => 'Category Details',
             'hierarchy' => 'Hierarchy & Description',
+            'timestamps' => 'Timestamps',
         ],
         'descriptions' => [
             'details' => 'Define a name and a unique slug for this category.',
@@ -128,6 +147,7 @@ return [
             'slug' => 'Slug',
             'parent' => 'Parent Category',
             'description' => 'Description',
+            'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ],
         'helpers' => [
@@ -135,6 +155,10 @@ return [
         ],
         'placeholders' => [
             'parent' => 'None (top-level category)',
+        ],
+        'table' => [
+            'created_at' => 'Created',
+            'updated_at' => 'Updated',
         ],
     ],
     'record' => [
@@ -146,6 +170,7 @@ return [
         'navigation_label' => 'Entity Data',
         'sections' => [
             'fields_suffix' => 'Fields',
+            'timestamps' => 'Record Timestamps',
         ],
         'fields' => [
             'title' => 'Record Title',
@@ -153,7 +178,8 @@ return [
             'status' => 'Status',
             'id' => 'ID',
             'title_column' => 'Title',
-            'updated_at' => 'Updated',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
             'categories' => 'Categories',
         ],
         'placeholders' => [
@@ -170,6 +196,10 @@ return [
             'draft' => 'Draft',
             'published' => 'Published',
             'archived' => 'Archived',
+        ],
+        'table' => [
+            'created_at' => 'Created',
+            'updated_at' => 'Updated',
         ],
     ],
     'field_types' => [

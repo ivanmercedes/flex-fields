@@ -34,6 +34,8 @@ class EntityRecord extends Model
         'status',   // draft | published | archived
         'order',
         'meta',     // JSON: any extra metadata
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [

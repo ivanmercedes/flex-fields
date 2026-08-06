@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.0] - 2026-08-06
+
+### Added
+- **Image Optimization & Conversion**: Added built-in image optimization for custom image fields with configurable format (WebP, JPG, PNG, AVIF), target dimensions (`image_max_width`, `image_max_height`), and compression quality. Includes a multi-engine optimizer (`ImageOptimizer`) supporting Intervention Image v3/v4, Imagick, and native GD with a candidate selection algorithm that guarantees file size reduction.
+- **Dynamic Upload Directory Patterns**: Added configurable upload paths via `config/flex-fields.php` and `.env` (`FLEX_FIELDS_DIRECTORY_PATTERN`) supporting tenant (`{tenant_slug}`, `{tenant_id}`), entity (`{entity_slug}`), field (`{field_key}`), and date (`{year}`, `{month}`) placeholders.
+- **Storage Disk & Visibility**: Added configurable storage disk (`FLEX_FIELDS_DISK`) and file visibility (`FLEX_FIELDS_VISIBILITY`, `'public'` or `'private'`) for file and image uploads.
+- **Multiple Image Upload Grid**: Added support for multi-image upload fields with grid thumbnail layout (`panelLayout('grid')` / `grid(3)`).
+- **Record Timestamps Editing**: Added top-level `created_at` and `updated_at` datetime fields to `EntityDataResource` placed directly below status and categories.
+
+### Fixed
+- **Image Resize Exception Guard**: Fixed Filament `FileUpload` argument type exceptions for `imageResizeTargetWidth` and `imageResizeTargetHeight` by casting dimension values to strings.
+
 ## [v0.1.3] - 2026-07-11
 
 ### Added
