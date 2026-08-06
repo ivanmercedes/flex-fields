@@ -90,6 +90,40 @@ class FieldDefinition
         return $this;
     }
 
+    public function multiple(bool $multiple = true): self
+    {
+        $this->attributes['settings']['multiple'] = $multiple;
+
+        return $this;
+    }
+
+    public function optimize(bool | string $optimize = true): self
+    {
+        if (is_string($optimize)) {
+            $this->attributes['settings']['optimize'] = true;
+            $this->attributes['settings']['image_format'] = $optimize;
+        } else {
+            $this->attributes['settings']['optimize'] = $optimize;
+        }
+
+        return $this;
+    }
+
+    public function imageDimensions(?int $maxWidth = null, ?int $maxHeight = null, ?int $quality = null): self
+    {
+        if ($maxWidth !== null) {
+            $this->attributes['settings']['image_max_width'] = $maxWidth;
+        }
+        if ($maxHeight !== null) {
+            $this->attributes['settings']['image_max_height'] = $maxHeight;
+        }
+        if ($quality !== null) {
+            $this->attributes['settings']['image_quality'] = $quality;
+        }
+
+        return $this;
+    }
+
     public function width(string $width): self
     {
         $this->attributes['width'] = $width;

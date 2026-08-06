@@ -115,6 +115,19 @@ class EntityResource extends Resource
                         ->default(true)
                         ->visible(fn () => Filament::getCurrentPanel()?->getPlugin('flex-fields')?->shouldShowEntitiesInMenu() ?? true),
                 ]),
+
+            Section::make(Label::trans('flex-fields::flex-fields.entity.sections.timestamps'))
+                ->columns(2)
+                ->visible(fn ($record) => $record !== null)
+                ->schema([
+                    Forms\Components\Placeholder::make('created_at')
+                        ->label(Label::trans('flex-fields::flex-fields.entity.fields.created_at'))
+                        ->content(fn ($record) => $record?->created_at ? $record->created_at->format('Y-m-d H:i:s') . ' (' . $record->created_at->diffForHumans() . ')' : '—'),
+
+                    Forms\Components\Placeholder::make('updated_at')
+                        ->label(Label::trans('flex-fields::flex-fields.entity.fields.updated_at'))
+                        ->content(fn ($record) => $record?->updated_at ? $record->updated_at->format('Y-m-d H:i:s') . ' (' . $record->updated_at->diffForHumans() . ')' : '—'),
+                ]),
         ]);
     }
 
@@ -158,6 +171,12 @@ class EntityResource extends Resource
                     ->label(Label::trans('flex-fields::flex-fields.entity.table.order'))
                     ->sortable()
                     ->visible(fn () => Filament::getCurrentPanel()?->getPlugin('flex-fields')?->shouldShowEntitiesInMenu() ?? true),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(Label::trans('flex-fields::flex-fields.entity.table.created_at'))
+                    ->since()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label(Label::trans('flex-fields::flex-fields.entity.table.updated_at'))

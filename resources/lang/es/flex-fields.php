@@ -17,6 +17,7 @@ return [
             'details' => 'Detalles de la entidad',
             'appearance' => 'Apariencia',
             'visibility' => 'Visibilidad',
+            'timestamps' => 'Fechas y registro',
         ],
         'descriptions' => [
             'details' => 'Define una nueva entidad de datos. Piensa en ella como un tipo de contenido personalizado.',
@@ -30,6 +31,8 @@ return [
             'menu_order' => 'Orden del menú',
             'is_active' => 'Activa',
             'show_in_menu' => 'Mostrar en el menú lateral',
+            'created_at' => 'Fecha de creación',
+            'updated_at' => 'Última actualización',
         ],
         'placeholders' => [
             'icon' => 'heroicon-o-cube',
@@ -45,6 +48,7 @@ return [
             'records' => 'Registros',
             'in_menu' => 'En menú',
             'order' => 'Orden',
+            'created_at' => 'Creado',
             'updated_at' => 'Actualizado',
         ],
         'actions' => [
@@ -70,9 +74,11 @@ return [
         'sections' => [
             'identity' => 'Identidad del campo',
             'options' => 'Opciones',
+            'image_settings' => 'Configuración de Imagen',
             'repeater_schema' => 'Esquema del Repetidor',
             'validation' => 'Validación y comportamiento',
             'default_value' => 'Valor por defecto',
+            'timestamps' => 'Fechas',
         ],
         'fields' => [
             'entity' => 'Entidad',
@@ -92,9 +98,19 @@ return [
             'width' => 'Ancho del campo',
             'order' => 'Orden',
             'default_value' => 'Valor por defecto',
+            'multiple_images' => 'Permitir múltiples imágenes',
+            'optimize_images' => 'Optimizar imágenes',
+            'image_format' => 'Formato de imagen',
+            'image_max_width' => 'Ancho máximo (px)',
+            'image_max_height' => 'Alto máximo (px)',
+            'image_quality' => 'Calidad de imagen (1-100)',
+            'created_at' => 'Fecha de creación',
+            'updated_at' => 'Última actualización',
         ],
         'helpers' => [
             'key' => 'Identificador único usado en código. Se genera automáticamente.',
+            'multiple_images' => 'Permite al usuario subir múltiples imágenes en este campo.',
+            'optimize_images' => 'Comprime y optimiza la imagen al subirla para reducir el peso.',
         ],
         'widths' => [
             'full' => 'Ancho completo',
@@ -106,6 +122,8 @@ return [
             'width' => 'Ancho',
             'required_short' => 'Req.',
             'in_list' => 'En lista',
+            'created_at' => 'Creado',
+            'updated_at' => 'Actualizado',
         ],
         'actions' => [
             'add_option' => 'Agregar opción',
@@ -119,6 +137,7 @@ return [
         'sections' => [
             'details' => 'Detalles de la categoría',
             'hierarchy' => 'Jerarquía y descripción',
+            'timestamps' => 'Fechas',
         ],
         'descriptions' => [
             'details' => 'Define un nombre y un slug único para esta categoría.',
@@ -129,13 +148,18 @@ return [
             'slug' => 'Slug',
             'parent' => 'Categoría Superior',
             'description' => 'Descripción',
-            'updated_at' => 'Actualizado',
+            'created_at' => 'Fecha de creación',
+            'updated_at' => 'Última actualización',
         ],
         'helpers' => [
             'slug' => 'Se genera automáticamente si se deja vacío.',
         ],
         'placeholders' => [
             'parent' => 'Ninguna (categoría de nivel raíz)',
+        ],
+        'table' => [
+            'created_at' => 'Creado',
+            'updated_at' => 'Actualizado',
         ],
     ],
     'record' => [
@@ -147,6 +171,7 @@ return [
         'navigation_label' => 'Datos de la entidad',
         'sections' => [
             'fields_suffix' => 'Campos',
+            'timestamps' => 'Fechas del registro',
         ],
         'fields' => [
             'title' => 'Título del registro',
@@ -154,7 +179,8 @@ return [
             'status' => 'Estado',
             'id' => 'ID',
             'title_column' => 'Título',
-            'updated_at' => 'Actualizado',
+            'created_at' => 'Fecha de creación',
+            'updated_at' => 'Última actualización',
             'categories' => 'Categorías',
         ],
         'placeholders' => [
@@ -171,6 +197,10 @@ return [
             'draft' => 'Borrador',
             'published' => 'Publicado',
             'archived' => 'Archivado',
+        ],
+        'table' => [
+            'created_at' => 'Creado',
+            'updated_at' => 'Actualizado',
         ],
     ],
     'field_types' => [

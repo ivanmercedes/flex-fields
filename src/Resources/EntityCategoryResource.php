@@ -116,6 +116,19 @@ class EntityCategoryResource extends Resource
                         ->rows(3)
                         ->columnSpanFull(),
                 ]),
+
+            Section::make(Label::trans('flex-fields::flex-fields.category.sections.timestamps'))
+                ->columns(2)
+                ->visible(fn ($record) => $record !== null)
+                ->schema([
+                    Forms\Components\Placeholder::make('created_at')
+                        ->label(Label::trans('flex-fields::flex-fields.category.fields.created_at'))
+                        ->content(fn ($record) => $record?->created_at ? $record->created_at->format('Y-m-d H:i:s') . ' (' . $record->created_at->diffForHumans() . ')' : '—'),
+
+                    Forms\Components\Placeholder::make('updated_at')
+                        ->label(Label::trans('flex-fields::flex-fields.category.fields.updated_at'))
+                        ->content(fn ($record) => $record?->updated_at ? $record->updated_at->format('Y-m-d H:i:s') . ' (' . $record->updated_at->diffForHumans() . ')' : '—'),
+                ]),
         ]);
     }
 
@@ -146,6 +159,12 @@ class EntityCategoryResource extends Resource
                     ->label(Label::trans('flex-fields::flex-fields.category.fields.parent'))
                     ->searchable()
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(Label::trans('flex-fields::flex-fields.category.table.created_at'))
+                    ->since()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label(Label::trans('flex-fields::flex-fields.category.fields.updated_at'))

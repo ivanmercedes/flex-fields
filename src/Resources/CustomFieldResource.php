@@ -164,6 +164,52 @@ class CustomFieldResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.image_settings'))
+                ->visible(fn (Get $get) => in_array($get('type'), ['image', 'file']))
+                ->columns(2)
+                ->schema([
+                    Forms\Components\Toggle::make('settings.multiple')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.multiple_images'))
+                        ->helperText(Label::trans('flex-fields::flex-fields.custom_field.helpers.multiple_images'))
+                        ->default(false),
+
+                    Forms\Components\Toggle::make('settings.optimize')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.optimize_images'))
+                        ->helperText(Label::trans('flex-fields::flex-fields.custom_field.helpers.optimize_images'))
+                        ->default(false)
+                        ->live()
+                        ->visible(fn (Get $get) => $get('type') === 'image'),
+
+                    Forms\Components\Select::make('settings.image_format')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.image_format'))
+                        ->options([
+                            'webp' => 'WebP',
+                            'jpg' => 'JPG',
+                            'png' => 'PNG',
+                            'avif' => 'AVIF',
+                        ])
+                        ->default('webp')
+                        ->visible(fn (Get $get) => $get('type') === 'image' && (bool) $get('settings.optimize')),
+
+                    Forms\Components\TextInput::make('settings.image_max_width')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.image_max_width'))
+                        ->numeric()
+                        ->placeholder('1920')
+                        ->visible(fn (Get $get) => $get('type') === 'image'),
+
+                    Forms\Components\TextInput::make('settings.image_max_height')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.image_max_height'))
+                        ->numeric()
+                        ->placeholder('1080')
+                        ->visible(fn (Get $get) => $get('type') === 'image'),
+
+                    Forms\Components\TextInput::make('settings.image_quality')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.image_quality'))
+                        ->numeric()
+                        ->default(80)
+                        ->visible(fn (Get $get) => $get('type') === 'image' && (bool) $get('settings.optimize')),
+                ]),
+
             Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.validation'))
                 ->columns(3)
                 ->schema([
@@ -200,6 +246,19 @@ class CustomFieldResource extends Resource
                             'image',
                             'richtext',
                         ])),
+                ]),
+
+            Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.timestamps'))
+                ->columns(2)
+                ->visible(fn ($record) => $record !== null)
+                ->schema([
+                    Forms\Components\Placeholder::make('created_at')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.created_at'))
+                        ->content(fn ($record) => $record?->created_at ? $record->created_at->format('Y-m-d H:i:s') . ' (' . $record->created_at->diffForHumans() . ')' : '—'),
+
+                    Forms\Components\Placeholder::make('updated_at')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.updated_at'))
+                        ->content(fn ($record) => $record?->updated_at ? $record->updated_at->format('Y-m-d H:i:s') . ' (' . $record->updated_at->diffForHumans() . ')' : '—'),
                 ]),
         ]);
     }
@@ -250,6 +309,17 @@ class CustomFieldResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.is_active'))
                     ->boolean(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(Label::trans('flex-fields::flex-fields.custom_field.table.created_at'))
+                    ->since()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label(Label::trans('flex-fields::flex-fields.custom_field.table.updated_at'))
+                    ->since()
+                    ->sortable(),
             ])
             ->defaultSort('entity_id')
             ->reorderable('order')
