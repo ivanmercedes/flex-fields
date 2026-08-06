@@ -169,6 +169,18 @@ class EntityDataResource extends Resource
                         ->maxLength(65535)
                         ->columnSpanFull(),
                 ]),
+
+            Forms\Components\DateTimePicker::make('created_at')
+                ->label(Label::trans('flex-fields::flex-fields.record.fields.created_at'))
+                ->default(now())
+                ->seconds(false)
+                ->native(false),
+
+            Forms\Components\DateTimePicker::make('updated_at')
+                ->label(Label::trans('flex-fields::flex-fields.record.fields.updated_at'))
+                ->default(now())
+                ->seconds(false)
+                ->native(false),
         ];
 
         if ($entity) {
@@ -212,6 +224,12 @@ class EntityDataResource extends Resource
                         'archived' => 'gray',
                         default => 'gray',
                     }),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(Label::trans('flex-fields::flex-fields.record.fields.created_at'))
+                    ->since()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label(Label::trans('flex-fields::flex-fields.record.fields.updated_at'))

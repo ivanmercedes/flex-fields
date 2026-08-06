@@ -83,6 +83,10 @@ class CustomField extends Model
      */
     public function getFieldCastType(): string
     {
+        if (in_array($this->type, ['image', 'file']) && ! empty($this->settings['multiple'])) {
+            return 'array';
+        }
+
         return match ($this->type) {
             'number' => 'float',
             'boolean' => 'boolean',

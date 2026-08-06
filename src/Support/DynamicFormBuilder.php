@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Support;
 
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Schemas\Components\Component as SchemaComponent;
 use Filament\Schemas\Components\EmptyState;
@@ -162,18 +163,88 @@ class DynamicFormBuilder
                 break;
 
             case 'file':
+                $disk = config('flex-fields.uploads.disk', 'public');
+                $visibility = config('flex-fields.uploads.visibility', 'public');
+
                 $component = Forms\Components\FileUpload::make($key)
                     ->label($field->label)
-                    ->directory('flex-fields/' . Str::slug($field->label));
+                    ->disk($disk)
+                    ->visibility($visibility)
+                    ->directory(self::resolveUploadDirectory($field));
+
+                if (! empty($field->settings['multiple'])) {
+                    $component->multiple()->reorderable();
+
+                    if (method_exists($component, 'panelLayout')) {
+                        $component->panelLayout('grid');
+                    }
+                    if (method_exists($component, 'grid')) {
+                        $component->grid(3);
+                    }
+                }
 
                 break;
 
             case 'image':
+                $disk = config('flex-fields.uploads.disk', 'public');
+                $visibility = config('flex-fields.uploads.visibility', 'public');
+
                 $component = Forms\Components\FileUpload::make($key)
                     ->label($field->label)
                     ->image()
                     ->imageEditor()
-                    ->directory('flex-fields/images');
+                    ->disk($disk)
+                    ->visibility($visibility)
+                    ->directory(self::resolveUploadDirectory($field));
+
+                if (! empty($field->settings['multiple'])) {
+                    $component->multiple()->reorderable();
+
+                    if (method_exists($component, 'panelLayout')) {
+                        $component->panelLayout('grid');
+                    }
+                    if (method_exists($component, 'grid')) {
+                        $component->grid(3);
+                    }
+                }
+
+                if (! empty($field->settings['image_max_width']) && method_exists($component, 'imageResizeTargetWidth')) {
+                    $component->imageResizeTargetWidth((string) $field->settings['image_max_width']);
+                }
+
+                if (! empty($field->settings['image_max_height']) && method_exists($component, 'imageResizeTargetHeight')) {
+                    $component->imageResizeTargetHeight((string) $field->settings['image_max_height']);
+                }
+
+                if (! empty($field->settings['image_quality']) && method_exists($component, 'imageResizeQuality')) {
+                    $component->imageResizeQuality((int) $field->settings['image_quality']);
+                }
+
+                if (! empty($field->settings['optimize']) || ! empty($field->settings['optimize_images'])) {
+                    $component->saveUploadedFileUsing(function ($file) use ($field, $disk) {
+                        $directory = self::resolveUploadDirectory($field);
+                        $filename = $file->getClientOriginalName();
+
+                        $path = $file->storeAs($directory, $filename, [
+                            'disk' => $disk,
+                            'visibility' => config('flex-fields.uploads.visibility', 'public'),
+                        ]);
+
+                        $format = strtolower((string) ($field->settings['image_format'] ?? 'webp'));
+                        $maxWidth = ! empty($field->settings['image_max_width']) ? (int) $field->settings['image_max_width'] : 1920;
+                        $maxHeight = ! empty($field->settings['image_max_height']) ? (int) $field->settings['image_max_height'] : null;
+                        $quality = ! empty($field->settings['image_quality']) ? (int) $field->settings['image_quality'] : 75;
+
+                        return ImageOptimizer::optimize(
+                            disk: $disk,
+                            relativePath: $path,
+                            format: $format,
+                            maxWidth: $maxWidth,
+                            maxHeight: $maxHeight,
+                            quality: $quality
+                        );
+                    });
+                }
 
                 break;
 
@@ -223,6 +294,11 @@ class DynamicFormBuilder
                         // We instantiate a temporary CustomField in memory
                         // to reuse all the rich field types inside the repeater
                         $subField = new CustomField($subFieldData);
+                        if ($field->relationLoaded('entity')) {
+                            $subField->setRelation('entity', $field->entity);
+                        } else {
+                            $subField->entity_id = $field->entity_id;
+                        }
                         $subFieldComponent = self::makeComponent($subField);
                         if ($subFieldComponent) {
                             $schema[] = $subFieldComponent;
@@ -265,6 +341,58 @@ class DynamicFormBuilder
         $component->columnSpan($colSpan);
 
         return $component;
+    }
+
+    public static function resolveUploadDirectory(CustomField $field): string
+    {
+        $pattern = (string) config('flex-fields.uploads.directory_pattern', 'flex-fields/{tenant_slug}/{entity_slug}/{field_key}');
+
+        $entity = $field->entity;
+        $entityId = $entity?->id ? (string) $entity->id : '';
+        $entitySlug = $entity?->slug ? (string) $entity->slug : 'entity';
+        $fieldKey = $field->key ? (string) $field->key : 'field';
+        $fieldLabel = Str::slug($field->label ? (string) $field->label : 'field');
+        $year = date('Y');
+        $month = date('m');
+
+        // Resolve Tenant if active/available
+        $tenant = null;
+        if (class_exists(Filament::class) && Filament::hasTenancy()) {
+            $tenant = Filament::getTenant();
+        }
+
+        $tenantKeyAttr = (string) config('flex-fields.uploads.tenant_key_attribute', 'slug');
+
+        $tenantId = '';
+        $tenantSlug = '';
+
+        if ($tenant) {
+            $tenantId = (string) ($tenant->getKey() ?? '');
+            $rawSlug = $tenant->{$tenantKeyAttr} ?? $tenant->slug ?? $tenant->id ?? $tenantId;
+            $tenantSlug = Str::slug((string) $rawSlug);
+        }
+
+        $tenantKey = $tenantSlug ?: $tenantId;
+
+        $replacements = [
+            '{tenant_id}' => $tenantId,
+            '{tenant_slug}' => $tenantSlug,
+            '{tenant_key}' => $tenantKey,
+            '{entity_id}' => $entityId,
+            '{entity_slug}' => $entitySlug,
+            '{field_key}' => $fieldKey,
+            '{field_label}' => $fieldLabel,
+            '{year}' => $year,
+            '{month}' => $month,
+        ];
+
+        $directory = strtr($pattern, $replacements);
+
+        // Remove empty placeholder directory segments caused by empty replacements (e.g. no tenant)
+        $directory = preg_replace('#/{2,}#', '/', $directory);
+        $directory = trim((string) $directory, '/');
+
+        return $directory ?: 'flex-fields/uploads';
     }
 
     protected static function resolveColumnSpan(string $width): int

@@ -42,6 +42,7 @@ class FieldValue extends Model
     {
         $raw = $this->value;
         $type = optional($this->customField)->type ?? 'text';
+        $settings = optional($this->customField)->settings ?? [];
 
         return match ($type) {
             'number' => is_numeric($raw) ? (float) $raw : null,
@@ -49,9 +50,11 @@ class FieldValue extends Model
             'date' => $raw ? Carbon::parse($raw)->toDateString() : null,
             'datetime' => $raw ? Carbon::parse($raw)->toDateTimeString() : null,
             'json', 'multiselect', 'tags', 'repeater' => is_string($raw) ? json_decode($raw, true) : $raw,
-            'image', 'file' => (is_string($raw) && (str_starts_with($raw, '{') || str_starts_with($raw, '[')))
-                ? (array_values(json_decode($raw, true) ?? [])[0] ?? $raw)
-                : $raw,
+            'image', 'file' => match (true) {
+                ! empty($settings['multiple']) => is_string($raw) ? (json_decode($raw, true) ?? []) : (array) $raw,
+                (is_string($raw) && (str_starts_with($raw, '{') || str_starts_with($raw, '['))) => (array_values(json_decode($raw, true) ?? [])[0] ?? $raw),
+                default => $raw,
+            },
             default => $raw,
         };
     }
