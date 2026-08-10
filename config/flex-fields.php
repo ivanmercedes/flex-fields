@@ -77,6 +77,23 @@ return [
     ],
 
     /*
+    |--------------------------------------------------------------------------
+    | Field & Schema Cache Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Caching active fields per entity significantly reduces database lookups
+    | during form rendering. Cache is automatically invalidated when fields
+    | or entities are created, updated, or deleted.
+    |
+    */
+    'cache' => [
+        'enabled' => env('FLEX_FIELDS_CACHE_ENABLED', true),
+        'store' => env('FLEX_FIELDS_CACHE_STORE', null),
+        'ttl' => (int) env('FLEX_FIELDS_CACHE_TTL', 86400), // 24 hours in seconds
+        'prefix' => 'flex_fields_',
+    ],
+
+    /*
     | Navigation group for the plugin resources in the sidebar.
     */
     'navigation_group' => 'flex-fields::flex-fields.navigation.group',

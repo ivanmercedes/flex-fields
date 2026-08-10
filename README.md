@@ -15,13 +15,17 @@
 
 - **Custom Entities:** Define any data structure (like post types) without touching database migrations.
 - **17+ Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, tags, and dynamic repeaters.
- - **Multi-Tenancy Support:** Full compatibility with Filament's multi-tenancy system, allowing scoped entities, fields, and records per tenant.
+- **`HasFlexFields` Eloquent Trait:** Attach dynamic flex fields directly to any existing model (`Product`, `User`, etc.).
+- **`FlexFields` Facade:** Fluent global access: `FlexFields::entity('product')->records()`, `createRecord()`, `status()`, `clearCache()`.
+- **Field Caching:** High-performance active field caching with automatic invalidation on save/delete.
+- **Form Builder Macros:** Register custom field component handlers via `DynamicFormBuilder::macro(...)`.
+- **`flex:status` Artisan Command:** Display entity, field, record, multi-tenancy, and cache configuration overview in the terminal.
+- **Multi-Tenancy Support:** Full compatibility with Filament's multi-tenancy system, allowing scoped entities, fields, and records per tenant.
 - **Dynamic Forms & Tables:** Forms for each entity are generated automatically from its field definitions. Tables are populated dynamically with fields marked as "Show in list".
 - **Drag-and-Drop Reordering:** Easily rearrange custom fields within an entity.
 - **Entity Categories:** Create hierarchical categories and subcategories per entity, and categorize your records easily.
 - **EAV Storage:** Robust and scalable Entity-Attribute-Value storage pattern natively adapted for Eloquent.
 - **Built-in Dashboard & Widget:** Visual overview of all entities, fields, and records, plus an embeddable stats widget.
-- **Field Width & Validation:** Define grid widths (full, half, one-third) and toggle constraints (required, searchable, active) per field.
 
 ---
 
@@ -104,38 +108,49 @@ For full details, read the [Schema Builder Documentation](docs/schema-builder.md
 
 ---
 
-## Usage in Code
+## Developer Experience & Facade Usage
 
-You can easily interact with entities and their records directly from your models:
+### `FlexFields` Facade
+```php
+use IvanMercedes\FlexFields\Facades\FlexFields;
+
+// Fluent entity access
+$entity = FlexFields::entity('product');
+$fields = $entity->fields(); // Cached active fields
+$records = $entity->records()->where('status', 'published')->get();
+
+// Create record with field values
+$record = $entity->createRecord([
+    'title' => 'Sample Product',
+], [
+    'price' => 99.99,
+    'color' => '#00ff00',
+]);
+```
+
+### `HasFlexFields` Trait
+Attach flex fields directly to any model:
 
 ```php
-use IvanMercedes\FlexFields\Models\Entity;
-use IvanMercedes\FlexFields\Models\EntityRecord;
+use Illuminate\Database\Eloquent\Model;
+use IvanMercedes\FlexFields\Models\Traits\HasFlexFields;
 
-// Retrieve an entity by its slug
-$entity = Entity::where('slug', 'product')->first();
-
-// Get all records belonging to this entity
-$records = EntityRecord::where('entity_id', $entity->id)->get();
-
-if ($records->isNotEmpty()) {
-    $firstRecord = $records->first();
-
-    // Retrieve specific custom field values
-    $price = $firstRecord->getValue('price');
-    $name  = $firstRecord->getValue('product_name');
-
-    // Retrieve all values as an array
-    // Example: ['price' => 99.99, 'product_name' => 'Awesome Widget']
-    $data = $firstRecord->data; 
-
-    // Retrieve the record's assigned categories
-    $categories = $firstRecord->categories;
-
-    // Update or set a new value programmatically
-    $firstRecord->setValue('price', 149.99);
+class Product extends Model
+{
+    use HasFlexFields;
 }
+
+$product = Product::find(1);
+$product->setFlexValue('price', 199.99);
+$price = $product->getFlexValue('price');
 ```
+
+### System Status Command
+```bash
+php artisan flex:status
+```
+
+For full details, read the [Facade & Developer Experience Documentation](docs/facade_usage.md).
 
 ---
 
@@ -149,7 +164,7 @@ To customize the default settings, publish the configuration file to your projec
 php artisan vendor:publish --tag="flex-fields-config"
 ```
 
-In `config/flex-fields.php`, you can configure Multi-Tenancy, change the default navigation group name, and more:
+In `config/flex-fields.php`, you can configure Multi-Tenancy, Field Caching, Upload path patterns, and more:
 
 ```php
 return [
@@ -158,18 +173,14 @@ return [
         'tenant_model' => App\Models\Team::class,
         'tenant_column' => 'tenant_id',
     ],
+
+    'cache' => [
+        'enabled' => true,
+        'ttl' => 86400,
+    ],
     
     'navigation_group' => 'Content',
 ];
-```
-
-
-### Override Views
-
-If you want to customize the built-in views (like the main dashboard page), publish them to your project:
-
-```bash
-php artisan vendor:publish --tag="flex-fields-views"
 ```
 
 ---
@@ -189,8 +200,6 @@ FlexFields (group)
 ---
 
 ## Database Architecture
-
-For those curious about the underlying EAV (Entity-Attribute-Value) structure:
 
 - **`ff_entities`**: Defines the "type" of the data grouping (e.g., Products, Services).
 - **`ff_custom_fields`**: Serves as the "columns/attributes" logic mapped to an entity.

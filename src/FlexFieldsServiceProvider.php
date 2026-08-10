@@ -9,6 +9,7 @@ use Filament\Support\Assets\Css;
 // use Filament\View\PanelsRenderHook;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
+use IvanMercedes\FlexFields\Commands\FlexStatusCommand;
 use IvanMercedes\FlexFields\Commands\InstallFlexFieldsCommand;
 use IvanMercedes\FlexFields\Commands\MakeSchemaCommand;
 use IvanMercedes\FlexFields\Commands\MigrateSchemasCommand;
@@ -24,6 +25,10 @@ class FlexFieldsServiceProvider extends ServiceProvider
             __DIR__ . '/../config/flex-fields.php',
             'flex-fields'
         );
+
+        $this->app->singleton('flex-fields', function () {
+            return new FlexFieldsManager;
+        });
     }
 
     public function boot(): void
@@ -54,6 +59,7 @@ class FlexFieldsServiceProvider extends ServiceProvider
                 MakeSchemaCommand::class,
                 MigrateSchemasCommand::class,
                 RollbackSchemasCommand::class,
+                FlexStatusCommand::class,
             ]);
         }
     }

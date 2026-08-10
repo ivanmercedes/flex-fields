@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-10
+
+### Added
+- **`HasFlexFields` Eloquent Trait**: Added `IvanMercedes\FlexFields\Models\Traits\HasFlexFields` trait allowing any Eloquent model (`Product`, `User`, etc.) to get/set custom field values (`setFlexValue()`, `getFlexValue()`, `syncFlexValues()`, `getFlexData()`, `getFlexFields()`).
+- **`FlexFields` Facade & Manager**: Added `IvanMercedes\FlexFields\Facades\FlexFields` facade and `FlexFieldsManager` service with fluent query wrapper (`EntityQuery`) for global access (`FlexFields::entity('product')->records()`, `createRecord()`, `status()`, `clearCache()`).
+- **Active Field Caching**: Added `FieldCache` support class to cache active custom fields per entity with automatic cache invalidation on model creation, updating, deletion, or restoration.
+- **`DynamicFormBuilder` Macros**: Added `Macroable` trait to `DynamicFormBuilder` to allow third parties to register custom field type component handlers dynamically via `DynamicFormBuilder::macro(...)`.
+- **`flex:status` Artisan Command**: Added `IvanMercedes\FlexFields\Commands\FlexStatusCommand` to display entity, custom field, record count, multi-tenancy, and field cache configuration overview in the terminal.
+
 ## [v0.2.1] - 2026-08-06
+
 
 ### Added
 - **Image Optimization & Conversion**: Added built-in image optimization for custom image fields with configurable format (WebP, JPG, PNG, AVIF), target dimensions (`image_max_width`, `image_max_height`), and compression quality. Includes a multi-engine optimizer (`ImageOptimizer`) supporting Intervention Image v3/v4, Imagick, and native GD with a candidate selection algorithm that guarantees file size reduction.

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
+use IvanMercedes\FlexFields\Support\FieldCache;
 
 /**
  * Entity — like a "Post Type" in WordPress/ACF.
@@ -58,7 +59,7 @@ class Entity extends Model
 
     public function getActiveFieldsAttribute()
     {
-        return $this->customFields()->where('is_active', true)->get();
+        return FieldCache::getForEntity($this);
     }
 
     public function getRecordsCountAttribute(): int
@@ -66,7 +67,7 @@ class Entity extends Model
         return $this->records()->count();
     }
 
-    // Auto-generate slug from name
+    // Auto-generate slug from name & invalidate cache on changes
     protected static function booted(): void
     {
         $generateUniqueSlug = function (Entity $entity) {
@@ -84,7 +85,14 @@ class Entity extends Model
             }
         };
 
+        $invalidateCache = function (Entity $entity) {
+            FieldCache::forgetForEntity($entity);
+        };
+
         static::creating($generateUniqueSlug);
         static::updating($generateUniqueSlug);
+
+        static::saved($invalidateCache);
+        static::deleted($invalidateCache);
     }
 }

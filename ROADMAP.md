@@ -2,12 +2,34 @@
 
 This document outlines the planned features and improvements for future versions of **ivanmercedes/flex-fields**.
 
-> **Current stable release:** `v0.1.3`
+> **Current stable release:** `0.3.0`
 > Community feedback and contributions are always welcome. Feel free to open an issue or discussion on GitHub.
 
 ---
 
-## ✅ v0.1.3 — Security & CI Improvements *(current)*
+## ✅ 0.3.0 — Developer Experience *(current)*
+
+*Focus: make the package easier to use from PHP code, not just the admin panel.*
+
+- [x] **`HasFlexFields` Eloquent Trait** — attach dynamic flex fields to any existing Eloquent model (`Product`, `User`, etc.)
+- [x] **`FlexFields` Facade** — fluent global access: `FlexFields::entity('product')->records()`, `createRecord()`, `status()`
+- [x] **`DynamicFormBuilder` Macros** — allow third parties to register custom field type components dynamically (`DynamicFormBuilder::macro(...)`)
+- [x] **Field Caching** — cache active fields per entity (`FieldCache`) with automatic cache invalidation on model save/delete/restore
+- [x] **`flex:status` Artisan command** — show entity/field/record count and configuration summary in terminal
+
+---
+
+## ✅ 0.2.1 — Media, Uploads & Timestamps
+
+- [x] **Image Optimization & Conversion** — built-in multi-engine optimizer (`ImageOptimizer`) supporting WebP, JPG, PNG, AVIF with target dimensions and compression quality
+- [x] **Dynamic Upload Directory Patterns** — configurable upload paths supporting placeholders (`{tenant_slug}`, `{entity_slug}`, `{field_key}`, `{year}`, `{month}`)
+- [x] **Storage Disk & Visibility** — configurable storage disk (`FLEX_FIELDS_DISK`) and file visibility (`FLEX_FIELDS_VISIBILITY`, `'public'` or `'private'`)
+- [x] **Multiple Image Upload Grid** — thumbnail grid panel layout for multi-image fields
+- [x] **Record Timestamps Editing** — top-level `created_at` and `updated_at` datetime pickers in `EntityDataResource`
+
+---
+
+## ✅ 0.1.3 — Security & CI Improvements
 
 - [x] **Security Policy** — Added `SECURITY.md`
 - [x] **Dependabot** — Configured automated dependency updates
@@ -15,13 +37,17 @@ This document outlines the planned features and improvements for future versions
 
 ---
 
-## ✅ v0.1.2 — Soft Deletes Update
+## ✅ 0.1.2 — Soft Deletes & Multi-Tenancy Update
 
-- [x] **Soft Deletes on `EntityRecord`** — trash bin + restore action in the data resource
+- [x] **Soft Deletes on `EntityRecord`** — trash bin + restore and force delete actions in data resource
+- [x] **Filament Multi-Tenancy Support** — tenant scoping for entities, fields, categories, records, and navigation
+- [x] **Dynamic Repeater Field Type** — fluent nested schema builder API for repeater fields (`->schema(...)`)
+- [x] **Laravel Boost Integration** — AI skill documentation (`SKILL.md`) for native auto-discovery by Laravel Boost
+- [x] **Database Optimizations** — `jsonb` column migration and compound index performance tuning
 
 ---
 
-## ✅ v0.1.0 — Initial Release
+## ✅ 0.1.0 — Initial Release
 The foundation. Everything needed to get started with dynamic entities and custom fields inside Filament.
 
 - Custom Entities (like post types)
@@ -40,19 +66,7 @@ The foundation. Everything needed to get started with dynamic entities and custo
 
 ---
 
-## 🔵 v0.2.0 — Developer Experience
-
-*Focus: make the package easier to use from PHP code, not just the admin panel.*
-
-- [ ] **`HasFlexFields` Eloquent Trait** — attach flex fields to any existing model (`Product`, `User`, etc.)
-- [ ] **`FlexFields` Facade** — fluent global access: `FlexFields::entity('product')->records()`
-- [ ] **`DynamicFormBuilder` Macros** — allow third parties to register custom field types without forking
-- [ ] **Field caching** — cache active fields per entity with automatic invalidation on save
-- [ ] **`flex:status` Artisan command** — show entity/field/record count summary in the terminal
-
----
-
-## 🟡 v0.3.0 — Data Management
+## 🟡 0.4.0 — Data Management
 
 *Focus: make data useful beyond the admin panel.*
 
@@ -60,11 +74,10 @@ The foundation. Everything needed to get started with dynamic entities and custo
 - [ ] **CSV/Excel Import** — bulk import records with downloadable template and preview before confirm
 - [ ] **Field Groups / Sections** — group fields into labeled, collapsible sections within a form
 - [ ] **Record History / Audit Log** — track who changed what and when; optional version restore
-- [ ] **Soft Deletes + Trash UI** — restore or permanently delete archived records
 
 ---
 
-## 🟠 v0.4.0 — Advanced Field Types
+## 🟠 0.5.0 — Advanced Field Types
 
 *Focus: power-user field types that cover complex real-world scenarios.*
 
@@ -76,7 +89,7 @@ The foundation. Everything needed to get started with dynamic entities and custo
 
 ---
 
-## 🔴 v0.5.0 — Headless & Integrations
+## 🔴 0.6.0 — Headless & Integrations
 
 *Focus: use FlexFields outside of Filament.*
 

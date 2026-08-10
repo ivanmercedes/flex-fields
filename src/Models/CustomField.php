@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
+use IvanMercedes\FlexFields\Support\FieldCache;
 
 /**
  * CustomField — a field definition attached to an Entity.
@@ -129,5 +130,18 @@ class CustomField extends Model
                 $field->order = static::where('entity_id', $field->entity_id)->max('order') + 1;
             }
         });
+
+        $invalidateCache = function (CustomField $field) {
+            if ($field->entity_id) {
+                FieldCache::forgetForEntity($field->entity_id);
+            }
+        };
+
+        static::saved($invalidateCache);
+        static::deleted($invalidateCache);
+
+        if (method_exists(static::class, 'restored')) {
+            static::restored($invalidateCache);
+        }
     }
 }

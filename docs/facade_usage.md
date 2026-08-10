@@ -1,81 +1,119 @@
-# FlexFields Facade Usage Guide
+# FlexFields Facade & Developer Experience Guide
 
-The `FlexFields` facade provides a convenient way to interact with custom fields and entities in your Laravel application.
+The `FlexFields` facade and `HasFlexFields` Eloquent trait provide fluent global access to custom fields and dynamic entities in PHP code.
 
-## Basic Usage
+---
 
-### Get all active fields
-Retrieves all custom fields that are marked as active in the database.
+## 1. `FlexFields` Facade
+
+### Accessing Entities & Records
 ```php
 use IvanMercedes\FlexFields\Facades\FlexFields;
 
-$fields = FlexFields::fields();
+// Get fluent query wrapper for an entity (by slug, ID, or Entity model)
+$entity = FlexFields::entity('product');
+
+// Get cached active fields for the entity
+$fields = $entity->fields();
+
+// Access records query builder
+$records = $entity->records()->where('status', 'published')->get();
+
+// Find record by ID or slug
+$record = $entity->findRecord('iphone-15');
+
+// Create a new record with custom field values
+$record = $entity->createRecord([
+    'title' => 'iPhone 15 Pro',
+    'status' => 'published',
+], [
+    'color' => '#000000',
+    'price' => 999.99,
+    'storage' => '256GB',
+]);
 ```
 
-### Get fields by key
+### System Status & Caching
 ```php
-$fields = FlexFields::get('price');
+// Get system statistics summary
+$status = FlexFields::status();
+
+// Clear active field caches
+FlexFields::clearCache('product'); // single entity
+FlexFields::clearCache();          // all entities
 ```
 
 ---
 
-## Model Integration
+## 2. `HasFlexFields` Eloquent Trait
 
-### Get fields for a specific model class
-To use this, make sure you have an `Entity` where `model_class` is set to your model's full namespace.
+Attach dynamic flex fields to any existing Eloquent model (`Product`, `User`, `Order`, etc.):
+
 ```php
-use App\Models\Product;
+namespace App\Models;
 
-$productFields = FlexFields::getByModel(Product::class);
+use Illuminate\Database\Eloquent\Model;
+use IvanMercedes\FlexFields\Models\Traits\HasFlexFields;
+
+class Product extends Model
+{
+    use HasFlexFields;
+
+    // Optional: override entity slug (defaults to kebab-case of class name: 'product')
+    protected string $flexEntitySlug = 'product';
+}
 ```
 
-### Get fields for a model instance
+### Usage:
 ```php
 $product = Product::find(1);
-$fields = FlexFields::getByModelInstance($product);
+
+// Set flex field values
+$product->setFlexValue('color', '#ff0000')
+        ->setFlexValue('warranty_months', 24);
+
+// Get a flex field value
+$color = $product->getFlexValue('color', '#000000');
+
+// Sync multiple values at once
+$product->syncFlexValues([
+    'color' => '#000000',
+    'in_stock' => true,
+]);
+
+// Get all flex field values as flat array
+$data = $product->getFlexData();
+
+// Get active CustomField definitions (cached)
+$fields = $product->getFlexFields();
 ```
 
 ---
 
-## Filtering by Type
+## 3. Extending `DynamicFormBuilder` Macros
 
-### Get all fields of a specific type
+Register custom field component handlers dynamically:
+
 ```php
-$textFields = FlexFields::getByType('text');
-$selectFields = FlexFields::getByType('select');
-```
+use Filament\Forms\Components\TextInput;
+use IvanMercedes\FlexFields\Models\CustomField;
+use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
 
-### Get fields of a type for a specific model
-```php
-$productDateFields = FlexFields::getByTypeAndModel('date', Product::class);
-```
-
----
-
-## Searching by Name/Label
-
-### Search fields by label or key
-```php
-$fields = FlexFields::getByName('Description');
-```
-
-### Search fields for a specific model
-```php
-$fields = FlexFields::getByNameAndModel('Price', Product::class);
+// Register custom macro for a new field type
+DynamicFormBuilder::macro('custom_currency', function (CustomField $field) {
+    return TextInput::make('ff_' . $field->key)
+        ->label($field->label)
+        ->numeric()
+        ->prefix('$');
+});
 ```
 
 ---
 
-## Working with the Collection
-All methods return a `FlexFieldCollection` which extends Eloquent's Collection with extra helpers:
+## 4. `flex:status` Artisan Command
 
-```php
-$fields = FlexFields::getByModel(Product::class);
+Run in terminal to inspect entities, custom fields, records, multi-tenancy, and field cache configuration:
 
-$searchable = $fields->searchable();
-$inList = $fields->shownInList();
-$sorted = $fields->sorted();
-
-// Get a single field by key from the collection
-$priceField = $fields->getByKey('price');
+```bash
+php artisan flex:status
 ```
