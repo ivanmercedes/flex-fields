@@ -10,6 +10,8 @@ tags:
   - filament
   - flex-fields
   - schema-builder
+  - facade
+  - eloquent-trait
 ---
 
 # FlexFields Skill for AI Assistants
@@ -27,6 +29,8 @@ FlexFields uses an EAV (Entity-Attribute-Value) architecture natively integrated
 - **`IvanMercedes\FlexFields\Models\CustomField`**: Represents a field definition assigned to an Entity.
 - **`IvanMercedes\FlexFields\Models\EntityRecord`**: Represents an entry for an Entity.
 - **`IvanMercedes\FlexFields\Models\EntityCategory`**: Hierarchical taxonomies for entities.
+- **`IvanMercedes\FlexFields\Facades\FlexFields`**: Facade for global fluent entity/record operations.
+- **`IvanMercedes\FlexFields\Models\Traits\HasFlexFields`**: Trait to attach flex fields to any Eloquent model.
 
 > **CRITICAL RULE**: Do not attempt to create standard Filament Resources (`php artisan make:filament-resource`) for data types that are managed by FlexFields. FlexFields auto-generates the UI (Forms and Tables) dynamically inside its own interface (`EntityDataResource`).
 
@@ -40,6 +44,7 @@ FlexFields includes a powerful Schema Builder that behaves like Laravel Migratio
 - `php artisan flex:make-schema {EntityName}` (Creates a new schema file in `database/flex-schemas`)
 - `php artisan flex:migrate` (Applies pending schemas)
 - `php artisan flex:rollback` (Rolls back the last schema batch)
+- `php artisan flex:status` (Displays entity, field, record, and cache status overview)
 
 ### Schema Builder Syntax
 When generating a schema file inside `database/flex-schemas`, use the `Flex` facade:
@@ -96,23 +101,110 @@ return new class {
 };
 ```
 
-### Available Field Types in Blueprint
-- `$schema->text()`, `->textarea()`, `->rich()`, `->number()`, `->boolean()`, `->date()`, `->datetime()`
-- `$schema->select()`, `->multiselect()`, `->tags()`
-- `$schema->image()`, `->file()`, `->color()`, `->json()`
-- `$schema->repeater()` (requires `->schema(function(Blueprint $table) { ... })`)
+---
 
-### Available Field Modifiers
-- `->required(bool)`, `->placeholder(string)`, `->description(string)`, `->default(mixed)`
-- `->options(array)` (for select/multiselect)
-- `->width(string)` (accepts `'full'`, `'half'`, `'third'`)
-- `->searchable(bool)`, `->showInList(bool)`, `->active(bool)`
+## 3. `FlexFields` Facade & Fluent Query Engine
+
+Use the `FlexFields` facade for clean, global access to entities, fields, and records in PHP controllers, services, or jobs:
+
+```php
+use IvanMercedes\FlexFields\Facades\FlexFields;
+
+// 1. Fluent entity wrapper
+$entity = FlexFields::entity('product');
+
+// 2. Access cached active fields
+$fields = $entity->fields();
+
+// 3. Query records
+$records = $entity->records()->where('status', 'published')->get();
+
+// 4. Find record by ID or slug
+$record = $entity->findRecord('iphone-15');
+
+// 5. Create a record with attributes and custom field values in one call
+$record = $entity->createRecord([
+    'title' => 'iPhone 15 Pro',
+    'status' => 'published',
+], [
+    'color' => '#000000',
+    'price' => 999.99,
+]);
+
+// 6. System status & cache management
+$status = FlexFields::status();
+FlexFields::clearCache('product');
+```
 
 ---
 
-## 3. Data Retrieval & Manipulation (EAV)
+## 4. `HasFlexFields` Eloquent Trait
 
-When writing business logic (Controllers, Jobs, APIs), interact with `EntityRecord` directly.
+Attach dynamic custom fields directly to any existing Eloquent model (`Product`, `User`, `Order`, etc.):
+
+```php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use IvanMercedes\FlexFields\Models\Traits\HasFlexFields;
+
+class Product extends Model
+{
+    use HasFlexFields;
+    
+    // Optional: custom entity slug (defaults to kebab-case: 'product')
+    protected string $flexEntitySlug = 'product';
+}
+```
+
+### Trait Usage:
+```php
+$product = Product::find(1);
+
+// Set flex field values
+$product->setFlexValue('color', '#ff0000')
+        ->setFlexValue('warranty_months', 24);
+
+// Get flex field value (with optional default)
+$color = $product->getFlexValue('color', '#000000');
+
+// Sync multiple values at once
+$product->syncFlexValues([
+    'color' => '#000000',
+    'in_stock' => true,
+]);
+
+// Get all flex data as a flat array
+$data = $product->getFlexData();
+
+// Get active custom field definitions (cached)
+$fields = $product->getFlexFields();
+```
+
+---
+
+## 5. `DynamicFormBuilder` Macros
+
+Extend the Filament form builder dynamically by registering custom field type handlers:
+
+```php
+use Filament\Forms\Components\TextInput;
+use IvanMercedes\FlexFields\Models\CustomField;
+use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
+
+DynamicFormBuilder::macro('custom_currency', function (CustomField $field) {
+    return TextInput::make('ff_' . $field->key)
+        ->label($field->label)
+        ->numeric()
+        ->prefix('$');
+});
+```
+
+---
+
+## 6. Data Retrieval & Manipulation (EAV Direct Access)
+
+When working directly with `EntityRecord`:
 
 ```php
 use IvanMercedes\FlexFields\Models\Entity;
@@ -122,15 +214,13 @@ $entity = Entity::where('slug', 'product')->first();
 $records = EntityRecord::where('entity_id', $entity->id)->get();
 
 foreach ($records as $record) {
-    // 1. Get a specific field value natively
+    // Get a specific field value
     $price = $record->getValue('price');
     
-    // 2. Get all EAV values casted to a clean associative array
+    // Get all EAV values casted to an array
     $allData = $record->data; // ['price' => 99.99, 'sku' => '123-ABC']
     
-    // 3. Update an existing value
+    // Update an existing value
     $record->setValue('price', 149.99);
 }
 ```
-
-> **Repeater Data Format**: Repeater field values are returned as JSON-decoded Arrays. Note that the dynamic form builder internally prefixes nested repeater keys with `ff_` (e.g. `ff_feature_title`) in the UI context, but they are stored natively as JSON.
