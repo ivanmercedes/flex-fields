@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-08-10
+
+### Added
+- **Laravel Boost Skill**: Updated `resources/boost/skills/flex-fields/SKILL.md` with documentation for `FlexFields` facade, `HasFlexFields` trait, `DynamicFormBuilder` macros, and `flex:status` Artisan command for native auto-discovery by AI assistants.
+
 ## [0.3.0] - 2026-08-10
+
 
 ### Added
 - **`HasFlexFields` Eloquent Trait**: Added `IvanMercedes\FlexFields\Models\Traits\HasFlexFields` trait allowing any Eloquent model (`Product`, `User`, etc.) to get/set custom field values (`setFlexValue()`, `getFlexValue()`, `syncFlexValues()`, `getFlexData()`, `getFlexFields()`).

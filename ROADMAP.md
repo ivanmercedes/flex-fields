@@ -2,12 +2,13 @@
 
 This document outlines the planned features and improvements for future versions of **ivanmercedes/flex-fields**.
 
-> **Current stable release:** `0.3.0`
+> **Current stable release:** `0.3.1`
 > Community feedback and contributions are always welcome. Feel free to open an issue or discussion on GitHub.
 
 ---
 
-## ✅ 0.3.0 — Developer Experience *(current)*
+## ✅ 0.3.1 — Developer Experience & Boost Skill Update *(current)*
+
 
 *Focus: make the package easier to use from PHP code, not just the admin panel.*
 
