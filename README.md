@@ -29,6 +29,18 @@
 
 ---
 
+## See it in Action
+
+Here is how the dynamically generated forms look in Filament, powered entirely by your schema definitions:
+
+![Form Screenshot](docs/form-screenshot.png)
+
+*Watch the fluid creation process inside the Filament panel:*
+
+![FlexFields Demo](docs/demo.webp)
+
+---
+
 ## Requirements
 
 - PHP 8.3 or higher
