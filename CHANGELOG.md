@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-03
+
+### Added
+- **Conditional Custom Fields**: Fields can now be assigned to specific Entity Categories using a new `category_ids` multi-select field. Fields will dynamically appear or hide in the entity record form based on the selected categories in real-time.
+- **Category Schema Modifier**: Added `->categories([id])` method to the Schema Builder (`FieldDefinition`) to programmatically attach conditional visibility rules to fields.
+- **Image Field Enhancements**: Documented and exposed `->multiple()`, `->optimize()`, and `->imageDimensions()` modifiers in the schema builder for `image` and `file` custom fields.
+
+### Fixed
+- **Deprecation Warnings**: Resolved a Filament v3 deprecation warning by replacing `Forms\Components\Placeholder` with `\Filament\Infolists\Components\TextEntry` in `CustomFieldResource`.
+- **Label Argument Type**: Fixed a `TypeError` in `Label::trans()` by utilizing named arguments for the default fallback parameter.
+- **Schema Get TypeHint**: Fixed a type-hint mismatch where `DynamicFormBuilder` requested `Filament\Forms\Get` instead of `Filament\Schemas\Components\Utilities\Get`.
+- **Console Tenancy Exceptions**: Caught `NoDefaultPanelSetException` when checking `Filament::hasTenancy()` in `FieldCache` during Artisan console commands.
+
 ## [0.3.1] - 2026-08-10
 
 ### Added
