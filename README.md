@@ -35,10 +35,6 @@ Here is how the dynamically generated forms look in Filament, powered entirely b
 
 ![Form Screenshot](docs/form-screenshot.png)
 
-*Watch the fluid creation process inside the Filament panel:*
-
-![FlexFields Demo](docs/demo.webp)
-
 ---
 
 ## Requirements
