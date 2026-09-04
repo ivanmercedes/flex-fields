@@ -31,7 +31,21 @@
 
 ## See it in Action
 
-Here is how the dynamically generated forms look in Filament, powered entirely by your schema definitions:
+### 1. The Global Dashboard
+Visual overview of all your dynamic entities and custom fields.
+![Dashboard Screenshot](docs/dashboard.png)
+
+### 2. Entity Management
+Define your custom data types (like "Craft Beer" or "Brewery").
+![Entities Screenshot](docs/entities.png)
+
+### 3. Custom Fields Builder
+Easily add, configure, and reorder fields for each entity.
+![Custom Fields Screenshot](docs/custom-fields.png)
+
+### 4. Dynamic Forms & Records
+Create entries using beautiful, dynamically generated forms powered by Filament.
+![Craft Beer Screenshot](docs/craft-beer.png)
 
 ![Form Screenshot](docs/form-screenshot.png)
 
