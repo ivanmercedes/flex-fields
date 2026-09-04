@@ -41,6 +41,7 @@ class CustomField extends Model
         'is_searchable',
         'is_shown_in_list',
         'width',             // full | half | third
+        'category_ids',      // JSON array of category IDs
     ];
 
     protected $casts = [
@@ -52,6 +53,7 @@ class CustomField extends Model
         'is_active' => 'boolean',
         'is_searchable' => 'boolean',
         'is_shown_in_list' => 'boolean',
+        'category_ids' => 'array',
     ];
 
     public function entity(): BelongsTo

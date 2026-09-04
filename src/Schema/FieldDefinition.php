@@ -18,6 +18,7 @@ class FieldDefinition
         'options' => [],
         'validation_rules' => [],
         'settings' => [],
+        'category_ids' => null,
     ];
 
     public function __construct(string $type, string $key, ?string $label = null)
@@ -148,6 +149,13 @@ class FieldDefinition
     public function active(bool $active = true): self
     {
         $this->attributes['is_active'] = $active;
+
+        return $this;
+    }
+
+    public function categories(array $categoryIds): self
+    {
+        $this->attributes['category_ids'] = $categoryIds;
 
         return $this;
     }

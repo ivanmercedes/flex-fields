@@ -115,6 +115,7 @@ class EntityDataResource extends Resource
                 ->multiple()
                 ->relationship('categories', 'name', fn (Builder $query) => $query->where('entity_id', $entity?->id ?? 0))
                 ->preload()
+                ->live()
                 ->createOptionForm([
                     Forms\Components\Hidden::make('entity_id')
                         ->default($entity?->id),

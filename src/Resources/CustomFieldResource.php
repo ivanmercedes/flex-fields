@@ -60,7 +60,17 @@ class CustomFieldResource extends Resource
                         ->options(Entity::pluck('name', 'id'))
                         ->required()
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->live(),
+
+                    Forms\Components\Select::make('category_ids')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.categories', default: 'Categories'))
+                        ->multiple()
+                        ->options(fn (Get $get) => \IvanMercedes\FlexFields\Models\EntityCategory::where('entity_id', $get('entity_id'))->pluck('name', 'id'))
+                        ->searchable()
+                        ->preload()
+                        ->visible(fn (Get $get) => $get('entity_id') && \IvanMercedes\FlexFields\Models\EntityCategory::where('entity_id', $get('entity_id'))->exists())
+                        ->helperText(Label::trans('flex-fields::flex-fields.custom_field.helpers.categories', default: 'If selected, this field will only be available when the entity record belongs to one of these categories.')),
 
                     Forms\Components\Select::make('type')
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.type'))
@@ -252,13 +262,13 @@ class CustomFieldResource extends Resource
                 ->columns(2)
                 ->visible(fn ($record) => $record !== null)
                 ->schema([
-                    Forms\Components\Placeholder::make('created_at')
+                    \Filament\Infolists\Components\TextEntry::make('created_at')
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.created_at'))
-                        ->content(fn ($record) => $record?->created_at ? $record->created_at->format('Y-m-d H:i:s') . ' (' . $record->created_at->diffForHumans() . ')' : '—'),
+                        ->state(fn ($record) => $record?->created_at ? $record->created_at->format('Y-m-d H:i:s') . ' (' . $record->created_at->diffForHumans() . ')' : '—'),
 
-                    Forms\Components\Placeholder::make('updated_at')
+                    \Filament\Infolists\Components\TextEntry::make('updated_at')
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.updated_at'))
-                        ->content(fn ($record) => $record?->updated_at ? $record->updated_at->format('Y-m-d H:i:s') . ' (' . $record->updated_at->diffForHumans() . ')' : '—'),
+                        ->state(fn ($record) => $record?->updated_at ? $record->updated_at->format('Y-m-d H:i:s') . ' (' . $record->updated_at->diffForHumans() . ')' : '—'),
                 ]),
         ]);
     }

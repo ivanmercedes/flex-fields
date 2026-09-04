@@ -343,6 +343,16 @@ class DynamicFormBuilder
             $component->helperText($field->description);
         }
 
+        if (! empty($field->category_ids)) {
+            $component->hidden(function (\Filament\Schemas\Components\Utilities\Get $get) use ($field) {
+                // Return true to hide if none of the field's categories are selected
+                $selectedCategories = (array) $get('categories');
+                
+                // If there is no overlap between selected categories and the field's categories, hide it
+                return count(array_intersect($field->category_ids, $selectedCategories)) === 0;
+            });
+        }
+
         $component->columnSpan($colSpan);
 
         return $component;

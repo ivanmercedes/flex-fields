@@ -134,3 +134,7 @@ You can chain modifiers to your field definitions to configure their behavior:
 - `->searchable()`: Makes the field searchable in the table.
 - `->showInList()`: Shows the field in the Entity records table.
 - `->active(false)`: Disables the field.
+- `->categories(['category-id-1'])`: Assigns the field to specific category IDs, making it conditionally visible only when those categories are selected.
+- `->multiple()`: Allows selecting multiple files/images for `file` or `image` fields.
+- `->optimize(true | 'webp')`: Enables image optimization (and format conversion) for `image` fields.
+- `->imageDimensions(1920, 1080, 80)`: Sets maximum width, height, and quality for image optimization.

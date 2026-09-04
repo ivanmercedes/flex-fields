@@ -63,12 +63,19 @@ return new class {
                    ->showInMenu(true);
 
             // Adding fields
+            $schema->image('gallery', 'Product Gallery')
+                   ->multiple()
+                   ->optimize('webp')
+                   ->imageDimensions(1920, null, 80)
+                   ->width('full');
+                   
             $schema->text('sku', 'SKU')
                    ->required()
                    ->width('half');
                    
             $schema->number('price', 'Price')
                    ->required()
+                   ->categories([1, 2]) // Condition visible on these category IDs
                    ->width('half');
                    
             $schema->rich('description', 'Description')
