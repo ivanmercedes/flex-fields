@@ -108,10 +108,16 @@ class FieldCache
         $prefix = config('flex-fields.cache.prefix', 'flex_fields_');
         $tenantKey = '';
 
-        if (class_exists(Filament::class) && Filament::hasTenancy()) {
-            $tenant = Filament::getTenant();
-            if ($tenant) {
-                $tenantKey = 't' . ($tenant->getKey() ?? '') . '_';
+        if (class_exists(Filament::class)) {
+            try {
+                if (Filament::hasTenancy()) {
+                    $tenant = Filament::getTenant();
+                    if ($tenant) {
+                        $tenantKey = 't' . ($tenant->getKey() ?? '') . '_';
+                    }
+                }
+            } catch (\Exception $e) {
+                // Ignore NoDefaultPanelSetException in console/API contexts
             }
         }
 
