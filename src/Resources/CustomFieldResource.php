@@ -10,6 +10,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -21,6 +22,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
+use IvanMercedes\FlexFields\Models\EntityCategory;
 use IvanMercedes\FlexFields\Resources\CustomFieldResource\Pages;
 use IvanMercedes\FlexFields\Support\Label;
 use UnitEnum;
@@ -66,10 +68,10 @@ class CustomFieldResource extends Resource
                     Forms\Components\Select::make('category_ids')
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.categories', default: 'Categories'))
                         ->multiple()
-                        ->options(fn (Get $get) => \IvanMercedes\FlexFields\Models\EntityCategory::where('entity_id', $get('entity_id'))->pluck('name', 'id'))
+                        ->options(fn (Get $get) => EntityCategory::where('entity_id', $get('entity_id'))->pluck('name', 'id'))
                         ->searchable()
                         ->preload()
-                        ->visible(fn (Get $get) => $get('entity_id') && \IvanMercedes\FlexFields\Models\EntityCategory::where('entity_id', $get('entity_id'))->exists())
+                        ->visible(fn (Get $get) => $get('entity_id') && EntityCategory::where('entity_id', $get('entity_id'))->exists())
                         ->helperText(Label::trans('flex-fields::flex-fields.custom_field.helpers.categories', default: 'If selected, this field will only be available when the entity record belongs to one of these categories.')),
 
                     Forms\Components\Select::make('type')
@@ -262,11 +264,11 @@ class CustomFieldResource extends Resource
                 ->columns(2)
                 ->visible(fn ($record) => $record !== null)
                 ->schema([
-                    \Filament\Infolists\Components\TextEntry::make('created_at')
+                    TextEntry::make('created_at')
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.created_at'))
                         ->state(fn ($record) => $record?->created_at ? $record->created_at->format('Y-m-d H:i:s') . ' (' . $record->created_at->diffForHumans() . ')' : '—'),
 
-                    \Filament\Infolists\Components\TextEntry::make('updated_at')
+                    TextEntry::make('updated_at')
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.updated_at'))
                         ->state(fn ($record) => $record?->updated_at ? $record->updated_at->format('Y-m-d H:i:s') . ' (' . $record->updated_at->diffForHumans() . ')' : '—'),
                 ]),

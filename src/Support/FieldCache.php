@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Support;
 
+use Exception;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -116,7 +117,7 @@ class FieldCache
                         $tenantKey = 't' . ($tenant->getKey() ?? '') . '_';
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Ignore NoDefaultPanelSetException in console/API contexts
             }
         }

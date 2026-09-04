@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Schemas\Components\Component as SchemaComponent;
 use Filament\Schemas\Components\EmptyState;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
@@ -344,10 +345,10 @@ class DynamicFormBuilder
         }
 
         if (! empty($field->category_ids)) {
-            $component->hidden(function (\Filament\Schemas\Components\Utilities\Get $get) use ($field) {
+            $component->hidden(function (Get $get) use ($field) {
                 // Return true to hide if none of the field's categories are selected
                 $selectedCategories = (array) $get('categories');
-                
+
                 // If there is no overlap between selected categories and the field's categories, hide it
                 return count(array_intersect($field->category_ids, $selectedCategories)) === 0;
             });
