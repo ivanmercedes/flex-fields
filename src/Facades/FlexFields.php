@@ -10,6 +10,7 @@ use IvanMercedes\FlexFields\FlexFieldsManager;
 /**
  * @method static \IvanMercedes\FlexFields\Support\EntityQuery entity(\IvanMercedes\FlexFields\Models\Entity|string|int $entity)
  * @method static \Illuminate\Database\Eloquent\Builder entities()
+ * @method static \IvanMercedes\FlexFields\Ai\FlexFieldsAiBuilder ai(?\IvanMercedes\FlexFields\Ai\AiContext $context = null)
  * @method static void makeEntity(string $name, \Closure $callback)
  * @method static void updateEntity(string $slug, \Closure $callback)
  * @method static void dropEntity(string $slug)

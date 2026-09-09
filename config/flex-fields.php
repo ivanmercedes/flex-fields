@@ -94,6 +94,21 @@ return [
     ],
 
     /*
+    |--------------------------------------------------------------------------
+    | Laravel AI SDK Integration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for FlexFields AI Tools when used with Laravel AI agents.
+    |
+    */
+    'ai' => [
+        'enabled' => env('FLEX_FIELDS_AI_ENABLED', true),
+        'require_approvals' => env('FLEX_FIELDS_AI_REQUIRE_APPROVALS', true),
+        'read_only' => env('FLEX_FIELDS_AI_READ_ONLY', false),
+        'allowed_entities' => null, // null means all entities allowed, or ['slug-1', 'slug-2']
+    ],
+
+    /*
     | Navigation group for the plugin resources in the sidebar.
     */
     'navigation_group' => 'flex-fields::flex-fields.navigation.group',

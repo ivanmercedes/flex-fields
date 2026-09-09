@@ -15,6 +15,7 @@
 
 - **Custom Entities:** Define any data structure (like post types) without touching database migrations.
 - **17+ Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, tags, and dynamic repeaters.
+- **Laravel AI SDK Integration:** First-party tools for AI agents to introspect schemas, read, create, mutate, publish content, and safely execute destructive actions with human approvals.
 - **`HasFlexFields` Eloquent Trait:** Attach dynamic flex fields directly to any existing model (`Product`, `User`, etc.).
 - **`FlexFields` Facade:** Fluent global access: `FlexFields::entity('product')->records()`, `createRecord()`, `status()`, `clearCache()`.
 - **Field Caching:** High-performance active field caching with automatic invalidation on save/delete.
@@ -173,6 +174,30 @@ php artisan flex:status
 ```
 
 For full details, read the [Facade & Developer Experience Documentation](docs/facade_usage.md).
+
+---
+
+## Laravel AI SDK Integration (AI-Ready)
+
+FlexFields includes native Tools for the official **Laravel AI SDK** (`laravel/ai`), enabling conversational agents to discover schemas, manage entities, and perform CRUD and publishing operations on records.
+
+```php
+use IvanMercedes\FlexFields\Ai\FlexFieldsAi;
+use Laravel\Ai\Agent;
+
+class ContentAgent extends Agent
+{
+    public function tools(): array
+    {
+        return [
+            // All tools or filtered by categories: read, structure, content, publishing, destructive
+            ...FlexFieldsAi::tools(['read', 'content', 'publishing']),
+        ];
+    }
+}
+```
+
+For full details, read the [Laravel AI SDK Integration Documentation](docs/ai-integration.md).
 
 ---
 

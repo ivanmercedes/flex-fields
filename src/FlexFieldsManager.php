@@ -7,6 +7,9 @@ namespace IvanMercedes\FlexFields;
 use Closure;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
+use IvanMercedes\FlexFields\Ai\AiContext;
+use IvanMercedes\FlexFields\Ai\FlexFieldsAi;
+use IvanMercedes\FlexFields\Ai\FlexFieldsAiBuilder;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
@@ -33,6 +36,14 @@ class FlexFieldsManager
     public function entities(): Builder
     {
         return Entity::query();
+    }
+
+    /**
+     * Get the AI integration helper / builder.
+     */
+    public function ai(?AiContext $context = null): FlexFieldsAiBuilder
+    {
+        return FlexFieldsAi::configure($context);
     }
 
     /**
