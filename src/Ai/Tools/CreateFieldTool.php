@@ -57,9 +57,10 @@ class CreateFieldTool implements Tool
             'width' => $schema->string()
                 ->description('Form column width: "full", "half", or "third". Defaults to "full".')
                 ->enum(['full', 'half', 'third']),
-            'options' => $schema->array()
-                ->description('Options dictionary for select/multiselect types, e.g. [{"value": "red", "label": "Red"}] or {"red": "Red"}.'),
+            'options' => $schema->object()
+                ->description('Options dictionary for select/multiselect types, e.g. {"red": "Red", "blue": "Blue"}.'),
             'validation_rules' => $schema->array()
+                ->items($schema->string())
                 ->description('List of Laravel validation rules, e.g. ["min:2", "max:100"].'),
         ];
     }

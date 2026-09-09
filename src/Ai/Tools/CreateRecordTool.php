@@ -41,9 +41,10 @@ class CreateRecordTool implements Tool
             'status' => $schema->string()
                 ->description('Record publishing status: "published", "draft", or "archived". Defaults to "published".')
                 ->enum(['published', 'draft', 'archived']),
-            'field_values' => $schema->array()
+            'field_values' => $schema->object()
                 ->description('Key-value dictionary mapping custom field keys to their values, e.g. {"price": 29.99, "color": "blue"}. Call GetEntitySchema first to know valid field keys.'),
             'category_ids' => $schema->array()
+                ->items($schema->integer())
                 ->description('Optional array of category IDs to assign to this record.'),
         ];
     }

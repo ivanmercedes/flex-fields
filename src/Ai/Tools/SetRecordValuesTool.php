@@ -36,7 +36,7 @@ class SetRecordValuesTool implements Tool
             'record' => $schema->string()
                 ->description('The record ID or unique slug.')
                 ->required(),
-            'field_values' => $schema->array()
+            'field_values' => $schema->object()
                 ->description('Key-value dictionary mapping custom field keys to their new values, e.g. {"price": 49.99, "is_featured": true}.')
                 ->required(),
         ];

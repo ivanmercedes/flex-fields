@@ -43,9 +43,10 @@ class UpdateRecordTool implements Tool
             'status' => $schema->string()
                 ->description('New status: published, draft, or archived.')
                 ->enum(['published', 'draft', 'archived']),
-            'field_values' => $schema->array()
+            'field_values' => $schema->object()
                 ->description('Key-value dictionary mapping custom field keys to updated values.'),
             'category_ids' => $schema->array()
+                ->items($schema->integer())
                 ->description('Array of category IDs to assign to this record.'),
         ];
     }

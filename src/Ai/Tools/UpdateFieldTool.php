@@ -57,9 +57,10 @@ class UpdateFieldTool implements Tool
             'width' => $schema->string()
                 ->description('Column width: full, half, or third.')
                 ->enum(['full', 'half', 'third']),
-            'options' => $schema->array()
-                ->description('Updated options array for select/multiselect.'),
+            'options' => $schema->object()
+                ->description('Updated options dictionary for select/multiselect.'),
             'validation_rules' => $schema->array()
+                ->items($schema->string())
                 ->description('Updated list of Laravel validation rules.'),
         ];
     }
