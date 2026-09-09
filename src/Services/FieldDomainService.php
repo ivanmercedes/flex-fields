@@ -109,7 +109,9 @@ class FieldDomainService
             'is_searchable' => (bool) ($attributes['is_searchable'] ?? false),
             'is_shown_in_list' => (bool) ($attributes['is_shown_in_list'] ?? false),
             'width' => (string) ($attributes['width'] ?? 'full'),
-            'category_ids' => $attributes['category_ids'] ?? null,
+            'category_ids' => isset($attributes['category_ids']) && is_array($attributes['category_ids'])
+                ? $this->resolveCategoryIds($entity, $attributes['category_ids'])
+                : null,
         ]);
 
         FieldCache::forgetForEntity($entity);
@@ -167,6 +169,10 @@ class FieldDomainService
                         throw new RuntimeException("Invalid field type [{$type}]. Supported types: " . implode(', ', $validTypes));
                     }
                     $data['type'] = $type;
+                } elseif ($k === 'category_ids') {
+                    $data['category_ids'] = is_array($attributes['category_ids'])
+                        ? $this->resolveCategoryIds($entity, $attributes['category_ids'])
+                        : null;
                 } else {
                     $data[$k] = $attributes[$k];
                 }
@@ -195,5 +201,58 @@ class FieldDomainService
         $field->values()->delete();
 
         return (bool) $field->delete();
+    }
+
+    /**
+     * Assign a custom field to categories (by ID, slug, or name).
+     * Pass empty array to remove category restrictions.
+     *
+     * @param  array<int|string>  $categoryIdsOrSlugs
+     */
+    public function assignCategories(int | string $entityIdOrSlug, int | string $fieldIdOrKey, array $categoryIdsOrSlugs, ?int $tenantId = null): CustomField
+    {
+        return $this->update($entityIdOrSlug, $fieldIdOrKey, [
+            'category_ids' => $categoryIdsOrSlugs,
+        ], $tenantId);
+    }
+
+    /**
+     * Resolve category IDs from an array of IDs, slugs, or names.
+     *
+     * @param  array<int|string>|null  $categoryIdsOrSlugs
+     * @return array<int>|null
+     */
+    public function resolveCategoryIds(Entity $entity, ?array $categoryIdsOrSlugs): ?array
+    {
+        if ($categoryIdsOrSlugs === null) {
+            return null;
+        }
+
+        if (empty($categoryIdsOrSlugs)) {
+            return null;
+        }
+
+        $numeric = array_map('intval', array_filter($categoryIdsOrSlugs, 'is_numeric'));
+        $strings = array_values(array_filter($categoryIdsOrSlugs, fn ($v) => ! is_numeric($v)));
+
+        $resolved = $entity->categories()
+            ->where(function ($q) use ($numeric, $strings) {
+                if (! empty($numeric)) {
+                    $q->whereIn('id', $numeric);
+                }
+                if (! empty($strings)) {
+                    $q->orWhereIn('slug', $strings)->orWhereIn('name', $strings);
+                }
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        if (! empty($resolved)) {
+            return $resolved;
+        }
+
+        return ! empty($numeric) ? $numeric : null;
     }
 }

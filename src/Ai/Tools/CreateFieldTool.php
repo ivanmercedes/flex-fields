@@ -62,6 +62,9 @@ class CreateFieldTool implements Tool
             'validation_rules' => $schema->array()
                 ->items($schema->string())
                 ->description('List of Laravel validation rules, e.g. ["min:2", "max:100"].'),
+            'category_ids' => $schema->array()
+                ->items($schema->string())
+                ->description('Optional array of category IDs, slugs, or names to assign this field to (scopes field visibility to records in these categories).'),
         ];
     }
 
@@ -85,6 +88,7 @@ class CreateFieldTool implements Tool
             'width' => ['sometimes', 'string', 'in:full,half,third'],
             'options' => ['sometimes', 'nullable', 'array'],
             'validation_rules' => ['sometimes', 'nullable', 'array'],
+            'category_ids' => ['sometimes', 'nullable', 'array'],
         ]);
 
         $entitySlug = $validated['entity'];
@@ -106,6 +110,7 @@ class CreateFieldTool implements Tool
                     'is_required' => (bool) $field->is_required,
                     'is_shown_in_list' => (bool) $field->is_shown_in_list,
                     'order' => $field->order,
+                    'category_ids' => $field->category_ids ?? [],
                 ],
             ]);
         } catch (Throwable $e) {

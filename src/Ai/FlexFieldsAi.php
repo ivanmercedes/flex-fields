@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Ai;
 
+use IvanMercedes\FlexFields\Ai\Tools\AssignFieldCategoriesTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateCategoryTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateEntityTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateFieldTool;
@@ -52,6 +53,7 @@ class FlexFieldsAi
         UpdateEntityTool::class,
         CreateFieldTool::class,
         UpdateFieldTool::class,
+        AssignFieldCategoriesTool::class,
         CreateCategoryTool::class,
         UpdateCategoryTool::class,
         DeleteEntityTool::class,

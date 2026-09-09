@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Tests\Feature;
 
+use IvanMercedes\FlexFields\Ai\Tools\AssignFieldCategoriesTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateFieldTool;
 use IvanMercedes\FlexFields\Ai\Tools\DeleteFieldTool;
 use IvanMercedes\FlexFields\Ai\Tools\GetEntitySchemaTool;
@@ -11,6 +12,7 @@ use IvanMercedes\FlexFields\Ai\Tools\GetFieldTool;
 use IvanMercedes\FlexFields\Ai\Tools\ListFieldsTool;
 use IvanMercedes\FlexFields\Ai\Tools\UpdateFieldTool;
 use IvanMercedes\FlexFields\Models\Entity;
+use IvanMercedes\FlexFields\Models\EntityCategory;
 use IvanMercedes\FlexFields\Tests\TestCase;
 use Laravel\Ai\Tools\Request;
 
@@ -179,5 +181,84 @@ class SchemaAndFieldToolsTest extends TestCase
         $result = $tool->handle($request);
         $this->assertStringContainsString('permanently deleted', $result);
         $this->assertDatabaseMissing('ff_custom_fields', ['id' => $field->id]);
+    }
+
+    public function test_create_and_update_field_with_categories(): void
+    {
+        $cat1 = EntityCategory::create([
+            'entity_id' => $this->entity->id,
+            'name' => 'News',
+            'slug' => 'news',
+        ]);
+
+        $cat2 = EntityCategory::create([
+            'entity_id' => $this->entity->id,
+            'name' => 'Opinion',
+            'slug' => 'opinion',
+        ]);
+
+        $createTool = new CreateFieldTool;
+        $createResponse = json_decode($createTool->handle(new Request([
+            'entity' => 'article',
+            'label' => 'Source URL',
+            'key' => 'source_url',
+            'type' => 'url',
+            'category_ids' => [$cat1->id],
+        ])), true);
+
+        $this->assertEquals([$cat1->id], $createResponse['field']['category_ids']);
+
+        $updateTool = new UpdateFieldTool;
+        $updateResponse = json_decode($updateTool->handle(new Request([
+            'entity' => 'article',
+            'field' => 'source_url',
+            'category_ids' => [$cat1->id, $cat2->id],
+        ])), true);
+
+        $this->assertEquals([$cat1->id, $cat2->id], $updateResponse['field']['category_ids']);
+    }
+
+    public function test_assign_field_categories_tool(): void
+    {
+        $cat1 = EntityCategory::create([
+            'entity_id' => $this->entity->id,
+            'name' => 'Tech',
+            'slug' => 'tech',
+        ]);
+
+        $field1 = $this->entity->customFields()->create([
+            'label' => 'Tech Spec',
+            'key' => 'tech_spec',
+            'type' => 'text',
+        ]);
+
+        $field2 = $this->entity->customFields()->create([
+            'label' => 'Version',
+            'key' => 'version',
+            'type' => 'text',
+        ]);
+
+        $tool = new AssignFieldCategoriesTool;
+
+        // Assign multiple fields using category slug
+        $response = json_decode($tool->handle(new Request([
+            'entity' => 'article',
+            'fields' => ['tech_spec', 'version'],
+            'categories' => ['tech'],
+        ])), true);
+
+        $this->assertCount(2, $response['fields']);
+        $this->assertEquals([$cat1->id], $response['fields'][0]['category_ids']);
+        $this->assertEquals([$cat1->id], $response['fields'][1]['category_ids']);
+
+        // Clear categories (pass empty array)
+        $clearResponse = json_decode($tool->handle(new Request([
+            'entity' => 'article',
+            'fields' => ['tech_spec'],
+            'categories' => [],
+        ])), true);
+
+        $this->assertEquals([], $clearResponse['fields'][0]['category_ids']);
+        $this->assertNull($field1->fresh()->category_ids);
     }
 }

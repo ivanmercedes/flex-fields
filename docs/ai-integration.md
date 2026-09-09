@@ -104,10 +104,20 @@ To adhere to the principle of least privilege, tools are categorized into 5 dist
 | Category | Method | Description |
 |---|---|---|
 | **Read** | `FlexFieldsAi::readTools()` | Schema introspection, listing entities, viewing records, inspecting field types. Safe and non-mutating. |
-| **Structure** | `FlexFieldsAi::structureTools()` | Creating and modifying entities, custom fields, and categories. |
+| **Structure** | `FlexFieldsAi::structureTools()` | Creating and modifying entities, custom fields, taxonomies, and assigning fields to categories. |
 | **Content** | `FlexFieldsAi::contentTools()` | Creating, updating, setting field values, and deleting records. |
 | **Publishing** | `FlexFieldsAi::publishingTools()` | Publishing (`status = 'published'`) and unpublishing (`status = 'draft'`) content records. |
 | **Destructive** | `FlexFieldsAi::destructiveTools()` | High-impact actions (`DeleteEntityTool`, `DeleteFieldTool`, `DeleteCategoryTool`, `DeleteRecordTool`). |
+
+### Available Tools (23 Native Tools)
+
+| Group | Tools | Description |
+|---|---|---|
+| **Read** | `ListEntitiesTool`<br>`GetEntitySchemaTool`<br>`ListFieldsTool`<br>`GetFieldTool`<br>`ListCategoriesTool`<br>`ListRecordsTool`<br>`GetRecordTool` | Inspect schema, metadata, field options, records, and taxonomies without mutations. |
+| **Structure** | `CreateEntityTool`<br>`UpdateEntityTool`<br>`CreateFieldTool`<br>`UpdateFieldTool`<br>`AssignFieldCategoriesTool`<br>`CreateCategoryTool`<br>`UpdateCategoryTool` | Create and modify entities, custom fields, category hierarchies, and scope fields to specific categories. |
+| **Content** | `CreateRecordTool`<br>`UpdateRecordTool`<br>`SetRecordValuesTool` | Manage record entries and their custom field values. |
+| **Publishing** | `PublishRecordTool`<br>`UnpublishRecordTool` | Toggle record publishing status (`published` / `draft`). |
+| **Destructive** | `DeleteEntityTool`<br>`DeleteFieldTool`<br>`DeleteCategoryTool`<br>`DeleteRecordTool` | Delete entities, fields, categories, or records. Implement `Laravel\Ai\Contracts\Approvable`. |
 
 ### Combining Categories
 

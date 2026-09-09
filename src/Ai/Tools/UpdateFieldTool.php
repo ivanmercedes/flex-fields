@@ -62,6 +62,9 @@ class UpdateFieldTool implements Tool
             'validation_rules' => $schema->array()
                 ->items($schema->string())
                 ->description('Updated list of Laravel validation rules.'),
+            'category_ids' => $schema->array()
+                ->items($schema->string())
+                ->description('Array of category IDs, slugs, or names to assign this field to. Pass empty array [] to make the field available across all categories.'),
         ];
     }
 
@@ -86,6 +89,7 @@ class UpdateFieldTool implements Tool
             'width' => ['sometimes', 'string', 'in:full,half,third'],
             'options' => ['sometimes', 'nullable', 'array'],
             'validation_rules' => ['sometimes', 'nullable', 'array'],
+            'category_ids' => ['sometimes', 'nullable', 'array'],
         ]);
 
         $entitySlug = $validated['entity'];
@@ -107,6 +111,7 @@ class UpdateFieldTool implements Tool
                     'type' => $field->type,
                     'is_required' => (bool) $field->is_required,
                     'is_active' => (bool) $field->is_active,
+                    'category_ids' => $field->category_ids ?? [],
                 ],
             ]);
         } catch (Throwable $e) {
