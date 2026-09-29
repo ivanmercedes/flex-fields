@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-09-29
+
+### Added
+- **Portable AI Assistant Agent (`FlexFieldsAssistant`)**: Native Laravel AI SDK Agent (`IvanMercedes\FlexFields\Ai\Agents\FlexFieldsAssistant`) providing a ready-to-use, promptable assistant for managing entities, schemas, fields, taxonomies, and records.
+- **Interactive CLI Command (`flex:agent`)**: Added `php artisan flex:agent` command with interactive terminal prompt loop, support for direct prompt arguments, and flags for `--tenant`, `--provider`, and `--model`.
+- **Laravel AI SDK Integration (23 Native Tools)**: Full domain integration providing first-party tools across 5 functional categories: `read`, `structure`, `content`, `publishing`, and `destructive`.
+- **`FlexFieldsAi` Manager & Fluent Builder**: Added `FlexFieldsAi::configure()`, `FlexFieldsAi::tools()`, `FlexFieldsAi::assistant()`, and specialized category accessors (`readTools()`, `contentTools()`, etc.).
+- **Security Boundaries & `AiContext`**: Configurable context supporting multi-tenancy isolation, entity whitelisting (`allowEntities()`), and global read-only mode (`readOnly()`).
+- **Human Approval Hooks**: Destructive tools (`DeleteEntityTool`, `DeleteFieldTool`, `DeleteCategoryTool`, `DeleteRecordTool`) implement `Laravel\Ai\Contracts\Approvable` with automated or custom approval prompts.
+- **`AssignFieldCategoriesTool`**: Dedicated AI tool to bind or unbind custom fields to specific categories dynamically.
+- **Entity Unique Slug Helper**: Added `Entity::generateUniqueSlug()` static helper supporting tenant scoping and auto-incrementing.
+
+### Fixed
+- **Multi-Tenant Slug Collisions**: Scoped entity slug generation and Filament `unique` validation rule to the active tenant. Entities with the same name across different tenants no longer collide.
+- **Same-Tenant Duplicate Slug Auto-Increment**: When creating an entity with a name/slug that already exists in the same tenant, the slug now automatically appends the next available number (`slug-1`, `slug-2`, etc.).
+- **Tenant-Scoped Entity Lists & Badges**: Scoped `ListEntities` view and `EntityResource::getNavigationBadge()` to `Entity::currentTenant()`.
+- **AI Tool JSON Schema Refinements**: Refined JSON schema definitions for array items and dictionary objects in AI tools.
+
 ## [0.4.0] - 2026-09-03
 
 ### Added

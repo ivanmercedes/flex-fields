@@ -9,11 +9,13 @@ use Filament\Support\Assets\Css;
 // use Filament\View\PanelsRenderHook;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
+use IvanMercedes\FlexFields\Commands\FlexFieldsAgentCommand;
 use IvanMercedes\FlexFields\Commands\FlexStatusCommand;
 use IvanMercedes\FlexFields\Commands\InstallFlexFieldsCommand;
 use IvanMercedes\FlexFields\Commands\MakeSchemaCommand;
 use IvanMercedes\FlexFields\Commands\MigrateSchemasCommand;
 use IvanMercedes\FlexFields\Commands\RollbackSchemasCommand;
+use Laravel\Ai\Contracts\Agent;
 
 class FlexFieldsServiceProvider extends ServiceProvider
 {
@@ -54,13 +56,19 @@ class FlexFieldsServiceProvider extends ServiceProvider
                 __DIR__ . '/../resources/views' => resource_path('views/vendor/flex-fields'),
             ], 'flex-fields-views');
 
-            $this->commands([
+            $commands = [
                 InstallFlexFieldsCommand::class,
                 MakeSchemaCommand::class,
                 MigrateSchemasCommand::class,
                 RollbackSchemasCommand::class,
                 FlexStatusCommand::class,
-            ]);
+            ];
+
+            if (interface_exists(Agent::class)) {
+                $commands[] = FlexFieldsAgentCommand::class;
+            }
+
+            $this->commands($commands);
         }
     }
 }

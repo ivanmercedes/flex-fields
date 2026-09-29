@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Ai;
 
+use IvanMercedes\FlexFields\Ai\Agents\FlexFieldsAssistant;
 use IvanMercedes\FlexFields\Ai\Tools\AssignFieldCategoriesTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateCategoryTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateEntityTool;
@@ -102,6 +103,22 @@ class FlexFieldsAi
         static::ensureAvailable();
 
         return new FlexFieldsAiBuilder($context);
+    }
+
+    /**
+     * Create a pre-configured, portable FlexFields Assistant Agent.
+     *
+     * @param  array<string>  $categories
+     */
+    public static function assistant(?int $tenantId = null, array $categories = ['read', 'content', 'publishing', 'structure'], bool $requireApprovals = false): FlexFieldsAssistant
+    {
+        static::ensureAvailable();
+
+        return new FlexFieldsAssistant(
+            tenantId: $tenantId,
+            categories: $categories,
+            requireApprovals: $requireApprovals,
+        );
     }
 
     /**

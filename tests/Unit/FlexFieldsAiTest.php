@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Tests\Unit;
 
+use IvanMercedes\FlexFields\Ai\Agents\FlexFieldsAssistant;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\FlexFieldsAi;
 use IvanMercedes\FlexFields\Ai\Tools\CreateEntityTool;
@@ -68,5 +69,39 @@ class FlexFieldsAiTest extends TestCase
 
         $this->assertNotEmpty($tools);
         $this->assertTrue($tools[0]->context()->isReadOnly());
+    }
+
+    public function test_assistant_agent_instantiation_and_tools(): void
+    {
+        $assistant = new FlexFieldsAssistant(
+            tenantId: 42,
+            categories: ['read', 'content'],
+            requireApprovals: false,
+        );
+
+        $this->assertEquals(42, $assistant->tenantId);
+        $this->assertNotEmpty($assistant->instructions());
+
+        $tools = iterator_to_array($assistant->tools());
+        $this->assertNotEmpty($tools);
+        $this->assertContainsOnlyInstancesOf(Tool::class, $tools);
+
+        // Check that messages can be configured
+        $assistant->withMessages([]);
+        $this->assertIsIterable($assistant->messages());
+    }
+
+    public function test_assistant_agent_factory(): void
+    {
+        $assistant = FlexFieldsAi::assistant(tenantId: 10);
+
+        $this->assertInstanceOf(FlexFieldsAssistant::class, $assistant);
+        $this->assertEquals(10, $assistant->tenantId);
+    }
+
+    public function test_agent_command_is_registered_and_executable(): void
+    {
+        $this->artisan('list')
+            ->expectsOutputToContain('flex:agent');
     }
 }

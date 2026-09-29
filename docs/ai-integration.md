@@ -256,3 +256,47 @@ use IvanMercedes\FlexFields\Ai\FlexFieldsAi;
 
 FlexFieldsAi::registerTool(MyCustomAnalyticsTool::class);
 ```
+
+---
+
+## Out-of-the-Box Assistant Agent (`FlexFieldsAssistant`)
+
+FlexFields includes a production-ready, portable AI Agent class out-of-the-box:
+
+```php
+use IvanMercedes\FlexFields\Ai\Agents\FlexFieldsAssistant;
+
+// Instantiate for a specific tenant or automatically resolved
+$agent = new FlexFieldsAssistant(tenantId: 1);
+
+// Run a prompt
+$response = $agent->prompt('Create a new entity named Books with isbn and title fields.');
+echo (string) $response;
+```
+
+Or via the `FlexFieldsAi` factory:
+
+```php
+use IvanMercedes\FlexFields\Ai\FlexFieldsAi;
+
+$agent = FlexFieldsAi::assistant(tenantId: $workspace->id);
+$response = $agent->prompt('List all active records for craft-beer');
+```
+
+---
+
+## Interactive CLI: `php artisan flex:agent`
+
+Interact directly with the AI Assistant from your terminal to test, inspect schemas, or create content:
+
+```bash
+# Interactive conversation loop
+php artisan flex:agent
+
+# Run a one-off prompt directly
+php artisan flex:agent "List all entities and their records count"
+
+# Override tenant, provider, or model
+php artisan flex:agent "Show schema for craft-beer" --tenant=2 --provider=openai --model=gpt-4o
+```
+

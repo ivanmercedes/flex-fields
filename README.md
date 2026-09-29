@@ -179,7 +179,22 @@ For full details, read the [Facade & Developer Experience Documentation](docs/fa
 
 ## Laravel AI SDK Integration (AI-Ready)
 
-FlexFields includes native Tools for the official **Laravel AI SDK** (`laravel/ai`), enabling conversational agents to discover schemas, manage entities, and perform CRUD and publishing operations on records.
+FlexFields includes native Tools and a complete out-of-the-box Agent for the official **Laravel AI SDK** (`laravel/ai`), enabling conversational agents to discover schemas, manage entities, and perform CRUD and publishing operations on records.
+
+### Interactive CLI:
+```bash
+php artisan flex:agent
+```
+
+### Pre-built Agent:
+```php
+use IvanMercedes\FlexFields\Ai\Agents\FlexFieldsAssistant;
+
+$agent = new FlexFieldsAssistant;
+$response = $agent->prompt('Show schema for products');
+```
+
+Or plug individual tool groups into your own custom agents:
 
 ```php
 use IvanMercedes\FlexFields\Ai\FlexFieldsAi;
