@@ -20,10 +20,10 @@ use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Resources\EntityResource\Pages;
 use IvanMercedes\FlexFields\Support\Label;
+use Throwable;
 use UnitEnum;
 
 class EntityResource extends Resource
@@ -64,19 +64,58 @@ class EntityResource extends Resource
                                 if (empty($state)) {
                                     return;
                                 }
-                                $slug = Str::slug($state);
-                                $originalSlug = $slug;
-                                $count = 1;
-                                while (Entity::where('slug', $slug)->where('id', '!=', $record?->id)->exists()) {
-                                    $slug = $originalSlug . '-' . $count;
-                                    $count++;
+
+                                $tenantColumn = config('flex-fields.tenancy.tenant_column', 'tenant_id');
+                                $tenantId = $record?->{$tenantColumn};
+
+                                if ($tenantId === null && config('flex-fields.tenancy.enabled', false)) {
+                                    if (class_exists(Filament::class) && Filament::hasTenancy()) {
+                                        try {
+                                            $tenantId = Filament::getTenant()?->getKey();
+                                        } catch (Throwable) {
+                                        }
+                                    }
                                 }
+
+                                $slug = Entity::generateUniqueSlug(
+                                    name: (string) $state,
+                                    tenantId: $tenantId !== null ? (int) $tenantId : null,
+                                    ignoreId: $record?->id,
+                                );
+
                                 $set('slug', $slug);
                             }),
 
                         Forms\Components\TextInput::make('slug')
                             ->label(Label::trans('flex-fields::flex-fields.entity.fields.slug'))
-                            ->unique(ignoreRecord: true)
+                            ->unique(
+                                table: Entity::class,
+                                column: 'slug',
+                                ignoreRecord: true,
+                                modifyRuleUsing: function ($rule, $record) {
+                                    $tenantColumn = config('flex-fields.tenancy.tenant_column', 'tenant_id');
+                                    $tenantId = $record?->{$tenantColumn};
+
+                                    if ($tenantId === null && config('flex-fields.tenancy.enabled', false)) {
+                                        if (class_exists(Filament::class) && Filament::hasTenancy()) {
+                                            try {
+                                                $tenantId = Filament::getTenant()?->getKey();
+                                            } catch (Throwable) {
+                                            }
+                                        }
+                                    }
+
+                                    if ($tenantId !== null) {
+                                        return $rule->where($tenantColumn, $tenantId);
+                                    }
+
+                                    if (config('flex-fields.tenancy.enabled', false)) {
+                                        return $rule->whereNull($tenantColumn);
+                                    }
+
+                                    return $rule;
+                                }
+                            )
                             ->maxLength(255)
                             ->helperText(Label::trans('flex-fields::flex-fields.entity.helpers.slug')),
                     ]),
@@ -249,7 +288,7 @@ class EntityResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) static::getModel()::count() ?: null;
+        return (string) static::getModel()::currentTenant()->count() ?: null;
     }
 
     public static function getNavigationGroup(): ?string

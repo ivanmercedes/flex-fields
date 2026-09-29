@@ -29,7 +29,8 @@ class ListEntities extends ListRecords
 
     public function loadEntities(): void
     {
-        $this->entities = Entity::withCount(['customFields', 'records'])
+        $this->entities = Entity::currentTenant()
+            ->withCount(['customFields', 'records'])
             ->orderBy('menu_order')
             ->get()
             ->toArray();

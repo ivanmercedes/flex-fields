@@ -139,30 +139,28 @@ class EntityDomainService
      */
     public function create(array $attributes, ?int $tenantId = null): Entity
     {
-        $tenantId = $this->resolveTenantId($tenantId);
+        $tenantId = $this->resolveTenantId($tenantId ?? ($attributes['tenant_id'] ?? null));
 
         $name = trim((string) ($attributes['name'] ?? ''));
         if ($name === '') {
             throw new RuntimeException('Entity name is required.');
         }
 
-        $slug = ! empty($attributes['slug'])
-            ? Str::slug((string) $attributes['slug'])
-            : Str::slug($name);
+        $preferredSlug = ! empty($attributes['slug']) ? (string) $attributes['slug'] : null;
 
-        $originalSlug = $slug;
-        $counter = 1;
-        while ($this->query($tenantId)->where('slug', $slug)->exists()) {
-            $slug = "{$originalSlug}-{$counter}";
-            $counter++;
-        }
+        $slug = Entity::generateUniqueSlug(
+            name: $name,
+            tenantId: $tenantId,
+            ignoreId: null,
+            preferredSlug: $preferredSlug,
+        );
 
         $data = [
             'name' => $name,
             'slug' => $slug,
             'description' => $attributes['description'] ?? null,
             'icon' => $attributes['icon'] ?? 'heroicon-o-cube',
-            'color' => $attributes['color'] ?? null,
+            'color' => $attributes['color'] ?? '#6366f1',
             'is_active' => $attributes['is_active'] ?? true,
             'show_in_menu' => $attributes['show_in_menu'] ?? true,
             'menu_order' => (int) ($attributes['menu_order'] ?? 0),
@@ -184,6 +182,7 @@ class EntityDomainService
     public function update(int | string $idOrSlug, array $attributes, ?int $tenantId = null): Entity
     {
         $entity = $this->findOrFail($idOrSlug, $tenantId);
+        $tenantId = $this->resolveTenantId($tenantId ?? ($entity->tenant_id ?? null));
 
         $allowed = [
             'name',
@@ -251,7 +250,14 @@ class EntityDomainService
         $query = Entity::query();
         $resolvedTenantId = $this->resolveTenantId($tenantId);
 
-        if ($resolvedTenantId !== null && config('flex-fields.tenancy.enabled', false)) {
+        if (config('flex-fields.tenancy.enabled', false)) {
+            $tenantColumn = config('flex-fields.tenancy.tenant_column', 'tenant_id');
+            if ($resolvedTenantId !== null) {
+                $query->where($tenantColumn, $resolvedTenantId);
+            } else {
+                $query->whereNull($tenantColumn);
+            }
+        } elseif ($resolvedTenantId !== null) {
             $tenantColumn = config('flex-fields.tenancy.tenant_column', 'tenant_id');
             $query->where($tenantColumn, $resolvedTenantId);
         }
