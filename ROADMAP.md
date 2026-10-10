@@ -2,7 +2,7 @@
 
 This document outlines the planned features and improvements for future versions of **ivanmercedes/flex-fields**.
 
-> **Latest release:** `0.6.0` — completes the Data Management, Advanced Field Types and Headless & Integrations milestones (see the [CHANGELOG](CHANGELOG.md) and [UPGRADE.md](UPGRADE.md)).
+> **Latest release:** `0.6.1` — 0.6 completes the Data Management, Advanced Field Types and Headless & Integrations milestones (see the [CHANGELOG](CHANGELOG.md) and [UPGRADE.md](UPGRADE.md)).
 > Community feedback and contributions are always welcome. Feel free to open an issue or discussion on GitHub.
 
 ---

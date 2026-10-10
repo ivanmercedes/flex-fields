@@ -5,11 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.6.1] - 2026-10-10
 
 ### Fixed
 - **Repeater sub-fields**: admin form inputs now use the declared sub-field keys instead of `ff_`-prefixed ones, so repeater items created through the API, imports or AI tools are shown in the form. Items stored with prefixed keys by older versions are normalized when read.
 - **"Show in table" fields**: fields marked as `is_shown_in_list` are now rendered as columns in the records table (boolean, image, color and formatted text columns; searchable when the field is searchable), and the toggle is available in the custom field form.
+
+### Documentation
+- Refreshed README screenshots (dark mode, real demo data) and added screenshots for translatable fields, conditional visibility, the validation/conditional builder, record history, CSV import preview and field groups. Images now use absolute URLs so they render on the Filament plugin page.
 
 ## [0.6.0] - 2026-10-10
 

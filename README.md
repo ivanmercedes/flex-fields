@@ -40,22 +40,48 @@
 ## See it in Action
 
 ### 1. The Global Dashboard
-Visual overview of all your dynamic entities and custom fields.
-![Dashboard Screenshot](docs/dashboard.png)
+Visual overview of all your dynamic entities, custom fields and records.
+![Dashboard Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/dashboard.png)
 
 ### 2. Entity Management
 Define your custom data types (like "Craft Beer" or "Brewery").
-![Entities Screenshot](docs/entities.png)
+![Entities Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/entities.png)
 
 ### 3. Custom Fields Builder
-Easily add, configure, and reorder fields for each entity.
-![Custom Fields Screenshot](docs/custom-fields.png)
+Easily add, configure, group and reorder fields for each entity.
+![Custom Fields Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/custom-fields.png)
 
-### 4. Dynamic Forms & Records
-Create entries using beautiful, dynamically generated forms powered by Filament.
-![Craft Beer Screenshot](docs/craft-beer.png)
+### 4. Dynamic Records Table
+Fields marked as "Show in table" become columns automatically — including images, relationships and translated values. Export to CSV or import from CSV/Excel right from the table.
+![Craft Beer Records Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/craft-beer.png)
 
-![Form Screenshot](docs/form-screenshot.png)
+### 5. Dynamic Forms with Field Groups & Relationships
+Forms are generated from your field definitions and organized into collapsible sections. Relationship fields link records across entities.
+![Form Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/form-screenshot.png)
+
+### 6. Translatable Fields
+Store one value per locale (`{"en": "...", "es": "..."}`) with a tab per language.
+![Translatable Fields Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/translatable.png)
+
+### 7. Conditional Visibility
+Show fields only when other fields match a condition (here, "Award" only appears for medal winners).
+![Conditional Fields Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/conditional.png)
+
+### 8. Visual Validation & Conditional Logic Builder
+Add validation rules and "show when" conditions without writing JSON.
+![Field Builder Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/field-builder.png)
+
+### 9. Record History & One-Click Restore
+Every change is audited with a before/after diff, the user and the date — and any version can be restored.
+![History Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/history.png)
+
+### 10. CSV / Excel Import with Preview
+Upload a file, review the validated preview (errors per row) and confirm the import.
+![Import Preview Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/import-preview.png)
+
+### 11. Field Groups Manager
+Create, reorder and configure the collapsible sections of each entity's form.
+![Field Groups Screenshot](https://raw.githubusercontent.com/ivanmercedes/flex-fields/main/docs/field-groups.png)
 
 ---
 
