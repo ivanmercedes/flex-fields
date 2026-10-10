@@ -136,9 +136,13 @@ class DynamicFormBuilder
         return array_values(array_unique($keys));
     }
 
-    public static function makeComponent(CustomField $field): ?SchemaComponent
+    /**
+     * @param  string  $statePrefix  "ff_" for record fields, "" for repeater sub-fields
+     *                               (their items are stored with the plain sub-field keys).
+     */
+    public static function makeComponent(CustomField $field, string $statePrefix = 'ff_'): ?SchemaComponent
     {
-        $key = 'ff_' . $field->key;
+        $key = $statePrefix . $field->key;
         $colSpan = self::resolveColumnSpan($field->width);
         $component = null;
 
@@ -379,7 +383,7 @@ class DynamicFormBuilder
                             } else {
                                 $subField->entity_id = $field->entity_id;
                             }
-                            $subFieldComponent = self::makeComponent($subField);
+                            $subFieldComponent = self::makeComponent($subField, statePrefix: '');
                             if ($subFieldComponent) {
                                 $schema[] = $subFieldComponent;
                             }

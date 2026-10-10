@@ -59,6 +59,34 @@ class FilamentPagesTest extends FilamentTestCase
             ->assertTableActionVisible('import_records');
     }
 
+    public function test_fields_shown_in_list_become_table_columns(): void
+    {
+        CustomField::where('key', 'kind')->update(['is_shown_in_list' => true]);
+        CustomField::where('key', 'name')->update(['is_shown_in_list' => true]);
+        (new RecordDomainService)->create('product', ['title' => 'Chair'], ['kind' => 'physical', 'name' => ['en' => 'Chair', 'es' => 'Silla']]);
+
+        Livewire::withQueryParams(['entity' => $this->entity->id])
+            ->test(ListEntityData::class)
+            ->assertTableColumnExists('ff_kind')
+            ->assertTableColumnExists('ff_name')
+            ->assertSee('Physical');
+    }
+
+    public function test_repeater_sub_fields_use_their_declared_keys(): void
+    {
+        (new FieldDomainService)->create('product', ['label' => 'Specs', 'type' => 'repeater', 'settings' => ['schema' => [
+            ['label' => 'Spec Name', 'key' => 'spec_name', 'type' => 'text'],
+        ]]]);
+
+        $record = (new RecordDomainService)->create('product', ['title' => 'Desk'], ['specs' => [['spec_name' => 'Oak']]]);
+
+        $component = Livewire::test(EditEntityData::class, ['record' => $record->getKey()])->assertOk();
+        $this->assertSame(['Oak'], array_column(array_values($component->get('data.ff_specs')), 'spec_name'));
+
+        $component->call('save')->assertHasNoFormErrors();
+        $this->assertSame([['spec_name' => 'Oak']], array_values($record->fresh()->getValue('specs')));
+    }
+
     public function test_export_actions_download_csv(): void
     {
         $records = new RecordDomainService;

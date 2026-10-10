@@ -110,7 +110,8 @@ class FieldTypes
             'boolean' => filter_var($raw, FILTER_VALIDATE_BOOLEAN),
             'date' => $raw ? Carbon::parse($raw)->toDateString() : null,
             'datetime' => $raw ? Carbon::parse($raw)->toDateTimeString() : null,
-            'json', 'multiselect', 'tags', 'repeater', 'address' => is_string($raw) ? json_decode($raw, true) : $raw,
+            'repeater' => self::normalizeRepeaterItems(is_string($raw) ? json_decode($raw, true) : $raw),
+            'json', 'multiselect', 'tags', 'address' => is_string($raw) ? json_decode($raw, true) : $raw,
             'relationship' => self::castRelationship($raw, ! empty($settings['multiple'])),
             'image', 'file' => match (true) {
                 ! empty($settings['multiple']) => is_string($raw) ? (json_decode($raw, true) ?? []) : (array) $raw,
@@ -151,6 +152,32 @@ class FieldTypes
             'json', 'multiselect', 'tags', 'repeater', 'address' => 'array',
             default => 'string',
         };
+    }
+
+    /**
+     * Older versions stored repeater items from the admin form with "ff_"
+     * prefixed sub-field keys; expose them with the declared keys.
+     */
+    protected static function normalizeRepeaterItems(mixed $items): mixed
+    {
+        if (! is_array($items)) {
+            return $items;
+        }
+
+        return array_map(function ($item) {
+            if (! is_array($item)) {
+                return $item;
+            }
+
+            foreach ($item as $key => $value) {
+                if (is_string($key) && str_starts_with($key, 'ff_') && ! array_key_exists(substr($key, 3), $item)) {
+                    $item[substr($key, 3)] = $value;
+                    unset($item[$key]);
+                }
+            }
+
+            return $item;
+        }, $items);
     }
 
     /**

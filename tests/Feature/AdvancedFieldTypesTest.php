@@ -224,6 +224,15 @@ class AdvancedFieldTypesTest extends TestCase
         $this->records->setValues('product', $record->id, ['size' => 'xl']);
     }
 
+    public function test_legacy_prefixed_repeater_items_are_normalized(): void
+    {
+        $this->products->customFields()->create(['label' => 'Links', 'key' => 'links', 'type' => 'repeater', 'settings' => ['schema' => [['label' => 'Url', 'key' => 'url', 'type' => 'text']]]]);
+        $record = $this->products->records()->create(['title' => 'Legacy']);
+        $record->setValue('links', [['ff_url' => 'https://a.test'], ['url' => 'https://b.test']]);
+
+        $this->assertSame([['url' => 'https://a.test'], ['url' => 'https://b.test']], $record->fresh()->getValue('links'));
+    }
+
     public function test_form_builder_creates_components_for_new_types(): void
     {
         $this->fields->create('product', ['label' => 'Type', 'type' => 'select', 'options' => ['digital' => 'Digital']]);

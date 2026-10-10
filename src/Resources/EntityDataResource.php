@@ -40,6 +40,7 @@ use IvanMercedes\FlexFields\Services\RecordExporter;
 use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
 use IvanMercedes\FlexFields\Support\FlexModels;
 use IvanMercedes\FlexFields\Support\Label;
+use IvanMercedes\FlexFields\Support\RecordTableColumns;
 use Throwable;
 use UnitEnum;
 
@@ -254,6 +255,8 @@ class EntityDataResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->default('—'),
+
+                ...RecordTableColumns::make($entity),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label(Label::trans('flex-fields::flex-fields.record.fields.status'))

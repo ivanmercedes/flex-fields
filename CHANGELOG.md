@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **Repeater sub-fields**: admin form inputs now use the declared sub-field keys instead of `ff_`-prefixed ones, so repeater items created through the API, imports or AI tools are shown in the form. Items stored with prefixed keys by older versions are normalized when read.
+- **"Show in table" fields**: fields marked as `is_shown_in_list` are now rendered as columns in the records table (boolean, image, color and formatted text columns; searchable when the field is searchable), and the toggle is available in the custom field form.
+
 ## [0.6.0] - 2026-10-10
 
 Completes the scheduled roadmap milestones: **Data Management**, **Advanced Field Types** and **Headless & Integrations**.
