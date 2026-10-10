@@ -6,6 +6,7 @@ namespace IvanMercedes\FlexFields\Schema;
 
 use Closure;
 use IvanMercedes\FlexFields\Models\Entity;
+use IvanMercedes\FlexFields\Support\FlexSchema;
 
 class Flex
 {
@@ -22,10 +23,12 @@ class Flex
             $entityAttributes
         );
 
+        $groupIds = static::syncFieldGroups($entity, $blueprint);
+
         // Process Fields
         $order = 1;
         foreach ($blueprint->getFields() as $fieldDefinition) {
-            $fieldAttrs = $fieldDefinition->getAttributes();
+            $fieldAttrs = static::resolveGroup($fieldDefinition->getAttributes(), $groupIds);
             $fieldAttrs['order'] = $order++;
 
             $entity->customFields()->updateOrCreate(
@@ -57,11 +60,13 @@ class Flex
             $entity->update($attributesToUpdate);
         }
 
+        $groupIds = static::syncFieldGroups($entity, $blueprint);
+
         // Process Fields
         $maxOrder = $entity->customFields()->max('order') ?? 0;
 
         foreach ($blueprint->getFields() as $fieldDefinition) {
-            $fieldAttrs = $fieldDefinition->getAttributes();
+            $fieldAttrs = static::resolveGroup($fieldDefinition->getAttributes(), $groupIds);
 
             $existingField = $entity->customFields()->where('key', $fieldAttrs['key'])->first();
             if (! $existingField) {
@@ -88,5 +93,50 @@ class Flex
             $entity->records()->delete(); // Depends on if you want cascading deletes
             $entity->delete();
         }
+    }
+
+    /**
+     * Create or update the field groups declared in the blueprint.
+     *
+     * @return array<string, int> group key => id
+     */
+    protected static function syncFieldGroups(Entity $entity, Blueprint $blueprint): array
+    {
+        if (! FlexSchema::hasFieldGroups()) {
+            return [];
+        }
+
+        $ids = $entity->fieldGroups()->pluck('id', 'key')->all();
+
+        foreach ($blueprint->getFieldGroups() as $key => $group) {
+            $model = $entity->fieldGroups()->updateOrCreate(
+                ['key' => $key],
+                array_merge($group, ['tenant_id' => $entity->tenant_id]),
+            );
+
+            $ids[$key] = $model->id;
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Replace the 'group' key of a field definition by its field_group_id.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @param  array<string, int>  $groupIds
+     * @return array<string, mixed>
+     */
+    protected static function resolveGroup(array $attributes, array $groupIds): array
+    {
+        if (array_key_exists('group', $attributes)) {
+            if (FlexSchema::hasFieldGroups()) {
+                $attributes['field_group_id'] = $groupIds[$attributes['group']] ?? null;
+            }
+
+            unset($attributes['group']);
+        }
+
+        return $attributes;
     }
 }

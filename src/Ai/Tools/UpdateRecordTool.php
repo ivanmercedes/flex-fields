@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -70,7 +71,12 @@ class UpdateRecordTool implements Tool
         $entitySlug = $validated['entity'];
         $recordIdOrSlug = $validated['record'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::UPDATE)) {
+            return $guard;
+        }
+
+        // Changing the publication state is a publishing operation.
+        if (isset($validated['status']) && ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::PUBLISH))) {
             return $guard;
         }
 
@@ -93,7 +99,7 @@ class UpdateRecordTool implements Tool
                 'record' => $this->recordService()->formatRecord($record),
             ]);
         } catch (Throwable $e) {
-            return "Failed to update record [{$recordIdOrSlug}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to update record [{$recordIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

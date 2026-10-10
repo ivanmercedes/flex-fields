@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -66,15 +67,23 @@ class CreateRecordTool implements Tool
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::CREATE)) {
             return $guard;
+        }
+
+        // Without the publish permission records default to draft; publishing explicitly is rejected.
+        $canPublish = $this->guardEntityAllowed($entitySlug, FlexPermissions::PUBLISH) === null;
+        $status = $validated['status'] ?? ($canPublish ? 'published' : 'draft');
+
+        if ($status === 'published' && ! $canPublish) {
+            return $this->guardEntityAllowed($entitySlug, FlexPermissions::PUBLISH);
         }
 
         try {
             $attributes = [
                 'title' => $validated['title'],
                 'slug' => $validated['slug'] ?? null,
-                'status' => $validated['status'] ?? 'published',
+                'status' => $status,
             ];
             $fieldValues = $validated['field_values'] ?? [];
             $categoryIds = $validated['category_ids'] ?? [];
@@ -86,7 +95,7 @@ class CreateRecordTool implements Tool
                 'record' => $this->recordService()->formatRecord($record),
             ]);
         } catch (Throwable $e) {
-            return "Failed to create record for entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to create record for entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

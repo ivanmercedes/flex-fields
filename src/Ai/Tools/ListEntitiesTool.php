@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -49,6 +50,9 @@ class ListEntitiesTool implements Tool
         if ($allowed !== null) {
             $entities = $entities->filter(fn ($e) => in_array($e->slug, $allowed, true))->values();
         }
+
+        $user = $this->context()->getUser();
+        $entities = $entities->filter(fn ($e) => FlexPermissions::allows($user, FlexPermissions::VIEW_ANY, $e))->values();
 
         $result = $entities->map(function ($entity) {
             return [

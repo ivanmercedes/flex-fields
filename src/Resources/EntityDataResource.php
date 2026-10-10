@@ -6,6 +6,7 @@ namespace IvanMercedes\FlexFields\Resources;
 
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -21,21 +22,30 @@ use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use IvanMercedes\FlexFields\FlexFieldsPlugin;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityCategory;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Resources\EntityDataResource\Pages;
+use IvanMercedes\FlexFields\Resources\EntityDataResource\RelationManagers\RevisionsRelationManager;
+use IvanMercedes\FlexFields\Services\RecordExporter;
 use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
+use IvanMercedes\FlexFields\Support\FlexModels;
 use IvanMercedes\FlexFields\Support\Label;
+use Throwable;
 use UnitEnum;
 
 class EntityDataResource extends Resource
 {
-    protected static ?string $model = EntityRecord::class;
+    protected static ?string $model = EntityRecord::class; // see getModel()
 
     protected static bool $shouldRegisterNavigation = true;
 
@@ -46,6 +56,36 @@ class EntityDataResource extends Resource
     protected static ?int $navigationSort = 3;
 
     protected static ?string $slug = 'ff-data';
+
+    public static function getModel(): string
+    {
+        return FlexModels::record();
+    }
+
+    /**
+     * Per-entity permissions (when enabled) on top of the regular policies.
+     */
+    public static function getAuthorizationResponse(string | UnitEnum $action, ?Model $record = null): Response
+    {
+        if (FlexPermissions::enabled()) {
+            $method = $action instanceof BackedEnum ? (string) $action->value : ($action instanceof UnitEnum ? $action->name : $action);
+            $ability = FlexPermissions::abilityForPolicyMethod($method);
+            $entity = $record instanceof EntityRecord ? $record->entity : static::resolveEntitySafely();
+
+            if ($ability !== null && $entity !== null && ! FlexPermissions::allows(null, $ability, $entity)) {
+                return Response::deny();
+            }
+        }
+
+        return parent::getAuthorizationResponse($action, $record);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            RevisionsRelationManager::class,
+        ];
+    }
 
     public static function isScopedToTenant(): bool
     {
@@ -257,12 +297,38 @@ class EntityDataResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    BulkAction::make('export_selected')
+                        ->label(Label::trans('flex-fields::flex-fields.export.actions.export_selected'))
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->visible(fn () => $entity !== null && FlexPermissions::allows(null, FlexPermissions::EXPORT, $entity))
+                        ->deselectRecordsAfterCompletion()
+                        ->action(fn (Collection $records) => app(RecordExporter::class)->download(
+                            $entity,
+                            $records->load(['categories', 'fieldValues.customField']),
+                        )),
                     DeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                 ]),
             ])
             ->headerActions([
+                Action::make('export_csv')
+                    ->label(Label::trans('flex-fields::flex-fields.export.actions.export'))
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->visible(fn () => $entity !== null && FlexPermissions::allows(null, FlexPermissions::EXPORT, $entity))
+                    ->action(fn (HasTable $livewire) => app(RecordExporter::class)->download(
+                        $entity,
+                        $livewire->getFilteredTableQuery()->where('entity_id', $entity->id),
+                    )),
+
+                Action::make('import_records')
+                    ->label(Label::trans('flex-fields::flex-fields.import.actions.open'))
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->color('gray')
+                    ->visible(fn () => $entity !== null && static::canCreate() && FlexPermissions::allows(null, FlexPermissions::IMPORT, $entity))
+                    ->url(fn () => $entity ? static::getUrl('import', ['entity' => $entity->id]) : null),
+
                 Action::make('manage_categories')
                     ->label(Label::trans('flex-fields::flex-fields.entity.actions.manage_categories'))
                     ->icon('heroicon-o-tag')
@@ -308,6 +374,10 @@ class EntityDataResource extends Resource
         $navigationItems = [];
 
         foreach ($entities as $entity) {
+            if (! FlexPermissions::allows(null, FlexPermissions::VIEW_ANY, $entity)) {
+                continue;
+            }
+
             $navigationItems[] = NavigationItem::make("entity-{$entity->slug}")
                 ->label($entity->name)
                 ->icon($entity->icon ?? 'heroicon-o-cube')
@@ -325,6 +395,7 @@ class EntityDataResource extends Resource
         return [
             'index' => Pages\ListEntityData::route('/'),
             'create' => Pages\CreateEntityData::route('/create'),
+            'import' => Pages\ImportEntityData::route('/import'),
             'edit' => Pages\EditEntityData::route('/{record}/edit'),
         ];
     }
@@ -402,6 +473,24 @@ class EntityDataResource extends Resource
         }
 
         return null;
+    }
+
+    /**
+     * Resolve the current entity without aborting (used by authorization checks).
+     */
+    protected static function resolveEntitySafely(): ?Entity
+    {
+        try {
+            $entityId = self::resolveEntityId();
+
+            if ($entityId !== null) {
+                return Entity::currentTenant()->find($entityId);
+            }
+
+            return Entity::currentTenant()->where('is_active', true)->first();
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     protected static function getDefaultEntity(): ?Entity

@@ -52,7 +52,7 @@ class CreateEntityTool implements Tool
 
     public function handle(Request $request): string
     {
-        if ($guard = $this->guardAgainstReadOnly()) {
+        if ($guard = $this->guardAgainstReadOnly() ?? $this->guardStructure()) {
             return $guard;
         }
 
@@ -83,7 +83,7 @@ class CreateEntityTool implements Tool
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to create entity: {$e->getMessage()}";
+            return "Failed to create entity: {$this->describeException($e)}";
         }
     }
 }

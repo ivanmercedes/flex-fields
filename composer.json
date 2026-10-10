@@ -26,8 +26,11 @@
         "intervention/image": "^3.0 || ^4.0",
         "laravel/prompts": "^0.1.18|^0.2.0|^0.3.0"
     },
-       "suggest": {
-        "laravel/ai": "Required to enable AI tools and Laravel AI SDK integration."
+    "suggest": {
+        "laravel/ai": "Required to enable AI tools and Laravel AI SDK integration.",
+        "laravel/sanctum": "Recommended to authenticate the optional headless REST API (default middleware: auth:sanctum).",
+        "filament/spatie-laravel-media-library-plugin": "Required to store image/file fields with Spatie Media Library (media.driver = spatie).",
+        "bezhansalleh/filament-shield": "Manage the per-entity permissions (flex:permissions --sync) from a UI."
     },
     "autoload": {
         "psr-4": {

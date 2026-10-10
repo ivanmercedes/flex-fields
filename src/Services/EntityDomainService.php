@@ -11,7 +11,10 @@ use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityCategory;
+use IvanMercedes\FlexFields\Models\FieldGroup;
 use IvanMercedes\FlexFields\Support\FieldCache;
+use IvanMercedes\FlexFields\Support\FieldTypes;
+use IvanMercedes\FlexFields\Support\FlexSchema;
 use RuntimeException;
 use Throwable;
 
@@ -82,27 +85,21 @@ class EntityDomainService
     {
         $entity = $this->findOrFail($idOrSlug, $tenantId);
 
-        $fields = $entity->customFields()->orderBy('order')->get()->map(function (CustomField $field) {
-            return [
-                'id' => $field->id,
-                'key' => $field->key,
-                'label' => $field->label,
-                'type' => $field->type,
-                'description' => $field->description,
-                'placeholder' => $field->placeholder,
-                'default_value' => $field->default_value,
-                'is_required' => (bool) $field->is_required,
-                'is_active' => (bool) $field->is_active,
-                'is_searchable' => (bool) $field->is_searchable,
-                'is_shown_in_list' => (bool) $field->is_shown_in_list,
-                'width' => $field->width,
-                'options' => $field->parsed_options,
-                'validation_rules' => $field->validation_rules ?? [],
-                'settings' => $field->settings ?? [],
-                'repeater_subfields' => $field->settings['schema'] ?? null,
-                'category_ids' => $field->category_ids ?? [],
-            ];
-        })->toArray();
+        $hasGroups = FlexSchema::hasFieldGroups();
+
+        $fields = $entity->customFields()->when($hasGroups, fn ($q) => $q->with('fieldGroup'))->orderBy('order')->get()
+            ->map(fn (CustomField $field) => $this->formatField($field))
+            ->toArray();
+
+        $groups = ! $hasGroups ? [] : $entity->fieldGroups()->get()->map(fn (FieldGroup $group) => [
+            'id' => $group->id,
+            'key' => $group->key,
+            'label' => $group->label,
+            'description' => $group->description,
+            'order' => $group->order,
+            'is_collapsible' => (bool) $group->is_collapsible,
+            'is_collapsed' => (bool) $group->is_collapsed,
+        ])->toArray();
 
         $categories = $entity->categories()->orderBy('name')->get()->map(function (EntityCategory $cat) {
             return [
@@ -128,8 +125,93 @@ class EntityDomainService
             'fields_count' => count($fields),
             'records_count' => $entity->records()->count(),
             'fields' => $fields,
+            'groups' => $groups,
             'categories' => $categories,
+            'record_statuses' => RecordDomainService::STATUSES,
+            'locales' => FieldTypes::locales(),
         ];
+    }
+
+    /**
+     * Describe a custom field for schema introspection (AI agents, API, MCP).
+     *
+     * @return array<string, mixed>
+     */
+    public function formatField(CustomField $field): array
+    {
+        $settings = $field->settings ?? [];
+
+        $data = [
+            'id' => $field->id,
+            'key' => $field->key,
+            'label' => $field->label,
+            'type' => $field->type,
+            'description' => $field->description,
+            'placeholder' => $field->placeholder,
+            'default_value' => $field->default_value,
+            'is_required' => (bool) $field->is_required,
+            'is_active' => (bool) $field->is_active,
+            'is_searchable' => (bool) $field->is_searchable,
+            'is_shown_in_list' => (bool) $field->is_shown_in_list,
+            'width' => $field->width,
+            'order' => $field->order,
+            'group' => FlexSchema::hasFieldGroups() ? $field->fieldGroup?->key : null,
+            'options' => $field->parsed_options,
+            'validation_rules' => $field->validation_rules ?? [],
+            'settings' => $settings,
+            'repeater_subfields' => $settings['schema'] ?? null,
+            'category_ids' => $field->category_ids ?? [],
+            'show_when' => $settings['show_when'] ?? null,
+            'translatable' => FieldTypes::isTranslatable($field),
+            'multiple' => FieldTypes::isMultiple($field),
+            'value_format' => $this->describeValueFormat($field),
+        ];
+
+        if ($field->type === 'relationship') {
+            $data['relationship'] = [
+                'entity' => $settings['related_entity'] ?? null,
+                'multiple' => (bool) ($settings['multiple'] ?? false),
+            ];
+        }
+
+        if ($field->type === 'address') {
+            $data['address_parts'] = (new RecordValueValidator)->addressParts($field);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Human-readable description of the value expected for a field.
+     */
+    public function describeValueFormat(CustomField $field): string
+    {
+        if (FieldTypes::isTranslatable($field)) {
+            return 'object keyed by locale (' . implode(', ', FieldTypes::locales()) . '), e.g. {"' . FieldTypes::fallbackLocale() . '": "..."}';
+        }
+
+        $multiple = FieldTypes::isMultiple($field);
+
+        return match ($field->type) {
+            'number' => 'number',
+            'boolean' => 'boolean (true/false)',
+            'date' => 'date string (YYYY-MM-DD)',
+            'datetime' => 'datetime string (YYYY-MM-DD HH:MM:SS)',
+            'email' => 'email address string',
+            'url' => 'absolute URL string',
+            'phone' => 'phone number string (digits, spaces, +, -, parentheses)',
+            'color' => 'color string (e.g. #ff0000)',
+            'select' => 'one of the option keys',
+            'multiselect' => 'array of option keys',
+            'tags' => 'array of strings',
+            'json' => 'JSON object or array',
+            'repeater' => 'array of objects using the repeater_subfields keys',
+            'address' => 'object with keys: ' . implode(', ', (new RecordValueValidator)->addressParts($field)),
+            'relationship' => $multiple ? 'array of record IDs of the related entity' : 'record ID of the related entity',
+            'image', 'file' => $multiple ? 'array of stored file paths' : 'stored file path string',
+            'richtext' => 'HTML string',
+            default => 'string',
+        };
     }
 
     /**
@@ -234,6 +316,9 @@ class EntityDomainService
         FieldCache::forgetForEntity($entity);
 
         $entity->customFields()->delete();
+        if (FlexSchema::hasFieldGroups()) {
+            $entity->fieldGroups()->delete();
+        }
         $entity->records()->forceDelete();
         $entity->categories()->delete();
 

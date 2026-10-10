@@ -72,7 +72,7 @@ class UpdateEntityTool implements Tool
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -92,7 +92,7 @@ class UpdateEntityTool implements Tool
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to update entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to update entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

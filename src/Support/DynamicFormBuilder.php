@@ -8,13 +8,18 @@ use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Schemas\Components\Component as SchemaComponent;
 use Filament\Schemas\Components\EmptyState;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
+use IvanMercedes\FlexFields\Models\FieldGroup;
+use IvanMercedes\FlexFields\Services\RecordValueValidator;
 
 class DynamicFormBuilder
 {
@@ -36,32 +41,99 @@ class DynamicFormBuilder
             ];
         }
 
-        return [
-            Section::make($entity->name . ' ' . Label::trans('flex-fields::flex-fields.record.sections.fields_suffix'))
+        $allFields = $fields->all();
+        $controllingKeys = self::controllingKeys($allFields);
+        $groups = FlexSchema::hasFieldGroups() ? $entity->fieldGroups()->get() : collect();
+        $groupIds = $groups->pluck('id')->all();
+
+        $sections = [];
+
+        $ungrouped = array_values(array_filter(
+            $allFields,
+            fn (CustomField $field) => $field->field_group_id === null || ! in_array($field->field_group_id, $groupIds),
+        ));
+
+        if ($ungrouped !== []) {
+            $sections[] = Section::make($entity->name . ' ' . Label::trans('flex-fields::flex-fields.record.sections.fields_suffix'))
                 ->description($entity->description)
-                ->schema(self::buildFieldComponents($fields->all()))
+                ->schema(self::buildFieldComponents($ungrouped, $controllingKeys))
                 ->columnSpanFull()
-                ->columns(12),
-        ];
+                ->columns(12);
+        }
+
+        foreach ($groups as $group) {
+            $groupFields = array_values(array_filter(
+                $allFields,
+                fn (CustomField $field) => $field->field_group_id === $group->id,
+            ));
+
+            if ($groupFields === []) {
+                continue;
+            }
+
+            $sections[] = self::makeGroupSection($group, $groupFields, $controllingKeys);
+        }
+
+        return $sections;
     }
 
     /**
      * @param  CustomField[]  $fields
+     * @param  array<int, string>  $controllingKeys
+     */
+    public static function makeGroupSection(FieldGroup $group, array $fields, array $controllingKeys = []): Section
+    {
+        return Section::make($group->label)
+            ->description($group->description)
+            ->collapsible((bool) $group->is_collapsible)
+            ->collapsed((bool) $group->is_collapsible && (bool) $group->is_collapsed)
+            ->schema(self::buildFieldComponents($fields, $controllingKeys))
+            ->columnSpanFull()
+            ->columns(12);
+    }
+
+    /**
+     * @param  CustomField[]  $fields
+     * @param  array<int, string>|null  $controllingKeys  keys of fields other fields depend on (made live)
      * @return SchemaComponent[]
      */
-    public static function buildFieldComponents(array $fields): array
+    public static function buildFieldComponents(array $fields, ?array $controllingKeys = null): array
     {
+        $controllingKeys ??= self::controllingKeys($fields);
         $components = [];
 
         foreach ($fields as $field) {
             $component = self::makeComponent($field);
 
-            if ($component) {
-                $components[] = $component;
+            if (! $component) {
+                continue;
             }
+
+            if (in_array($field->key, $controllingKeys, true) && method_exists($component, 'live')) {
+                $component->live();
+            }
+
+            $components[] = $component;
         }
 
         return $components;
+    }
+
+    /**
+     * Keys of fields referenced by other fields' show_when rules.
+     *
+     * @param  CustomField[]  $fields
+     * @return array<int, string>
+     */
+    public static function controllingKeys(array $fields): array
+    {
+        $keys = [];
+
+        foreach ($fields as $field) {
+            $keys = [...$keys, ...ConditionEvaluator::controllingKeys($field->settings['show_when'] ?? null)];
+        }
+
+        return array_values(array_unique($keys));
     }
 
     public static function makeComponent(CustomField $field): ?SchemaComponent
@@ -72,6 +144,10 @@ class DynamicFormBuilder
 
         if (static::hasMacro($field->type)) {
             $component = static::callMacro($field->type, [$field]);
+        } elseif (FieldTypes::isTranslatable($field)) {
+            $component = self::makeTranslatableComponent($field);
+        } elseif (MediaLibrary::handles($field)) {
+            $component = MediaLibrary::component($field, $key);
         } else {
             switch ($field->type) {
                 case 'text':
@@ -325,6 +401,35 @@ class DynamicFormBuilder
 
                     break;
 
+                case 'phone':
+                    $component = Forms\Components\TextInput::make($key)
+                        ->label($field->label)
+                        ->placeholder($field->placeholder ?? '')
+                        ->default($field->default_value)
+                        ->tel()
+                        ->maxLength(50);
+
+                    if (! empty($field->settings['phone_mask'])) {
+                        $component->mask((string) $field->settings['phone_mask']);
+                    }
+
+                    break;
+
+                case 'address':
+                    $component = self::makeAddressComponent($field, $key);
+
+                    break;
+
+                case 'relationship':
+                    $component = Forms\Components\Select::make($key)
+                        ->label($field->label)
+                        ->options(fn () => self::relationshipOptions($field))
+                        ->multiple(FieldTypes::isMultiple($field))
+                        ->searchable()
+                        ->preload();
+
+                    break;
+
                 default:
                     $component = Forms\Components\TextInput::make($key)
                         ->label($field->label);
@@ -336,27 +441,124 @@ class DynamicFormBuilder
             return null;
         }
 
-        if ($field->is_required) {
+        if ($field->is_required && method_exists($component, 'required')) {
             $component->required();
         }
 
-        if ($field->description) {
+        if ($field->description && method_exists($component, 'helperText')) {
             $component->helperText($field->description);
         }
 
-        if (! empty($field->category_ids)) {
-            $component->hidden(function (Get $get) use ($field) {
-                // Return true to hide if none of the field's categories are selected
-                $selectedCategories = (array) $get('categories');
+        $rules = ValidationRules::forField($field->validation_rules);
+        if ($rules !== [] && method_exists($component, 'rules')) {
+            $component->rules($rules);
+        }
 
-                // If there is no overlap between selected categories and the field's categories, hide it
-                return count(array_intersect($field->category_ids, $selectedCategories)) === 0;
+        $showWhen = $field->settings['show_when'] ?? null;
+        $categoryIds = $field->category_ids ?? [];
+
+        if (! empty($categoryIds) || ! empty($showWhen)) {
+            $component->hidden(function (Get $get) use ($categoryIds, $showWhen) {
+                // Hide if none of the field's categories are selected on the record
+                if (! empty($categoryIds) && count(array_intersect($categoryIds, (array) $get('categories'))) === 0) {
+                    return true;
+                }
+
+                return ! empty($showWhen) && ! ConditionEvaluator::passes($showWhen, fn (string $key) => $get('ff_' . $key));
             });
         }
 
         $component->columnSpan($colSpan);
 
         return $component;
+    }
+
+    /**
+     * One input per configured locale, rendered as tabs. State: ff_{key}.{locale}.
+     */
+    public static function makeTranslatableComponent(CustomField $field): Tabs
+    {
+        $tabs = [];
+
+        foreach (FieldTypes::locales() as $locale) {
+            $localized = $field->replicate();
+            $localized->key = $field->key . '.' . $locale;
+            $localized->label = $field->label . ' (' . strtoupper($locale) . ')';
+            $localized->width = 'full';
+            $localized->category_ids = null;
+            $localized->is_required = $field->is_required && $locale === FieldTypes::fallbackLocale();
+            $localized->settings = array_merge($field->settings ?? [], ['translatable' => false, 'show_when' => null]);
+            $localized->setRelation('entity', $field->entity);
+
+            $tabs[] = Tab::make(strtoupper($locale))
+                ->schema(array_filter([self::makeComponent($localized)]))
+                ->columns(12);
+        }
+
+        return Tabs::make($field->label)->tabs($tabs);
+    }
+
+    /**
+     * Structured address sub-form stored as a JSON object.
+     */
+    public static function makeAddressComponent(CustomField $field, string $key): Fieldset
+    {
+        $parts = (new RecordValueValidator)->addressParts($field);
+        $requiredParts = ['street', 'city', 'country'];
+
+        $inputs = array_map(function (string $part) use ($field, $requiredParts) {
+            $input = Forms\Components\TextInput::make($part)
+                ->label(Label::trans("flex-fields::flex-fields.address.{$part}", default: str_replace('_', ' ', ucfirst($part))))
+                ->maxLength(255)
+                ->columnSpan(in_array($part, ['street', 'street_2'], true) ? 12 : 6);
+
+            if ($field->is_required && in_array($part, $requiredParts, true)) {
+                $input->required();
+            }
+
+            return $input;
+        }, $parts);
+
+        return Fieldset::make($field->label)
+            ->statePath($key)
+            ->columns(12)
+            ->schema($inputs);
+    }
+
+    /**
+     * Options for a relationship field: records of the related entity (same tenant).
+     *
+     * @return array<int, string>
+     */
+    public static function relationshipOptions(CustomField $field): array
+    {
+        $relatedSlug = $field->settings['related_entity'] ?? null;
+
+        if (! $relatedSlug) {
+            return [];
+        }
+
+        $tenantId = $field->entity?->tenant_id ?? $field->tenant_id;
+
+        $related = Entity::query()
+            ->where('slug', $relatedSlug)
+            ->when(
+                $tenantId !== null,
+                fn ($q) => $q->where('tenant_id', $tenantId),
+                fn ($q) => config('flex-fields.tenancy.enabled', false) ? $q->whereNull('tenant_id') : $q,
+            )
+            ->first();
+
+        if (! $related) {
+            return [];
+        }
+
+        return $related->records()
+            ->orderBy('title')
+            ->limit(500)
+            ->get(['id', 'title'])
+            ->mapWithKeys(fn ($record) => [$record->id => $record->title ?: '#' . $record->id])
+            ->all();
     }
 
     public static function resolveUploadDirectory(CustomField $field): string

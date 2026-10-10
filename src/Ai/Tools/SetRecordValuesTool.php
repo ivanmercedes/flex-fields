@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -58,7 +59,7 @@ class SetRecordValuesTool implements Tool
         $recordIdOrSlug = $validated['record'];
         $fieldValues = $validated['field_values'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::UPDATE)) {
             return $guard;
         }
 
@@ -71,7 +72,7 @@ class SetRecordValuesTool implements Tool
                 'record_data' => $record->data,
             ]);
         } catch (Throwable $e) {
-            return "Failed to set values for record [{$recordIdOrSlug}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to set values for record [{$recordIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

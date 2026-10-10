@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -49,7 +50,7 @@ class GetRecordTool implements Tool
         $entitySlug = $validated['entity'];
         $recordIdOrSlug = $validated['record'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::VIEW)) {
             return $guard;
         }
 
@@ -58,7 +59,7 @@ class GetRecordTool implements Tool
 
             return $this->asJson($this->recordService()->formatRecord($record));
         } catch (Throwable $e) {
-            return "Error retrieving record [{$recordIdOrSlug}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Error retrieving record [{$recordIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

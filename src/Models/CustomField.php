@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 use IvanMercedes\FlexFields\Support\FieldCache;
+use IvanMercedes\FlexFields\Support\FieldTypes;
+use IvanMercedes\FlexFields\Support\Keys;
 
 /**
  * CustomField — a field definition attached to an Entity.
@@ -26,6 +27,7 @@ class CustomField extends Model
     protected $fillable = [
         'tenant_id',
         'entity_id',
+        'field_group_id',
         'label',
         'key',
         'type',
@@ -49,6 +51,7 @@ class CustomField extends Model
         'validation_rules' => 'array',
         'settings' => 'array',
         'order' => 'integer',
+        'field_group_id' => 'integer',
         'is_required' => 'boolean',
         'is_active' => 'boolean',
         'is_searchable' => 'boolean',
@@ -59,6 +62,16 @@ class CustomField extends Model
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class);
+    }
+
+    public function fieldGroup(): BelongsTo
+    {
+        return $this->belongsTo(FieldGroup::class, 'field_group_id');
+    }
+
+    public function isTranslatable(): bool
+    {
+        return FieldTypes::isTranslatable($this);
     }
 
     public function values(): HasMany
@@ -86,22 +99,7 @@ class CustomField extends Model
      */
     public function getFieldCastType(): string
     {
-        if (in_array($this->type, ['image', 'file']) && ! empty($this->settings['multiple'])) {
-            return 'array';
-        }
-
-        return match ($this->type) {
-            'number' => 'float',
-            'boolean' => 'boolean',
-            'date' => 'date',
-            'datetime' => 'datetime',
-            'json' => 'array',
-            'select' => 'string',
-            'multiselect' => 'array',
-            'tags' => 'array',
-            'repeater' => 'array',
-            default => 'string',
-        };
+        return FieldTypes::castType($this);
     }
 
     /**
@@ -126,7 +124,7 @@ class CustomField extends Model
     {
         static::creating(function (CustomField $field) {
             if (empty($field->key)) {
-                $field->key = Str::snake($field->label);
+                $field->key = Keys::make((string) $field->label);
             }
             if (is_null($field->order)) {
                 $field->order = static::where('entity_id', $field->entity_id)->max('order') + 1;

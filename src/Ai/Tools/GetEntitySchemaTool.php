@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -44,7 +45,7 @@ class GetEntitySchemaTool implements Tool
 
         $entityIdOrSlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entityIdOrSlug)) {
+        if ($guard = $this->guardEntityAllowed($entityIdOrSlug, FlexPermissions::VIEW_ANY)) {
             return $guard;
         }
 
@@ -53,7 +54,7 @@ class GetEntitySchemaTool implements Tool
 
             return $this->asJson($schema);
         } catch (Throwable $e) {
-            return "Error retrieving schema for entity [{$entityIdOrSlug}]: {$e->getMessage()}";
+            return "Error retrieving schema for entity [{$entityIdOrSlug}]: {$this->describeException($e)}";
         }
     }
 }

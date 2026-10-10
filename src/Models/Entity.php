@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 use IvanMercedes\FlexFields\Support\FieldCache;
+use IvanMercedes\FlexFields\Support\FlexModels;
 use Throwable;
 
 /**
@@ -65,12 +66,7 @@ class Entity extends Model
         $tenantColumn = config('flex-fields.tenancy.tenant_column', 'tenant_id');
 
         if ($tenantId === null && config('flex-fields.tenancy.enabled', false)) {
-            if (class_exists(Filament::class) && Filament::hasTenancy()) {
-                try {
-                    $tenantId = Filament::getTenant()?->getKey();
-                } catch (Throwable) {
-                }
-            }
+            $tenantId = static::currentFilamentTenantKey();
         }
 
         $slug = $baseSlug;
@@ -100,12 +96,17 @@ class Entity extends Model
 
     public function records(): HasMany
     {
-        return $this->hasMany(EntityRecord::class);
+        return $this->hasMany(FlexModels::record());
     }
 
     public function categories(): HasMany
     {
         return $this->hasMany(EntityCategory::class);
+    }
+
+    public function fieldGroups(): HasMany
+    {
+        return $this->hasMany(FieldGroup::class)->orderBy('order');
     }
 
     public function getActiveFieldsAttribute()
@@ -118,6 +119,21 @@ class Entity extends Model
         return $this->records()->count();
     }
 
+    /**
+     * Key of the current Filament tenant, or null outside a tenant-aware panel
+     * request (console, queues, tests without a default panel...).
+     */
+    protected static function currentFilamentTenantKey(): mixed
+    {
+        try {
+            return class_exists(Filament::class) && Filament::hasTenancy()
+                ? Filament::getTenant()?->getKey()
+                : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
     // Auto-generate slug from name & invalidate cache on changes
     protected static function booted(): void
     {
@@ -125,14 +141,7 @@ class Entity extends Model
             $tenantColumn = config('flex-fields.tenancy.tenant_column', 'tenant_id');
 
             if ($entity->{$tenantColumn} === null && config('flex-fields.tenancy.enabled', false)) {
-                if (class_exists(Filament::class) && Filament::hasTenancy()) {
-                    try {
-                        if ($tenant = Filament::getTenant()) {
-                            $entity->{$tenantColumn} = $tenant->getKey();
-                        }
-                    } catch (Throwable) {
-                    }
-                }
+                $entity->{$tenantColumn} = static::currentFilamentTenantKey();
             }
 
             $tenantId = $entity->{$tenantColumn} !== null ? (int) $entity->{$tenantColumn} : null;

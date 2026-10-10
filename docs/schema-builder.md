@@ -107,6 +107,28 @@ The following methods are available on the `$entity` (Blueprint) object to creat
 - `$entity->image('key', 'Label')`
 - `$entity->color('key', 'Label')` (Color Picker)
 - `$entity->repeater('key', 'Label')`
+- `$entity->email('key', 'Label')`
+- `$entity->url('key', 'Label')`
+- `$entity->file('key', 'Label')`
+- `$entity->phone('key', 'Label')` (Telephone input with optional mask)
+- `$entity->address('key', 'Label')` (Structured address sub-form)
+- `$entity->relationship('key', 'related-entity-slug', 'Label', multiple: false)` (Records of another entity)
+
+See [Advanced Field Types](field-types.md) for details.
+
+## Field Groups (Sections)
+
+Group fields into labeled, collapsible sections of the record form:
+
+```php
+$entity->fieldGroup('seo', 'SEO', 'Search engine settings', collapsible: true, collapsed: true, fields: function (Blueprint $table) {
+    $table->text('meta_title');
+    $table->textarea('meta_description');
+});
+
+// Or assign a field to a group declared in the same blueprint
+$entity->text('canonical_url')->group('seo');
+```
 
 ## Repeater Fields
 
@@ -138,3 +160,9 @@ You can chain modifiers to your field definitions to configure their behavior:
 - `->multiple()`: Allows selecting multiple files/images for `file` or `image` fields.
 - `->optimize(true | 'webp')`: Enables image optimization (and format conversion) for `image` fields.
 - `->imageDimensions(1920, 1080, 80)`: Sets maximum width, height, and quality for image optimization.
+- `->group('seo')`: Places the field in a field group declared with `fieldGroup()`.
+- `->showWhen('kind', 'equals', 'physical')`: Shows the field only when another field matches (chain several; add `->showWhenAny()` to match any instead of all).
+- `->translatable()`: Stores one value per locale (`text`, `textarea`, `rich`).
+- `->relatedTo('brands', multiple: true)`: Sets the related entity of a `relationship` field.
+- `->phoneMask('(999) 999-9999')`: Input mask for `phone` fields.
+- `->addressParts(['street', 'city', 'country'])`: Parts shown by `address` fields.

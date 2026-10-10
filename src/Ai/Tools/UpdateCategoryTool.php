@@ -65,7 +65,7 @@ class UpdateCategoryTool implements Tool
         $entitySlug = $validated['entity'];
         $categoryIdOrSlug = $validated['category'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -82,7 +82,7 @@ class UpdateCategoryTool implements Tool
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to update category [{$categoryIdOrSlug}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to update category [{$categoryIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

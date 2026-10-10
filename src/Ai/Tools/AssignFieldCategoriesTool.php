@@ -60,7 +60,7 @@ class AssignFieldCategoriesTool implements Tool
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -99,7 +99,7 @@ class AssignFieldCategoriesTool implements Tool
                 'fields' => $updated,
             ]);
         } catch (Throwable $e) {
-            return "Failed to assign categories to fields on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to assign categories to fields on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

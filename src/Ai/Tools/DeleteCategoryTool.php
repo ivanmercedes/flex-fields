@@ -60,7 +60,7 @@ class DeleteCategoryTool implements Approvable, Tool
         $entitySlug = $validated['entity'];
         $categoryIdOrSlug = $validated['category'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -69,7 +69,7 @@ class DeleteCategoryTool implements Approvable, Tool
 
             return "Category [{$categoryIdOrSlug}] on entity [{$entitySlug}] was successfully deleted.";
         } catch (Throwable $e) {
-            return "Failed to delete category [{$categoryIdOrSlug}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to delete category [{$categoryIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 

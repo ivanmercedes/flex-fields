@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
+use IvanMercedes\FlexFields\Support\FlexModels;
 
 class EntityCategory extends Model
 {
@@ -46,7 +47,7 @@ class EntityCategory extends Model
     public function records(): BelongsToMany
     {
         return $this->belongsToMany(
-            EntityRecord::class,
+            FlexModels::record(),
             'ff_entity_record_category',
             'entity_category_id',
             'entity_record_id'

@@ -2,12 +2,12 @@
 
 This document outlines the planned features and improvements for future versions of **ivanmercedes/flex-fields**.
 
-> **Current stable release:** `0.3.1`
+> **Latest release:** `0.6.0` — completes the Data Management, Advanced Field Types and Headless & Integrations milestones (see the [CHANGELOG](CHANGELOG.md) and [UPGRADE.md](UPGRADE.md)).
 > Community feedback and contributions are always welcome. Feel free to open an issue or discussion on GitHub.
 
 ---
 
-## ✅ 0.3.1 — Developer Experience & Boost Skill Update *(current)*
+## ✅ 0.3.1 — Developer Experience & Boost Skill Update
 
 
 *Focus: make the package easier to use from PHP code, not just the admin panel.*
@@ -67,39 +67,50 @@ The foundation. Everything needed to get started with dynamic entities and custo
 
 ---
 
-## 🟡 0.4.0 — Data Management
+## ✅ Data Management *(0.6.0)*
 
-*Focus: make data useful beyond the admin panel.*
+*Focus: make data useful beyond the admin panel.* — [Guide](docs/data-management.md)
 
-- [ ] **CSV Export** — export any entity's records to CSV directly from the table (no extra dependencies)
-- [ ] **CSV/Excel Import** — bulk import records with downloadable template and preview before confirm
-- [ ] **Field Groups / Sections** — group fields into labeled, collapsible sections within a form
-- [ ] **Record History / Audit Log** — track who changed what and when; optional version restore
-
----
-
-## 🟠 0.5.0 — Advanced Field Types
-
-*Focus: power-user field types that cover complex real-world scenarios.*
-
-- [ ] **`relationship` field type** — link a field to records from another FlexFields entity
-- [ ] **`conditional` field visibility** — show/hide fields based on the value of another (`showWhen`)
-- [ ] **Visual Validation Builder** — UI for adding `required`, `min`, `max`, `regex` rules without raw JSON
-- [ ] **`phone` field type** — dedicated phone number input with masking
-- [ ] **`address` field type** — structured address sub-form (street, city, country, zip)
+- [x] **CSV Export** — export any entity's records to CSV directly from the table (all/filtered or selected, no extra dependencies)
+- [x] **CSV/Excel Import** — bulk import records with downloadable template and preview before confirm
+- [x] **Field Groups / Sections** — group fields into labeled, collapsible sections within a form
+- [x] **Record History / Audit Log** — track who changed what and when; optional version restore
 
 ---
 
-## 🔴 0.6.0 — Headless & Integrations
+## ✅ Advanced Field Types *(0.6.0)*
 
-*Focus: use FlexFields outside of Filament.*
+*Focus: power-user field types that cover complex real-world scenarios.* — [Guide](docs/field-types.md)
 
-- [ ] **Auto REST API** — optional `GET/POST/PUT/DELETE /api/flex/{entity}` endpoints per entity
-- [ ] **Sanctum authentication** for the API layer
-- [ ] **API Resource transformers** — clean JSON output for frontend/mobile consumers
-- [ ] **Translatable Fields** — mark any field as translatable (stores `{"es":"Hola","en":"Hello"}`)
-- [ ] **Spatie Media Library integration** — use Spatie's media library for `image` and `file` fields
-- [ ] **Permissions / Policies per Entity** — fine-grained access control integrated with Filament Shield
+- [x] **`relationship` field type** — link a field to records from another FlexFields entity
+- [x] **`conditional` field visibility** — show/hide fields based on the value of another (`showWhen`)
+- [x] **Visual Validation Builder** — UI for adding `required`, `min`, `max`, `regex` rules without raw JSON
+- [x] **`phone` field type** — dedicated phone number input with masking
+- [x] **`address` field type** — structured address sub-form (street, city, country, zip)
+
+---
+
+## ✅ Headless & Integrations *(0.6.0)*
+
+*Focus: use FlexFields outside of Filament.* — [REST API](docs/rest-api.md) · [Permissions & Integrations](docs/permissions.md)
+
+- [x] **Auto REST API** — optional `GET/POST/PUT/DELETE /api/flex/{entity}` endpoints per entity
+- [x] **Sanctum authentication** for the API layer (with `flex:read` / `flex:write` / `flex:delete` token abilities)
+- [x] **API Resource transformers** — clean JSON output for frontend/mobile consumers (customizable)
+- [x] **Translatable Fields** — mark any field as translatable (stores `{"es":"Hola","en":"Hello"}`)
+- [x] **Spatie Media Library integration** — use Spatie's media library for `image` and `file` fields
+- [x] **Permissions / Policies per Entity** — fine-grained access control integrated with Filament Shield (`flex:permissions --sync`)
+
+---
+
+## ✅ 0.5.0 — AI-Ready *(released)*
+
+- [x] **Laravel AI SDK integration** — native tools grouped in read / structure / content / publishing / destructive categories, human approvals and `AiContext` security boundaries
+- [x] **`FlexFieldsAssistant` agent** and `flex:agent` command
+
+## ✅ 0.4.0 — Conditional Category Fields *(released)*
+
+- [x] **Category-based conditional fields** — show fields only for records in specific categories
 
 ---
 

@@ -17,6 +17,10 @@ use IvanMercedes\FlexFields\FlexFieldsManager;
  * @method static array form(\IvanMercedes\FlexFields\Models\Entity|string|int $entity)
  * @method static bool clearCache(?string $entitySlug = null)
  * @method static array status()
+ * @method static \IvanMercedes\FlexFields\Services\RecordExporter exporter()
+ * @method static \IvanMercedes\FlexFields\Services\RecordImporter importer()
+ * @method static \IvanMercedes\FlexFields\Services\RecordHistoryService history()
+ * @method static \IvanMercedes\FlexFields\Services\FieldGroupDomainService fieldGroups()
  *
  * @see FlexFieldsManager
  */

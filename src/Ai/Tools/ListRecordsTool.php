@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -60,7 +61,7 @@ class ListRecordsTool implements Tool
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::VIEW_ANY)) {
             return $guard;
         }
 
@@ -75,7 +76,7 @@ class ListRecordsTool implements Tool
                 'records' => $formatted,
             ]);
         } catch (Throwable $e) {
-            return "Error listing records for entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Error listing records for entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

@@ -14,7 +14,14 @@
 ## Features
 
 - **Custom Entities:** Define any data structure (like post types) without touching database migrations.
-- **17+ Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, tags, and dynamic repeaters.
+- **20 Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, tags, dynamic repeaters, phone (with masks), structured addresses and relationships to records of other entities.
+- **Advanced Field Behavior:** Conditional visibility (`showWhen`), translatable fields (`{"en": "Hello", "es": "Hola"}`) and a visual validation rule builder.
+- **Field Groups / Sections:** Organize fields into labeled, collapsible form sections.
+- **CSV Export & CSV/Excel Import:** Export records (all, filtered or selected) and bulk import with a downloadable template and a validated preview before confirming.
+- **Record History / Audit Log:** Who changed what and when, with a visual diff and one-click version restore.
+- **Headless REST API:** Optional `GET/POST/PUT/DELETE /api/flex/{entity}` endpoints with Laravel Sanctum, token abilities and customizable JSON transformers.
+- **Permissions per Entity:** Gate-based permissions per entity (compatible with Filament Shield / spatie-permission), enforced in the panel, the API and AI tools.
+- **Spatie Media Library Integration:** Optionally store image and file fields with `spatie/laravel-medialibrary`.
 - **Laravel AI SDK Integration:** First-party tools for AI agents to introspect schemas, read, create, mutate, publish content, and safely execute destructive actions with human approvals.
 - **`HasFlexFields` Eloquent Trait:** Attach dynamic flex fields directly to any existing model (`Product`, `User`, etc.).
 - **`FlexFields` Facade:** Fluent global access: `FlexFields::entity('product')->records()`, `createRecord()`, `status()`, `clearCache()`.
@@ -115,6 +122,25 @@ Entities support isolated **Categories and Subcategories**. You can build hierar
 ### Entity Records
 When adding records to an entity, the form elements and structure are dynamically built via the Filament form builder using the definitions from your custom fields. All input is securely stored using the EAV pattern in `ff_field_values`.
 
+### Field Groups
+Fields can be organized into **Field Groups**: labeled, collapsible sections of the record form, managed from the entity edit page.
+
+### Record History
+Every change to a record is stored as a revision (snapshot + diff + user). The **History** tab of a record lets you inspect the changes and restore any previous version.
+
+---
+
+## Guides
+
+- [Upgrade Guide](UPGRADE.md) — **read before upgrading** (run `php artisan migrate`)
+- [Advanced Field Types](docs/field-types.md) — relationship, conditional visibility, validation builder, phone, address, translatable fields
+- [Data Management](docs/data-management.md) — CSV export, CSV/Excel import, field groups, record history
+- [Headless REST API](docs/rest-api.md) — endpoints, Sanctum, tenancy, transformers
+- [Permissions & Integrations](docs/permissions.md) — per-entity permissions, Filament Shield, Spatie Media Library
+- [Schema Builder](docs/schema-builder.md) — code-first entities
+- [Facade & Developer Experience](docs/facade_usage.md)
+- [Laravel AI SDK Integration](docs/ai-integration.md)
+
 ---
 
 ## Schema Builder (Code-First Entities)
@@ -173,6 +199,12 @@ $price = $product->getFlexValue('price');
 php artisan flex:status
 ```
 
+### Permissions Command
+```bash
+php artisan flex:permissions          # list per-entity permissions
+php artisan flex:permissions --sync   # create them with spatie/laravel-permission (Filament Shield)
+```
+
 For full details, read the [Facade & Developer Experience Documentation](docs/facade_usage.md).
 
 ---
@@ -213,6 +245,22 @@ class ContentAgent extends Agent
 ```
 
 For full details, read the [Laravel AI SDK Integration Documentation](docs/ai-integration.md).
+
+---
+
+## Headless REST API
+
+Enable the optional JSON API to use your entities from any frontend or mobile app:
+
+```env
+FLEX_FIELDS_API_ENABLED=true
+```
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" https://your-app.test/api/flex/products?status=published
+```
+
+All endpoints are protected by Laravel Sanctum by default and reuse the same domain services (validation, history, tenancy, permissions) as the admin panel. For full details, read the [REST API Documentation](docs/rest-api.md).
 
 ---
 
@@ -269,12 +317,14 @@ FlexFields (group)
 - **`ff_entity_records`**: A master identifier that holds one row per recorded entry.
 - **`ff_entity_record_category`**: Pivot table mapping records to their assigned categories.
 - **`ff_field_values`**: Holds the individual data values mapped. Effectively one row per (record × field) pair.
+- **`ff_field_groups`**: Labeled form sections that group the custom fields of an entity.
+- **`ff_record_revisions`**: Audit log of records (event, user, full snapshot and diff per change).
 
 ---
 
 ## Roadmap
 
-Curious about what's coming next? Check out the [ROADMAP.md](ROADMAP.md) for planned features and upcoming versions.
+All the scheduled roadmap milestones (Data Management, Advanced Field Types, Headless & Integrations) are implemented. Check out the [ROADMAP.md](ROADMAP.md) for details and the ideas under consideration.
 
 ---
 

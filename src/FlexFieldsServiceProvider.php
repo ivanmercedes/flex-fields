@@ -10,11 +10,13 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
 use IvanMercedes\FlexFields\Commands\FlexFieldsAgentCommand;
+use IvanMercedes\FlexFields\Commands\FlexPermissionsCommand;
 use IvanMercedes\FlexFields\Commands\FlexStatusCommand;
 use IvanMercedes\FlexFields\Commands\InstallFlexFieldsCommand;
 use IvanMercedes\FlexFields\Commands\MakeSchemaCommand;
 use IvanMercedes\FlexFields\Commands\MigrateSchemasCommand;
 use IvanMercedes\FlexFields\Commands\RollbackSchemasCommand;
+use IvanMercedes\FlexFields\Services\RecordHistoryService;
 use Laravel\Ai\Contracts\Agent;
 
 class FlexFieldsServiceProvider extends ServiceProvider
@@ -31,6 +33,8 @@ class FlexFieldsServiceProvider extends ServiceProvider
         $this->app->singleton('flex-fields', function () {
             return new FlexFieldsManager;
         });
+
+        $this->app->singleton(RecordHistoryService::class);
     }
 
     public function boot(): void
@@ -38,6 +42,10 @@ class FlexFieldsServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'flex-fields');
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'flex-fields');
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        if (config('flex-fields.api.enabled', false)) {
+            $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        }
 
         FilamentAsset::register([
             Css::make('flex-fields', __DIR__ . '/../resources/dist/flex-fields.css'),
@@ -62,6 +70,7 @@ class FlexFieldsServiceProvider extends ServiceProvider
                 MigrateSchemasCommand::class,
                 RollbackSchemasCommand::class,
                 FlexStatusCommand::class,
+                FlexPermissionsCommand::class,
             ];
 
             if (interface_exists(Agent::class)) {

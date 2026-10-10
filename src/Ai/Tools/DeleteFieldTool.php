@@ -60,7 +60,7 @@ class DeleteFieldTool implements Approvable, Tool
         $entitySlug = $validated['entity'];
         $fieldKey = $validated['field'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -69,7 +69,7 @@ class DeleteFieldTool implements Approvable, Tool
 
             return "Field [{$fieldKey}] on entity [{$entitySlug}] and all associated values were permanently deleted.";
         } catch (Throwable $e) {
-            return "Failed to delete field [{$fieldKey}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to delete field [{$fieldKey}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 

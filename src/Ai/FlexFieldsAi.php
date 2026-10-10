@@ -8,10 +8,12 @@ use IvanMercedes\FlexFields\Ai\Agents\FlexFieldsAssistant;
 use IvanMercedes\FlexFields\Ai\Tools\AssignFieldCategoriesTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateCategoryTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateEntityTool;
+use IvanMercedes\FlexFields\Ai\Tools\CreateFieldGroupTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateFieldTool;
 use IvanMercedes\FlexFields\Ai\Tools\CreateRecordTool;
 use IvanMercedes\FlexFields\Ai\Tools\DeleteCategoryTool;
 use IvanMercedes\FlexFields\Ai\Tools\DeleteEntityTool;
+use IvanMercedes\FlexFields\Ai\Tools\DeleteFieldGroupTool;
 use IvanMercedes\FlexFields\Ai\Tools\DeleteFieldTool;
 use IvanMercedes\FlexFields\Ai\Tools\DeleteRecordTool;
 use IvanMercedes\FlexFields\Ai\Tools\GetEntitySchemaTool;
@@ -20,12 +22,15 @@ use IvanMercedes\FlexFields\Ai\Tools\GetRecordTool;
 use IvanMercedes\FlexFields\Ai\Tools\ListCategoriesTool;
 use IvanMercedes\FlexFields\Ai\Tools\ListEntitiesTool;
 use IvanMercedes\FlexFields\Ai\Tools\ListFieldsTool;
+use IvanMercedes\FlexFields\Ai\Tools\ListRecordRevisionsTool;
 use IvanMercedes\FlexFields\Ai\Tools\ListRecordsTool;
 use IvanMercedes\FlexFields\Ai\Tools\PublishRecordTool;
+use IvanMercedes\FlexFields\Ai\Tools\RestoreRecordRevisionTool;
 use IvanMercedes\FlexFields\Ai\Tools\SetRecordValuesTool;
 use IvanMercedes\FlexFields\Ai\Tools\UnpublishRecordTool;
 use IvanMercedes\FlexFields\Ai\Tools\UpdateCategoryTool;
 use IvanMercedes\FlexFields\Ai\Tools\UpdateEntityTool;
+use IvanMercedes\FlexFields\Ai\Tools\UpdateFieldGroupTool;
 use IvanMercedes\FlexFields\Ai\Tools\UpdateFieldTool;
 use IvanMercedes\FlexFields\Ai\Tools\UpdateRecordTool;
 use Laravel\Ai\Contracts\Approvable;
@@ -48,6 +53,7 @@ class FlexFieldsAi
         ListCategoriesTool::class,
         ListRecordsTool::class,
         GetRecordTool::class,
+        ListRecordRevisionsTool::class,
 
         // Structure
         CreateEntityTool::class,
@@ -57,14 +63,18 @@ class FlexFieldsAi
         AssignFieldCategoriesTool::class,
         CreateCategoryTool::class,
         UpdateCategoryTool::class,
+        CreateFieldGroupTool::class,
+        UpdateFieldGroupTool::class,
         DeleteEntityTool::class,
         DeleteFieldTool::class,
         DeleteCategoryTool::class,
+        DeleteFieldGroupTool::class,
 
         // Content
         CreateRecordTool::class,
         UpdateRecordTool::class,
         SetRecordValuesTool::class,
+        RestoreRecordRevisionTool::class,
         DeleteRecordTool::class,
 
         // Publishing

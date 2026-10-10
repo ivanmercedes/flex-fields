@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -44,7 +45,7 @@ class ListFieldsTool implements Tool
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::VIEW_ANY)) {
             return $guard;
         }
 
@@ -72,7 +73,7 @@ class ListFieldsTool implements Tool
                 'fields' => $result,
             ]);
         } catch (Throwable $e) {
-            return "Error listing fields for entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Error listing fields for entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

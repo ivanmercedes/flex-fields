@@ -160,6 +160,72 @@ class FieldDefinition
         return $this;
     }
 
+    /**
+     * Place the field in a field group declared with Blueprint::fieldGroup().
+     */
+    public function group(string $groupKey): self
+    {
+        $this->attributes['group'] = $groupKey;
+
+        return $this;
+    }
+
+    /**
+     * Only show the field when another field matches a condition.
+     * Operators: equals, not_equals, in, not_in, contains, filled, blank, gt, gte, lt, lte, is_true, is_false.
+     */
+    public function showWhen(string $field, string $operator = 'equals', mixed $value = null): self
+    {
+        $showWhen = $this->attributes['settings']['show_when'] ?? ['match' => 'all', 'conditions' => []];
+        $showWhen['conditions'][] = ['field' => $field, 'operator' => $operator, 'value' => $value];
+        $this->attributes['settings']['show_when'] = $showWhen;
+
+        return $this;
+    }
+
+    /**
+     * Show the field when ANY (instead of all) of the showWhen() conditions match.
+     */
+    public function showWhenAny(): self
+    {
+        $this->attributes['settings']['show_when']['match'] = 'any';
+        $this->attributes['settings']['show_when']['conditions'] ??= [];
+
+        return $this;
+    }
+
+    public function translatable(bool $translatable = true): self
+    {
+        $this->attributes['settings']['translatable'] = $translatable;
+
+        return $this;
+    }
+
+    public function relatedTo(string $entitySlug, bool $multiple = false): self
+    {
+        $this->attributes['settings']['related_entity'] = $entitySlug;
+        $this->attributes['settings']['multiple'] = $multiple;
+
+        return $this;
+    }
+
+    public function phoneMask(string $mask): self
+    {
+        $this->attributes['settings']['phone_mask'] = $mask;
+
+        return $this;
+    }
+
+    /**
+     * @param  array<int, string>  $parts  street, street_2, city, state, postal_code, country
+     */
+    public function addressParts(array $parts): self
+    {
+        $this->attributes['settings']['address_parts'] = array_values($parts);
+
+        return $this;
+    }
+
     public function schema(Closure $callback): self
     {
         $blueprint = new Blueprint($this->attributes['key'] . '_schema');

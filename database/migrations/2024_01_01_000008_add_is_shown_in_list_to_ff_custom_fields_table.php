@@ -10,6 +10,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Apps that published an earlier copy of this migration already have the column.
+        if (Schema::hasColumn('ff_custom_fields', 'is_shown_in_list')) {
+            return;
+        }
+
         Schema::table('ff_custom_fields', function (Blueprint $table) {
             $table->boolean('is_shown_in_list')->default(false)->after('is_searchable');
         });

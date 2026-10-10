@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -44,7 +45,7 @@ class ListCategoriesTool implements Tool
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::VIEW_ANY)) {
             return $guard;
         }
 
@@ -68,7 +69,7 @@ class ListCategoriesTool implements Tool
                 'categories' => $result,
             ]);
         } catch (Throwable $e) {
-            return "Error listing categories for entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Error listing categories for entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

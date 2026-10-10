@@ -19,16 +19,25 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityCategory;
+use IvanMercedes\FlexFields\Models\FieldGroup;
+use IvanMercedes\FlexFields\Resources\Concerns\AuthorizesFlexStructure;
 use IvanMercedes\FlexFields\Resources\CustomFieldResource\Pages;
+use IvanMercedes\FlexFields\Services\FieldGroupDomainService;
+use IvanMercedes\FlexFields\Support\ConditionEvaluator;
+use IvanMercedes\FlexFields\Support\FieldTypes;
+use IvanMercedes\FlexFields\Support\FlexSchema;
+use IvanMercedes\FlexFields\Support\Keys;
 use IvanMercedes\FlexFields\Support\Label;
+use IvanMercedes\FlexFields\Support\ValidationRules;
 use UnitEnum;
 
 class CustomFieldResource extends Resource
 {
+    use AuthorizesFlexStructure;
+
     protected static ?string $model = CustomField::class;
 
     protected static BackedEnum | string | null $navigationIcon = 'heroicon-o-variable';
@@ -51,7 +60,7 @@ class CustomFieldResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        $fieldTypes = Label::options(config('flex-fields.field_types', []));
+        $fieldTypes = FieldTypes::options();
 
         return $schema->columns(1)->components([
             Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.identity'))
@@ -64,6 +73,17 @@ class CustomFieldResource extends Resource
                         ->searchable()
                         ->preload()
                         ->live(),
+
+                    Forms\Components\Select::make('field_group_id')
+                        ->label(Label::trans('flex-fields::flex-fields.field_group.label'))
+                        ->helperText(Label::trans('flex-fields::flex-fields.field_group.helpers.select'))
+                        ->options(fn (Get $get) => FieldGroup::where('entity_id', $get('entity_id'))->orderBy('order')->pluck('label', 'id'))
+                        ->visible(fn (Get $get) => filled($get('entity_id')) && FlexSchema::hasFieldGroups())
+                        ->searchable()
+                        ->preload()
+                        ->createOptionForm(FieldGroupForm::components())
+                        ->createOptionUsing(fn (array $data, Get $get) => app(FieldGroupDomainService::class)
+                            ->create((int) $get('entity_id'), $data)->id),
 
                     Forms\Components\Select::make('category_ids')
                         ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.categories', default: 'Categories'))
@@ -87,7 +107,7 @@ class CustomFieldResource extends Resource
                         ->maxLength(255)
                         ->live(onBlur: true)
                         ->afterStateUpdated(
-                            fn ($state, Set $set) => $set('key', Str::snake($state))
+                            fn ($state, Set $set) => $set('key', Keys::make((string) $state))
                         ),
 
                     Forms\Components\TextInput::make('key')
@@ -146,7 +166,7 @@ class CustomFieldResource extends Resource
                                     ->required()
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(
-                                        fn ($state, Set $set, Get $get) => $get('key') ? null : $set('key', Str::snake($state))
+                                        fn ($state, Set $set, Get $get) => $get('key') ? null : $set('key', Keys::make((string) $state))
                                     ),
                                 Forms\Components\TextInput::make('key')
                                     ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.key'))
@@ -174,6 +194,49 @@ class CustomFieldResource extends Resource
                         ->reorderable()
                         ->collapsible()
                         ->columnSpanFull(),
+                ]),
+
+            Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.relationship'))
+                ->visible(fn (Get $get) => $get('type') === 'relationship')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\Select::make('settings.related_entity')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.related_entity'))
+                        ->options(fn () => Entity::currentTenant()->orderBy('name')->pluck('name', 'slug'))
+                        ->searchable()
+                        ->required(fn (Get $get) => $get('type') === 'relationship'),
+
+                    Forms\Components\Toggle::make('settings.multiple')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.relationship_multiple'))
+                        ->default(false),
+                ]),
+
+            Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.type_settings'))
+                ->visible(fn (Get $get) => in_array($get('type'), ['phone', 'address', ...FieldTypes::TRANSLATABLE], true))
+                ->columns(2)
+                ->schema([
+                    Forms\Components\TextInput::make('settings.phone_mask')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.phone_mask'))
+                        ->helperText(Label::trans('flex-fields::flex-fields.custom_field.helpers.phone_mask'))
+                        ->placeholder('(999) 999-9999')
+                        ->visible(fn (Get $get) => $get('type') === 'phone'),
+
+                    Forms\Components\CheckboxList::make('settings.address_parts')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.address_parts'))
+                        ->options(collect(FieldTypes::ADDRESS_PARTS)->mapWithKeys(fn (string $part) => [
+                            $part => Label::trans("flex-fields::flex-fields.address.{$part}", default: $part),
+                        ])->all())
+                        ->default(FieldTypes::ADDRESS_PARTS)
+                        ->columns(3)
+                        ->columnSpanFull()
+                        ->visible(fn (Get $get) => $get('type') === 'address'),
+
+                    Forms\Components\Toggle::make('settings.translatable')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.translatable'))
+                        ->helperText(fn () => Label::trans('flex-fields::flex-fields.custom_field.helpers.translatable', [
+                            'locales' => implode(', ', FieldTypes::locales()),
+                        ]))
+                        ->visible(fn (Get $get) => in_array($get('type'), FieldTypes::TRANSLATABLE, true)),
                 ]),
 
             Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.image_settings'))
@@ -247,6 +310,77 @@ class CustomFieldResource extends Resource
                         ->default('full'),
                 ]),
 
+            Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.validation_rules'))
+                ->description(Label::trans('flex-fields::flex-fields.custom_field.descriptions.validation_rules'))
+                ->collapsible()
+                ->schema([
+                    Forms\Components\Repeater::make('validation_builder')
+                        ->hiddenLabel()
+                        ->schema([
+                            Grid::make(2)->schema([
+                                Forms\Components\Select::make('rule')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.rule'))
+                                    ->options(ValidationRules::options())
+                                    ->searchable()
+                                    ->required()
+                                    ->live(),
+                                Forms\Components\TextInput::make('value')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.rule_value'))
+                                    ->visible(fn (Get $get) => ValidationRules::needsValue($get('rule')))
+                                    ->required(fn (Get $get) => ValidationRules::needsValue($get('rule'))),
+                            ]),
+                        ])
+                        ->default([])
+                        ->addActionLabel(Label::trans('flex-fields::flex-fields.custom_field.actions.add_rule'))
+                        ->reorderable(false)
+                        ->columnSpanFull(),
+                ]),
+
+            Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.conditional'))
+                ->description(Label::trans('flex-fields::flex-fields.custom_field.descriptions.conditional'))
+                ->collapsible()
+                ->schema([
+                    Forms\Components\Select::make('show_when_match')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.show_when_match'))
+                        ->options([
+                            'all' => Label::trans('flex-fields::flex-fields.custom_field.show_when.all'),
+                            'any' => Label::trans('flex-fields::flex-fields.custom_field.show_when.any'),
+                        ])
+                        ->default('all'),
+
+                    Forms\Components\Repeater::make('show_when_conditions')
+                        ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.show_when_conditions'))
+                        ->schema([
+                            Grid::make(3)->schema([
+                                Forms\Components\Select::make('field')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.condition_field'))
+                                    ->options(fn (Get $get, ?CustomField $record) => CustomField::query()
+                                        ->where('entity_id', $get('../../entity_id'))
+                                        ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                        ->orderBy('order')
+                                        ->pluck('label', 'key'))
+                                    ->required(),
+                                Forms\Components\Select::make('operator')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.condition_operator'))
+                                    ->options(collect(ConditionEvaluator::OPERATORS)->mapWithKeys(fn (string $op) => [
+                                        $op => Label::trans("flex-fields::flex-fields.custom_field.operators.{$op}", default: $op),
+                                    ])->all())
+                                    ->default('equals')
+                                    ->required()
+                                    ->live(),
+                                Forms\Components\TextInput::make('value')
+                                    ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.condition_value'))
+                                    ->helperText(fn (Get $get) => in_array($get('operator'), ['in', 'not_in'], true)
+                                        ? Label::trans('flex-fields::flex-fields.custom_field.helpers.condition_list')
+                                        : null)
+                                    ->hidden(fn (Get $get) => in_array($get('operator'), ConditionEvaluator::VALUELESS, true)),
+                            ]),
+                        ])
+                        ->default([])
+                        ->addActionLabel(Label::trans('flex-fields::flex-fields.custom_field.actions.add_condition'))
+                        ->columnSpanFull(),
+                ]),
+
             Section::make(Label::trans('flex-fields::flex-fields.custom_field.sections.default_value'))
                 ->collapsed()
                 ->schema([
@@ -310,6 +444,13 @@ class CustomFieldResource extends Resource
                         default => 'gray',
                     }),
 
+                Tables\Columns\TextColumn::make('fieldGroup.label')
+                    ->label(Label::trans('flex-fields::flex-fields.field_group.label'))
+                    ->visible(fn () => FlexSchema::hasFieldGroups())
+                    ->badge()
+                    ->color('gray')
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('width')
                     ->label(Label::trans('flex-fields::flex-fields.custom_field.table.width'))
                     ->badge(),
@@ -344,7 +485,7 @@ class CustomFieldResource extends Resource
 
                 Tables\Filters\SelectFilter::make('type')
                     ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.type'))
-                    ->options(Label::options(config('flex-fields.field_types', []))),
+                    ->options(FieldTypes::options()),
 
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label(Label::trans('flex-fields::flex-fields.custom_field.fields.is_active')),

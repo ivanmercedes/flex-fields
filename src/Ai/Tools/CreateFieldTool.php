@@ -7,6 +7,8 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Support\ConditionEvaluator;
+use IvanMercedes\FlexFields\Support\FieldTypes;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -19,7 +21,10 @@ class CreateFieldTool implements Tool
 
     public function description(): string
     {
-        return 'Add a new custom field to an entity. Supported types: text, textarea, number, email, url, date, datetime, boolean, select, multiselect, color, file, image, richtext, json, tags, repeater. For select/multiselect provide options map (e.g. {"key": "Label"}).';
+        return 'Add a new custom field to an entity. Supported types: ' . implode(', ', FieldTypes::all()) . '. '
+            . 'For select/multiselect provide an options map (e.g. {"key": "Label"}). '
+            . 'Relationship fields require settings.related_entity. Use settings.show_when for conditional visibility and "group" to place the field in a field group. '
+            . 'Call GetEntitySchema first to know existing field keys and groups.';
     }
 
     public function toolCategory(): AiToolCategory
@@ -37,8 +42,8 @@ class CreateFieldTool implements Tool
                 ->description('Human-readable field label (e.g. "Price", "Cover Image").')
                 ->required(),
             'type' => $schema->string()
-                ->description('Field type: text, textarea, number, email, url, date, datetime, boolean, select, multiselect, color, file, image, richtext, json, tags, repeater.')
-                ->enum(['text', 'textarea', 'number', 'email', 'url', 'date', 'datetime', 'boolean', 'select', 'multiselect', 'color', 'file', 'image', 'richtext', 'json', 'tags', 'repeater'])
+                ->description('Field type: ' . implode(', ', FieldTypes::all()) . '.')
+                ->enum(FieldTypes::all())
                 ->required(),
             'key' => $schema->string()
                 ->description('Machine-readable field key (e.g. "price", "cover_image"). Auto-generated in snake_case from label if omitted.'),
@@ -65,6 +70,15 @@ class CreateFieldTool implements Tool
             'category_ids' => $schema->array()
                 ->items($schema->string())
                 ->description('Optional array of category IDs, slugs, or names to assign this field to (scopes field visibility to records in these categories).'),
+            'group' => $schema->string()
+                ->description('Key or ID of an existing field group (section) to place the field in.'),
+            'settings' => $schema->object()
+                ->description('Type-specific settings. Supported keys: '
+                    . 'show_when {match: "all"|"any", conditions: [{field, operator, value}]} (conditional visibility; operators: ' . implode(', ', ConditionEvaluator::OPERATORS) . '); '
+                    . 'related_entity (entity slug, required for relationship) and multiple (bool) for relationship/image/file; '
+                    . 'translatable (bool, for text/textarea/richtext); phone_mask (e.g. "(999) 999-9999") for phone; '
+                    . 'address_parts (subset of ' . implode(', ', FieldTypes::ADDRESS_PARTS) . ') for address; '
+                    . 'schema (array of {label, key, type, width, is_required}) for repeater.'),
         ];
     }
 
@@ -89,11 +103,13 @@ class CreateFieldTool implements Tool
             'options' => ['sometimes', 'nullable', 'array'],
             'validation_rules' => ['sometimes', 'nullable', 'array'],
             'category_ids' => ['sometimes', 'nullable', 'array'],
+            'group' => ['sometimes', 'nullable', 'string'],
+            'settings' => ['sometimes', 'nullable', 'array'],
         ]);
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -111,10 +127,12 @@ class CreateFieldTool implements Tool
                     'is_shown_in_list' => (bool) $field->is_shown_in_list,
                     'order' => $field->order,
                     'category_ids' => $field->category_ids ?? [],
+                    'group' => $field->fieldGroup?->key,
+                    'settings' => $field->settings ?? [],
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to create field on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to create field on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

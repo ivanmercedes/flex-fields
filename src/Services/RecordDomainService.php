@@ -4,29 +4,65 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Services;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
+use IvanMercedes\FlexFields\Support\FieldTypes;
+use IvanMercedes\FlexFields\Support\MediaLibrary;
 use RuntimeException;
 
 class RecordDomainService
 {
+    public const STATUSES = ['draft', 'published', 'archived'];
+
     public function __construct(
-        protected EntityDomainService $entityService = new EntityDomainService
+        protected EntityDomainService $entityService = new EntityDomainService,
+        protected ?RecordValueValidator $validator = null,
+        protected ?RecordHistoryService $history = null,
     ) {}
 
     /**
      * List records for an entity with filtering.
      *
-     * @param  array{status?: ?string, search?: ?string, category_id?: ?int, limit?: ?int, offset?: ?int}  $filters
+     * @param  array{status?: ?string, search?: ?string, category_id?: ?int, limit?: ?int, offset?: ?int, trashed?: ?string}  $filters
      * @return Collection<int, EntityRecord>
      */
     public function list(int | string $entityIdOrSlug, array $filters = [], ?int $tenantId = null): Collection
     {
         $entity = $this->entityService->findOrFail($entityIdOrSlug, $tenantId);
 
-        $query = $entity->records()->with(['categories', 'fieldValues.customField']);
+        $limit = isset($filters['limit']) ? max(1, min(100, (int) $filters['limit'])) : 25;
+        $offset = isset($filters['offset']) ? max(0, (int) $filters['offset']) : 0;
+
+        return $this->query($entity, $filters)->skip($offset)->take($limit)->get();
+    }
+
+    /**
+     * Paginate records for an entity with filtering.
+     *
+     * @param  array{status?: ?string, search?: ?string, category_id?: ?int, trashed?: ?string}  $filters
+     */
+    public function paginate(int | string $entityIdOrSlug, array $filters = [], int $perPage = 25, int $page = 1, ?int $tenantId = null): LengthAwarePaginator
+    {
+        $entity = $this->entityService->findOrFail($entityIdOrSlug, $tenantId);
+
+        return $this->query($entity, $filters)->paginate(perPage: max(1, $perPage), page: max(1, $page));
+    }
+
+    /**
+     * Base query for an entity's records with the standard filters applied.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function query(Entity $entity, array $filters = []): HasMany | Builder
+    {
+        $query = $entity->records()->with(['entity', 'categories', 'fieldValues.customField']);
 
         if (! empty($filters['status'])) {
             $query->where('status', (string) $filters['status']);
@@ -45,10 +81,13 @@ class RecordDomainService
             });
         }
 
-        $limit = isset($filters['limit']) ? max(1, min(100, (int) $filters['limit'])) : 25;
-        $offset = isset($filters['offset']) ? max(0, (int) $filters['offset']) : 0;
+        match ($filters['trashed'] ?? null) {
+            'with' => $query->withTrashed(),
+            'only' => $query->onlyTrashed(),
+            default => null,
+        };
 
-        return $query->orderBy('order')->orderByDesc('id')->skip($offset)->take($limit)->get();
+        return $query->orderBy('order')->orderByDesc('id');
     }
 
     /**
@@ -92,7 +131,9 @@ class RecordDomainService
      *
      * @param  array<string, mixed>  $attributes
      * @param  array<string, mixed>  $fieldValues
-     * @param  array<int, int>  $categoryIds
+     * @param  array<int, int|string>  $categoryIds
+     *
+     * @throws ValidationException
      */
     public function create(
         int | string $entityIdOrSlug,
@@ -103,6 +144,12 @@ class RecordDomainService
     ): EntityRecord {
         $entity = $this->entityService->findOrFail($entityIdOrSlug, $tenantId);
 
+        $status = (string) ($attributes['status'] ?? 'published');
+        $this->ensureValidStatus($status);
+
+        $fieldValues = $this->validator()->validate($entity, $fieldValues, creating: true);
+        $categoryIds = $this->resolveCategoryIds($entity, $categoryIds);
+
         $title = trim((string) ($attributes['title'] ?? 'Untitled'));
         $slug = ! empty($attributes['slug'])
             ? Str::slug((string) $attributes['slug'])
@@ -110,29 +157,36 @@ class RecordDomainService
 
         $originalSlug = $slug;
         $counter = 1;
-        while ($entity->records()->where('slug', $slug)->exists()) {
+        while ($entity->records()->withTrashed()->where('slug', $slug)->exists()) {
             $slug = "{$originalSlug}-{$counter}";
             $counter++;
         }
 
-        $record = $entity->records()->create([
-            'tenant_id' => $entity->tenant_id,
-            'title' => $title,
-            'slug' => $slug,
-            'status' => $attributes['status'] ?? 'published',
-            'order' => (int) ($attributes['order'] ?? 0),
-            'meta' => $attributes['meta'] ?? null,
-        ]);
+        $record = DB::transaction(function () use ($entity, $title, $slug, $status, $attributes, $fieldValues, $categoryIds) {
+            /** @var EntityRecord $record */
+            $record = $entity->records()->create([
+                'tenant_id' => $entity->tenant_id,
+                'title' => $title,
+                'slug' => $slug,
+                'status' => $status,
+                'order' => (int) ($attributes['order'] ?? 0),
+                'meta' => $attributes['meta'] ?? null,
+            ]);
 
-        if (! empty($fieldValues)) {
-            $this->applyFieldValues($record, $fieldValues);
-        }
+            if (! empty($fieldValues)) {
+                $this->writeValues($record, $fieldValues);
+            }
 
-        if (! empty($categoryIds)) {
-            $record->categories()->sync($categoryIds);
-        }
+            if (! empty($categoryIds)) {
+                $record->categories()->sync($categoryIds);
+            }
 
-        return $record->load(['categories', 'fieldValues.customField']);
+            return $record;
+        });
+
+        $this->history()->record($record, RecordHistoryService::EVENT_CREATED);
+
+        return $record->load(['entity', 'categories', 'fieldValues.customField']);
     }
 
     /**
@@ -140,7 +194,9 @@ class RecordDomainService
      *
      * @param  array<string, mixed>  $attributes
      * @param  array<string, mixed>  $fieldValues
-     * @param  array<int, int>|null  $categoryIds
+     * @param  array<int, int|string>|null  $categoryIds
+     *
+     * @throws ValidationException
      */
     public function update(
         int | string $entityIdOrSlug,
@@ -160,6 +216,7 @@ class RecordDomainService
         if (array_key_exists('slug', $attributes)) {
             $newSlug = Str::slug((string) $attributes['slug']);
             $exists = $entity->records()
+                ->withTrashed()
                 ->where('slug', $newSlug)
                 ->where('id', '!=', $record->id)
                 ->exists();
@@ -171,9 +228,7 @@ class RecordDomainService
         }
         if (array_key_exists('status', $attributes)) {
             $status = (string) $attributes['status'];
-            if (! in_array($status, ['draft', 'published', 'archived'], true)) {
-                throw new RuntimeException("Invalid status [{$status}]. Allowed values: draft, published, archived.");
-            }
+            $this->ensureValidStatus($status);
             $data['status'] = $status;
         }
         if (array_key_exists('order', $attributes)) {
@@ -183,25 +238,34 @@ class RecordDomainService
             $data['meta'] = $attributes['meta'];
         }
 
-        if (! empty($data)) {
-            $record->update($data);
-        }
+        $fieldValues = empty($fieldValues) ? [] : $this->validator()->validate($entity, $fieldValues, creating: false);
+        $categoryIds = $categoryIds === null ? null : $this->resolveCategoryIds($entity, $categoryIds);
 
-        if (! empty($fieldValues)) {
-            $this->applyFieldValues($record, $fieldValues);
-        }
+        DB::transaction(function () use ($record, $data, $fieldValues, $categoryIds) {
+            if (! empty($data)) {
+                $record->update($data);
+            }
 
-        if ($categoryIds !== null) {
-            $record->categories()->sync($categoryIds);
-        }
+            if (! empty($fieldValues)) {
+                $this->writeValues($record, $fieldValues);
+            }
 
-        return $record->fresh(['categories', 'fieldValues.customField']);
+            if ($categoryIds !== null) {
+                $record->categories()->sync($categoryIds);
+            }
+        });
+
+        $this->history()->record($record, RecordHistoryService::EVENT_UPDATED);
+
+        return $record->fresh(['entity', 'categories', 'fieldValues.customField']);
     }
 
     /**
      * Set or update custom field values on an existing record.
      *
      * @param  array<string, mixed>  $fieldValues
+     *
+     * @throws ValidationException
      */
     public function setValues(
         int | string $entityIdOrSlug,
@@ -209,10 +273,7 @@ class RecordDomainService
         array $fieldValues,
         ?int $tenantId = null
     ): EntityRecord {
-        $record = $this->findOrFail($entityIdOrSlug, $recordIdOrSlug, $tenantId);
-        $this->applyFieldValues($record, $fieldValues);
-
-        return $record->fresh(['categories', 'fieldValues.customField']);
+        return $this->update($entityIdOrSlug, $recordIdOrSlug, fieldValues: $fieldValues, tenantId: $tenantId);
     }
 
     /**
@@ -253,6 +314,20 @@ class RecordDomainService
     }
 
     /**
+     * Restore a soft-deleted record.
+     */
+    public function restore(int | string $entityIdOrSlug, int | string $recordIdOrSlug, ?int $tenantId = null): EntityRecord
+    {
+        $record = $this->findOrFail($entityIdOrSlug, $recordIdOrSlug, $tenantId, withTrashed: true);
+
+        if ($record->trashed()) {
+            $record->restore();
+        }
+
+        return $record->fresh(['entity', 'categories', 'fieldValues.customField']);
+    }
+
+    /**
      * Format a record as an array for agent or API consumption.
      *
      * @return array<string, mixed>
@@ -274,37 +349,91 @@ class RecordDomainService
             'status' => $record->status,
             'order' => $record->order,
             'categories' => $categories,
-            'data' => $record->data,
+            'data' => array_merge($record->data, MediaLibrary::urls($record)),
             'created_at' => $record->created_at?->toIso8601String(),
             'updated_at' => $record->updated_at?->toIso8601String(),
+            'deleted_at' => $record->deleted_at?->toIso8601String(),
         ];
     }
 
     /**
-     * Apply custom field values to a record.
+     * Persist custom field values on a record (no validation; callers validate).
+     * Unknown keys are ignored.
      *
      * @param  array<string, mixed>  $fieldValues
      */
-    protected function applyFieldValues(EntityRecord $record, array $fieldValues): void
+    public function writeValues(EntityRecord $record, array $fieldValues): void
     {
-        $entity = $record->entity;
-        $fieldsByKey = $entity->customFields->keyBy('key');
+        $fieldsByKey = $record->entity->customFields()->get()->keyBy('key');
 
         foreach ($fieldValues as $key => $value) {
             $field = $fieldsByKey->get($key);
-            if (! $field) {
+            if (! $field || MediaLibrary::handles($field)) {
                 continue;
             }
-
-            $rawValue = is_array($value) ? json_encode($value) : $value;
 
             $record->fieldValues()->updateOrCreate(
                 ['custom_field_id' => $field->id],
                 [
                     'tenant_id' => $record->tenant_id,
-                    'value' => $rawValue,
+                    'value' => FieldTypes::serialize($value),
                 ]
             );
         }
+
+        $record->unsetRelation('fieldValues');
+    }
+
+    /**
+     * Only keep categories that belong to the entity (accepts IDs, slugs or names).
+     *
+     * @param  array<int, int|string>  $categoryIdsOrSlugs
+     * @return array<int, int>
+     */
+    public function resolveCategoryIds(Entity $entity, array $categoryIdsOrSlugs): array
+    {
+        $categoryIdsOrSlugs = array_values(array_filter($categoryIdsOrSlugs, fn ($v) => $v !== null && $v !== ''));
+
+        if ($categoryIdsOrSlugs === []) {
+            return [];
+        }
+
+        $numeric = array_map('intval', array_filter($categoryIdsOrSlugs, 'is_numeric'));
+        $strings = array_values(array_filter($categoryIdsOrSlugs, fn ($v) => ! is_numeric($v)));
+
+        $resolved = $entity->categories()
+            ->where(function (Builder $q) use ($numeric, $strings) {
+                $q->whereIn('id', $numeric ?: [0]);
+
+                if ($strings !== []) {
+                    $q->orWhereIn('slug', $strings)->orWhereIn('name', $strings);
+                }
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if (count($resolved) < count(array_unique($categoryIdsOrSlugs))) {
+            throw new RuntimeException('One or more categories do not exist on entity [' . $entity->slug . '].');
+        }
+
+        return $resolved;
+    }
+
+    protected function ensureValidStatus(string $status): void
+    {
+        if (! in_array($status, self::STATUSES, true)) {
+            throw new RuntimeException("Invalid status [{$status}]. Allowed values: " . implode(', ', self::STATUSES) . '.');
+        }
+    }
+
+    protected function validator(): RecordValueValidator
+    {
+        return $this->validator ??= app(RecordValueValidator::class);
+    }
+
+    protected function history(): RecordHistoryService
+    {
+        return $this->history ??= app(RecordHistoryService::class);
     }
 }

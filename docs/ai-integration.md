@@ -107,17 +107,19 @@ To adhere to the principle of least privilege, tools are categorized into 5 dist
 | **Structure** | `FlexFieldsAi::structureTools()` | Creating and modifying entities, custom fields, taxonomies, and assigning fields to categories. |
 | **Content** | `FlexFieldsAi::contentTools()` | Creating, updating, setting field values, and deleting records. |
 | **Publishing** | `FlexFieldsAi::publishingTools()` | Publishing (`status = 'published'`) and unpublishing (`status = 'draft'`) content records. |
-| **Destructive** | `FlexFieldsAi::destructiveTools()` | High-impact actions (`DeleteEntityTool`, `DeleteFieldTool`, `DeleteCategoryTool`, `DeleteRecordTool`). |
+| **Destructive** | `FlexFieldsAi::destructiveTools()` | High-impact actions (`DeleteEntityTool`, `DeleteFieldTool`, `DeleteCategoryTool`, `DeleteFieldGroupTool`, `DeleteRecordTool`). |
 
-### Available Tools (23 Native Tools)
+### Available Tools (28 Native Tools)
 
 | Group | Tools | Description |
 |---|---|---|
-| **Read** | `ListEntitiesTool`<br>`GetEntitySchemaTool`<br>`ListFieldsTool`<br>`GetFieldTool`<br>`ListCategoriesTool`<br>`ListRecordsTool`<br>`GetRecordTool` | Inspect schema, metadata, field options, records, and taxonomies without mutations. |
-| **Structure** | `CreateEntityTool`<br>`UpdateEntityTool`<br>`CreateFieldTool`<br>`UpdateFieldTool`<br>`AssignFieldCategoriesTool`<br>`CreateCategoryTool`<br>`UpdateCategoryTool` | Create and modify entities, custom fields, category hierarchies, and scope fields to specific categories. |
-| **Content** | `CreateRecordTool`<br>`UpdateRecordTool`<br>`SetRecordValuesTool` | Manage record entries and their custom field values. |
+| **Read** | `ListEntitiesTool`<br>`GetEntitySchemaTool`<br>`ListFieldsTool`<br>`GetFieldTool`<br>`ListCategoriesTool`<br>`ListRecordsTool`<br>`GetRecordTool`<br>`ListRecordRevisionsTool` | Inspect schema, metadata, field options, records, taxonomies and the change history of a record without mutations. |
+| **Structure** | `CreateEntityTool`<br>`UpdateEntityTool`<br>`CreateFieldTool`<br>`UpdateFieldTool`<br>`AssignFieldCategoriesTool`<br>`CreateCategoryTool`<br>`UpdateCategoryTool`<br>`CreateFieldGroupTool`<br>`UpdateFieldGroupTool` | Create and modify entities, custom fields (including relationship, phone, address, translatable and conditional fields), field groups, category hierarchies, and scope fields to specific categories. |
+| **Content** | `CreateRecordTool`<br>`UpdateRecordTool`<br>`SetRecordValuesTool`<br>`RestoreRecordRevisionTool` | Manage record entries and their custom field values; restore a previous version (requires approval). |
 | **Publishing** | `PublishRecordTool`<br>`UnpublishRecordTool` | Toggle record publishing status (`published` / `draft`). |
-| **Destructive** | `DeleteEntityTool`<br>`DeleteFieldTool`<br>`DeleteCategoryTool`<br>`DeleteRecordTool` | Delete entities, fields, categories, or records. Implement `Laravel\Ai\Contracts\Approvable`. |
+| **Destructive** | `DeleteEntityTool`<br>`DeleteFieldTool`<br>`DeleteCategoryTool`<br>`DeleteFieldGroupTool`<br>`DeleteRecordTool` | Delete entities, fields, categories, field groups, or records. Implement `Laravel\Ai\Contracts\Approvable`. |
+
+Record values sent by agents go through the same validator as the panel and the REST API (types, options, required fields, relations, translations and the field's validation rules). Validation errors are returned to the model as readable messages (`price: The Price field must be a number.`) so it can correct itself.
 
 ### Combining Categories
 
@@ -208,6 +210,10 @@ One of the most important capabilities for agents is `GetEntitySchemaTool`. Befo
 - Available select / multiselect options
 - Nested repeater structures and subfields
 
+- Field groups (`groups` and each field's `group`)
+- Conditional visibility rules (`show_when`), relationships (`relationship.entity`), translations (`translatable`, `locales`) and address parts
+- A human-readable `value_format` per field describing exactly what value to send
+
 **Example Agent Response:**
 ```json
 {
@@ -243,6 +249,21 @@ In `config/flex-fields.php`, you can customize the default AI settings:
     'read_only' => env('FLEX_FIELDS_AI_READ_ONLY', false),
     'allowed_entities' => null, // null allows all entities, or ['articles', 'products']
 ],
+```
+
+---
+
+## Permissions
+
+When [per-entity permissions](permissions.md) are enabled, tools check the user of the `AiContext` (the authenticated user by default):
+
+- read tools require `view_any` / `view`,
+- content tools `create` / `update` / `delete` / `force_delete`,
+- publishing tools (and status changes) `publish` — records created without it default to `draft`,
+- structure tools the global `manage_flex_structure` permission.
+
+```php
+$tools = FlexFieldsAi::configure()->forUser($request->user())->tools();
 ```
 
 ---

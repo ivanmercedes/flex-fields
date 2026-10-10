@@ -61,7 +61,7 @@ class CreateCategoryTool implements Tool
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -78,7 +78,7 @@ class CreateCategoryTool implements Tool
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to create category on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to create category on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

@@ -20,12 +20,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityCategory;
+use IvanMercedes\FlexFields\Resources\Concerns\AuthorizesFlexStructure;
 use IvanMercedes\FlexFields\Resources\EntityCategoryResource\Pages;
 use IvanMercedes\FlexFields\Support\Label;
 use UnitEnum;
 
 class EntityCategoryResource extends Resource
 {
+    use AuthorizesFlexStructure;
+
     protected static ?string $model = EntityCategory::class;
 
     protected static bool $shouldRegisterNavigation = false;

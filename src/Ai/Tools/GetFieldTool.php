@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -49,7 +50,7 @@ class GetFieldTool implements Tool
         $entitySlug = $validated['entity'];
         $fieldKey = $validated['field'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::VIEW_ANY)) {
             return $guard;
         }
 
@@ -78,7 +79,7 @@ class GetFieldTool implements Tool
                 'category_ids' => $field->category_ids ?? [],
             ]);
         } catch (Throwable $e) {
-            return "Error retrieving field [{$fieldKey}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Error retrieving field [{$fieldKey}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

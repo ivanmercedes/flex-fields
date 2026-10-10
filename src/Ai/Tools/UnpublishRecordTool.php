@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -56,7 +57,7 @@ class UnpublishRecordTool implements Tool
         $entitySlug = $validated['entity'];
         $recordIdOrSlug = $validated['record'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::PUBLISH)) {
             return $guard;
         }
 
@@ -73,7 +74,7 @@ class UnpublishRecordTool implements Tool
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to unpublish record [{$recordIdOrSlug}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to unpublish record [{$recordIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

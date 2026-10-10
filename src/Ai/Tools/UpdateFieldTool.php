@@ -7,6 +7,8 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Support\ConditionEvaluator;
+use IvanMercedes\FlexFields\Support\FieldTypes;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -19,7 +21,7 @@ class UpdateFieldTool implements Tool
 
     public function description(): string
     {
-        return 'Update an existing custom field definition within an entity.';
+        return 'Update an existing custom field definition within an entity. Only the provided properties change; "settings" are merged with the existing ones (send a key with null to remove it).';
     }
 
     public function toolCategory(): AiToolCategory
@@ -40,6 +42,9 @@ class UpdateFieldTool implements Tool
                 ->description('New label for the field.'),
             'key' => $schema->string()
                 ->description('New key identifier for the field.'),
+            'type' => $schema->string()
+                ->description('New field type (changing the type does not convert stored values).')
+                ->enum(FieldTypes::all()),
             'description' => $schema->string()
                 ->description('New description or helper text.'),
             'placeholder' => $schema->string()
@@ -65,6 +70,15 @@ class UpdateFieldTool implements Tool
             'category_ids' => $schema->array()
                 ->items($schema->string())
                 ->description('Array of category IDs, slugs, or names to assign this field to. Pass empty array [] to make the field available across all categories.'),
+            'group' => $schema->string()
+                ->description('Key or ID of a field group to move the field into. Pass an empty string to ungroup it.'),
+            'settings' => $schema->object()
+                ->description('Type-specific settings. Supported keys: '
+                    . 'show_when {match: "all"|"any", conditions: [{field, operator, value}]} (conditional visibility; operators: ' . implode(', ', ConditionEvaluator::OPERATORS) . '); '
+                    . 'related_entity (entity slug, required for relationship) and multiple (bool) for relationship/image/file; '
+                    . 'translatable (bool, for text/textarea/richtext); phone_mask (e.g. "(999) 999-9999") for phone; '
+                    . 'address_parts (subset of ' . implode(', ', FieldTypes::ADDRESS_PARTS) . ') for address; '
+                    . 'schema (array of {label, key, type, width, is_required}) for repeater.'),
         ];
     }
 
@@ -90,12 +104,15 @@ class UpdateFieldTool implements Tool
             'options' => ['sometimes', 'nullable', 'array'],
             'validation_rules' => ['sometimes', 'nullable', 'array'],
             'category_ids' => ['sometimes', 'nullable', 'array'],
+            'type' => ['sometimes', 'string'],
+            'group' => ['sometimes', 'nullable', 'string'],
+            'settings' => ['sometimes', 'nullable', 'array'],
         ]);
 
         $entitySlug = $validated['entity'];
         $fieldKey = $validated['field'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -112,10 +129,12 @@ class UpdateFieldTool implements Tool
                     'is_required' => (bool) $field->is_required,
                     'is_active' => (bool) $field->is_active,
                     'category_ids' => $field->category_ids ?? [],
+                    'group' => $field->fieldGroup?->key,
+                    'settings' => $field->settings ?? [],
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to update field [{$fieldKey}] on entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to update field [{$fieldKey}] on entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 }

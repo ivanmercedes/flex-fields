@@ -55,7 +55,7 @@ class DeleteEntityTool implements Approvable, Tool
 
         $entitySlug = $validated['entity'];
 
-        if ($guard = $this->guardEntityAllowed($entitySlug)) {
+        if ($guard = $this->guardEntityAllowed($entitySlug, 'structure')) {
             return $guard;
         }
 
@@ -64,7 +64,7 @@ class DeleteEntityTool implements Approvable, Tool
 
             return "Entity [{$entitySlug}] and all associated data were permanently deleted.";
         } catch (Throwable $e) {
-            return "Failed to delete entity [{$entitySlug}]: {$e->getMessage()}";
+            return "Failed to delete entity [{$entitySlug}]: {$this->describeException($e)}";
         }
     }
 

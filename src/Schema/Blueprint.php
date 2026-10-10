@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Schema;
 
+use Closure;
 use Illuminate\Support\Str;
 
 class Blueprint
@@ -18,6 +19,8 @@ class Blueprint
     protected array $fields = [];
 
     protected array $dropFields = [];
+
+    protected array $fieldGroups = [];
 
     protected string $name;
 
@@ -157,6 +160,80 @@ class Blueprint
     public function color(string $key, ?string $label = null): FieldDefinition
     {
         return $this->addField('color', $key, $label);
+    }
+
+    public function email(string $key, ?string $label = null): FieldDefinition
+    {
+        return $this->addField('email', $key, $label);
+    }
+
+    public function url(string $key, ?string $label = null): FieldDefinition
+    {
+        return $this->addField('url', $key, $label);
+    }
+
+    public function file(string $key, ?string $label = null): FieldDefinition
+    {
+        return $this->addField('file', $key, $label);
+    }
+
+    public function phone(string $key, ?string $label = null): FieldDefinition
+    {
+        return $this->addField('phone', $key, $label);
+    }
+
+    public function address(string $key, ?string $label = null): FieldDefinition
+    {
+        return $this->addField('address', $key, $label);
+    }
+
+    /**
+     * Link to records of another entity (by slug).
+     */
+    public function relationship(string $key, string $relatedEntity, ?string $label = null, bool $multiple = false): FieldDefinition
+    {
+        return $this->addField('relationship', $key, $label)->relatedTo($relatedEntity, $multiple);
+    }
+
+    /**
+     * Define a labeled, collapsible section. Assign fields with ->group($key)
+     * or pass a callback that declares the fields of the group.
+     */
+    public function fieldGroup(
+        string $key,
+        ?string $label = null,
+        ?string $description = null,
+        bool $collapsible = true,
+        bool $collapsed = false,
+        ?Closure $fields = null,
+    ): self {
+        $this->fieldGroups[$key] = [
+            'key' => $key,
+            'label' => $label ?? Str::title(str_replace('_', ' ', $key)),
+            'description' => $description,
+            'is_collapsible' => $collapsible,
+            'is_collapsed' => $collapsed,
+            'order' => count($this->fieldGroups) + 1,
+        ];
+
+        if ($fields !== null) {
+            $before = count($this->fields);
+            $fields($this);
+
+            foreach (array_slice($this->fields, $before) as $field) {
+                $field->group($key);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function getFieldGroups(): array
+    {
+        return $this->fieldGroups;
     }
 
     public function dropField(string $key): self

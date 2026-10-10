@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-10-10
+
+Completes the scheduled roadmap milestones: **Data Management**, **Advanced Field Types** and **Headless & Integrations**.
+
+> **Upgrading:** run `php artisan migrate` and review the behavior changes in [UPGRADE.md](UPGRADE.md).
+
+### Added
+- **CSV Export**: "Export CSV" (respects table filters) and "Export selected to CSV" actions on every entity, plus `RecordExporter` / `FlexFields::exporter()`. Array values are exported as JSON and cells are protected against CSV formula injection.
+- **CSV/Excel Import**: New import page (`/ff-data/import`) with downloadable template, `.csv`/`.xlsx` support (OpenSpout), create or upsert (by `id`/`slug`) modes and a validated preview before confirming. Backed by `RecordImporter` / `FlexFields::importer()`.
+- **Field Groups / Sections**: New `ff_field_groups` table and `FieldGroup` model. Fields can be grouped into labeled, collapsible sections; managed from the entity edit page, the custom field form, the schema builder (`fieldGroup()`, `->group()`) and `FieldGroupDomainService`.
+- **Record History / Audit Log**: New `ff_record_revisions` table storing event, user, full snapshot and diff for every create/update/delete/restore. "History" tab on records with a diff viewer and version restore (`RecordHistoryService::revert()`). Configurable via `history.enabled` / `history.max_revisions`.
+- **`relationship` field type**: Link records to records of another entity (single or multiple), tenant-safe validation, `EntityRecord::related()` and `?include=relations` in the API.
+- **Conditional visibility (`showWhen`)**: Show fields based on other fields' values with 13 operators and all/any matching (`ConditionEvaluator`), visual editor in the field form and `->showWhen()` in the schema builder.
+- **Visual Validation Builder**: Add whitelisted validation rules (min, max, regex, between, …) from the field form. Rules are now applied in Filament forms and in the domain validator.
+- **`phone` field type** with optional input mask and **`address` field type** (structured street/city/state/postal code/country sub-form).
+- **Translatable Fields**: `text`, `textarea` and `richtext` fields can store one value per locale (`translations.locales`), rendered as tabs; `EntityRecord::getTranslation()`.
+- **Headless REST API** (opt-in): `GET/POST /api/flex/{entity}`, `GET/PUT/PATCH/DELETE /api/flex/{entity}/{record}`, restore, schema and entities endpoints. Sanctum authentication by default with `flex:read` / `flex:write` / `flex:delete` token abilities, application-side tenant resolution (`FlexApi::resolveTenantUsing()`) and configurable `RecordResource` / `EntitySchemaResource` transformers.
+- **Permissions / Policies per Entity** (opt-in): Gate-based per-entity abilities (`{ability}_flex_{entity}`) plus `manage_flex_structure`, enforced in Filament resources, navigation, export/import, the REST API and AI tools. New `flex:permissions` command (`--sync` for spatie/laravel-permission / Filament Shield).
+- **Spatie Media Library integration** (opt-in): `MediaEntityRecord` model and `media.driver = spatie` to store image/file fields with `SpatieMediaLibraryFileUpload`.
+- **Configurable record model**: `models.record` config key (`FlexModels::record()`).
+- **`RecordValueValidator`**: Single validator for record values (types, options, required, relations, translations, field rules) shared by the API, imports and AI tools.
+- **AI tools**: `CreateFieldGroupTool`, `UpdateFieldGroupTool`, `DeleteFieldGroupTool` (approval), `ListRecordRevisionsTool` and `RestoreRecordRevisionTool` (approval). `CreateFieldTool` / `UpdateFieldTool` accept every configured type, `settings` and `group`; schema introspection now exposes groups, `show_when`, relationships, translations and a `value_format` per field; validation errors are returned as readable messages.
+- **Schema Builder**: `email()`, `url()`, `file()`, `phone()`, `address()`, `relationship()`, `fieldGroup()` and the `group()`, `showWhen()`, `showWhenAny()`, `translatable()`, `relatedTo()`, `phoneMask()`, `addressParts()` modifiers.
+- **Facade helpers**: `FlexFields::exporter()`, `importer()`, `history()`, `fieldGroups()`.
+
+### Changed
+- `RecordDomainService` now validates field values, only accepts categories that belong to the entity, wraps writes in transactions, records history and exposes `paginate()`, `restore()` and `writeValues()`.
+- Filament record pages persist values through the domain layer (`SavesFlexFieldValues`) instead of duplicated logic.
+- `FieldDomainService::update()` merges `settings` instead of replacing them (send `null` to remove a key).
+- Custom field `validation_rules` are now applied in forms and validators; only whitelisted rules are used and unknown ones are ignored.
+- Built-in field types are always available, even when the published config has an older `field_types` list.
+- The package keeps working (without field groups or history) until the new migrations are run (`FlexSchema`).
+
+### Fixed
+- Field and group keys generated from labels with acronyms (e.g. "Canonical URL" now becomes `canonical_url` instead of `canonical_u_r_l`).
+- Record slugs generated by the domain service now also avoid collisions with soft-deleted records.
+- `Entity::create()` no longer throws `NoDefaultPanelSetException` outside a Filament panel request (console, queues, tests) when multi-tenancy is enabled.
+- The `is_shown_in_list` migration no longer fails when an application already added the column.
+
 ## [0.5.0] - 2026-09-29
 
 ### Added

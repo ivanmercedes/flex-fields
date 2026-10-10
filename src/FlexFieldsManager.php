@@ -14,6 +14,10 @@ use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Schema\Flex;
+use IvanMercedes\FlexFields\Services\FieldGroupDomainService;
+use IvanMercedes\FlexFields\Services\RecordExporter;
+use IvanMercedes\FlexFields\Services\RecordHistoryService;
+use IvanMercedes\FlexFields\Services\RecordImporter;
 use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
 use IvanMercedes\FlexFields\Support\EntityQuery;
 use IvanMercedes\FlexFields\Support\FieldCache;
@@ -36,6 +40,38 @@ class FlexFieldsManager
     public function entities(): Builder
     {
         return Entity::query();
+    }
+
+    /**
+     * CSV exporter: FlexFields::exporter()->download($entity, $entity->records()).
+     */
+    public function exporter(): RecordExporter
+    {
+        return app(RecordExporter::class);
+    }
+
+    /**
+     * CSV / Excel importer with preview support.
+     */
+    public function importer(): RecordImporter
+    {
+        return app(RecordImporter::class);
+    }
+
+    /**
+     * Record history / audit log service.
+     */
+    public function history(): RecordHistoryService
+    {
+        return app(RecordHistoryService::class);
+    }
+
+    /**
+     * Field groups (form sections) domain service.
+     */
+    public function fieldGroups(): FieldGroupDomainService
+    {
+        return app(FieldGroupDomainService::class);
     }
 
     /**

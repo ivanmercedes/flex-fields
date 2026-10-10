@@ -21,13 +21,17 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Blade;
 use IvanMercedes\FlexFields\Models\Entity;
+use IvanMercedes\FlexFields\Resources\Concerns\AuthorizesFlexStructure;
 use IvanMercedes\FlexFields\Resources\EntityResource\Pages;
+use IvanMercedes\FlexFields\Resources\EntityResource\RelationManagers;
 use IvanMercedes\FlexFields\Support\Label;
 use Throwable;
 use UnitEnum;
 
 class EntityResource extends Resource
 {
+    use AuthorizesFlexStructure;
+
     protected static ?string $model = Entity::class;
 
     protected static BackedEnum | string | null $navigationIcon = 'heroicon-o-cube';
@@ -275,6 +279,13 @@ class EntityResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\FieldGroupsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
