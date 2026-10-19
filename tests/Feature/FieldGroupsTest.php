@@ -125,6 +125,18 @@ class FieldGroupsTest extends TestCase
         $this->assertTrue($sections[1]->isCollapsed());
     }
 
+    public function test_section_categories_come_from_its_fields(): void
+    {
+        $fields = $this->entity->customFields()->get()->keyBy('key');
+        $fields['meta_title']->category_ids = [1, 2];
+        $fields['meta_description']->category_ids = [2, 3];
+
+        $this->assertSame([1, 2, 3], DynamicFormBuilder::sectionCategoryIds([$fields['meta_title'], $fields['meta_description']]));
+
+        // A field shown in every category keeps the section always visible.
+        $this->assertSame([], DynamicFormBuilder::sectionCategoryIds([$fields['meta_title'], $fields['name']]));
+    }
+
     public function test_schema_builder_declares_groups(): void
     {
         Flex::create('Article', function (Blueprint $table) {

@@ -54,11 +54,14 @@ class DynamicFormBuilder
         ));
 
         if ($ungrouped !== []) {
-            $sections[] = Section::make($entity->name . ' ' . Label::trans('flex-fields::flex-fields.record.sections.fields_suffix'))
-                ->description($entity->description)
-                ->schema(self::buildFieldComponents($ungrouped, $controllingKeys))
-                ->columnSpanFull()
-                ->columns(12);
+            $sections[] = self::hideOutsideCategories(
+                Section::make($entity->name . ' ' . Label::trans('flex-fields::flex-fields.record.sections.fields_suffix'))
+                    ->description($entity->description)
+                    ->schema(self::buildFieldComponents($ungrouped, $controllingKeys))
+                    ->columnSpanFull()
+                    ->columns(12),
+                $ungrouped,
+            );
         }
 
         foreach ($groups as $group) {
@@ -83,13 +86,38 @@ class DynamicFormBuilder
      */
     public static function makeGroupSection(FieldGroup $group, array $fields, array $controllingKeys = []): Section
     {
-        return Section::make($group->label)
-            ->description($group->description)
-            ->collapsible((bool) $group->is_collapsible)
-            ->collapsed((bool) $group->is_collapsible && (bool) $group->is_collapsed)
-            ->schema(self::buildFieldComponents($fields, $controllingKeys))
-            ->columnSpanFull()
-            ->columns(12);
+        return self::hideOutsideCategories(
+            Section::make($group->label)
+                ->description($group->description)
+                ->collapsible((bool) $group->is_collapsible)
+                ->collapsed((bool) $group->is_collapsible && (bool) $group->is_collapsed)
+                ->schema(self::buildFieldComponents($fields, $controllingKeys))
+                ->columnSpanFull()
+                ->columns(12),
+            $fields,
+        );
+    }
+
+    /**
+     * Categories a section belongs to: the union of its fields' categories, or [] when any
+     * field is shown in every category (the section is then always visible).
+     *
+     * @param  CustomField[]  $fields
+     * @return array<int, int>
+     */
+    public static function sectionCategoryIds(array $fields): array
+    {
+        $ids = [];
+
+        foreach ($fields as $field) {
+            if (empty($field->category_ids)) {
+                return [];
+            }
+
+            $ids = array_merge($ids, array_map('intval', $field->category_ids));
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**
@@ -624,5 +652,24 @@ class DynamicFormBuilder
             'third' => 4,
             default => 12,
         };
+    }
+
+    /**
+     * Hide the whole section when none of its fields apply to the record's categories,
+     * instead of showing an empty section.
+     *
+     * @param  CustomField[]  $fields
+     */
+    private static function hideOutsideCategories(Section $section, array $fields): Section
+    {
+        $categoryIds = self::sectionCategoryIds($fields);
+
+        if ($categoryIds === []) {
+            return $section;
+        }
+
+        return $section->hidden(
+            fn (Get $get) => count(array_intersect($categoryIds, array_map('intval', (array) $get('categories')))) === 0,
+        );
     }
 }
