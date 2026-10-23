@@ -131,6 +131,13 @@ class RecordValueValidator
                     ->mapWithKeys(fn (string $part) => ["{$key}.{$part}" => ['nullable', 'string', 'max:255']])
                     ->all(),
             ),
+            'link' => [
+                $key => [...$presence, 'array'],
+                // Relative URLs ("/contact", "#pricing") are valid links.
+                "{$key}.url" => [$field->is_required ? 'required' : 'nullable', 'string', 'max:2048'],
+                "{$key}.title" => ['nullable', 'string', 'max:255'],
+                "{$key}.target" => ['nullable', 'in:' . implode(',', FieldTypes::LINK_TARGETS)],
+            ],
             'relationship' => $multiple
                 ? [
                     $key => [...$presence, 'array', $this->relationshipRule($entity, $field)],
@@ -171,6 +178,10 @@ class RecordValueValidator
 
             if ($field->type === 'address' && is_array($values[$key])) {
                 $values[$key] = array_intersect_key($values[$key], array_flip($this->addressParts($field)));
+            }
+
+            if ($field->type === 'link' && is_array($values[$key])) {
+                $values[$key] = array_intersect_key($values[$key], array_flip(FieldTypes::LINK_PARTS));
             }
 
             if ($field->type === 'relationship' && ! FieldTypes::isMultiple($field) && is_numeric($value)) {

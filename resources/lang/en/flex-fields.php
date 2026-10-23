@@ -354,6 +354,15 @@ return [
         'postal_code' => 'Postal code',
         'country' => 'Country',
     ],
+    'link' => [
+        'url' => 'URL',
+        'title' => 'Title',
+        'target' => 'Open in',
+        'targets' => [
+            '_self' => 'Same tab',
+            '_blank' => 'New tab',
+        ],
+    ],
     'validation_rules' => [
         'min' => 'Minimum (length / value)',
         'max' => 'Maximum (length / value)',
@@ -410,6 +419,7 @@ return [
         'phone' => 'Phone number',
         'address' => 'Address (structured)',
         'relationship' => 'Relationship (records of another entity)',
+        'link' => 'Link (URL, title and target)',
     ],
     'dashboard' => [
         'heading' => 'Entities',

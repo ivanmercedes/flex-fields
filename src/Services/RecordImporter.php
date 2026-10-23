@@ -286,7 +286,7 @@ class RecordImporter
             'boolean' => $this->parseBoolean($raw),
             'number' => is_numeric($raw) ? $raw + 0 : $raw,
             'multiselect', 'tags' => is_array($json) ? $json : array_values(array_filter(array_map('trim', explode('|', $raw)), fn ($v) => $v !== '')),
-            'json', 'repeater', 'address' => $json ?? $raw,
+            'json', 'repeater', 'address', 'link' => $json ?? $raw,
             'relationship' => $multiple
                 ? (is_array($json) ? $json : array_values(array_filter(array_map('trim', explode('|', $raw)), fn ($v) => $v !== '')))
                 : (is_numeric($raw) ? (int) $raw : $raw),

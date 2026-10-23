@@ -17,7 +17,7 @@ class FieldTypes
     public const TRANSLATABLE = ['text', 'textarea', 'richtext'];
 
     /** Types whose stored value is a JSON array/object. */
-    public const STRUCTURED = ['json', 'multiselect', 'tags', 'repeater', 'address'];
+    public const STRUCTURED = ['json', 'multiselect', 'tags', 'repeater', 'address', 'link'];
 
     /** Types that use the "options" list. */
     public const WITH_OPTIONS = ['select', 'multiselect'];
@@ -25,11 +25,17 @@ class FieldTypes
     /** Sub-fields of the structured "address" type. */
     public const ADDRESS_PARTS = ['street', 'street_2', 'city', 'state', 'postal_code', 'country'];
 
+    /** Sub-fields of the structured "link" type. */
+    public const LINK_PARTS = ['url', 'title', 'target'];
+
+    /** Allowed values of the "target" part of a link. */
+    public const LINK_TARGETS = ['_self', '_blank'];
+
     /** Field types shipped with FlexFields (type => translation key). */
     public const BUILT_IN = [
         'text', 'textarea', 'number', 'email', 'url', 'date', 'datetime', 'boolean', 'select',
         'multiselect', 'color', 'file', 'image', 'richtext', 'json', 'tags', 'repeater',
-        'phone', 'address', 'relationship',
+        'phone', 'address', 'relationship', 'link',
     ];
 
     /**
@@ -111,7 +117,7 @@ class FieldTypes
             'date' => $raw ? Carbon::parse($raw)->toDateString() : null,
             'datetime' => $raw ? Carbon::parse($raw)->toDateTimeString() : null,
             'repeater' => self::normalizeRepeaterItems(is_string($raw) ? json_decode($raw, true) : $raw),
-            'json', 'multiselect', 'tags', 'address' => is_string($raw) ? json_decode($raw, true) : $raw,
+            'json', 'multiselect', 'tags', 'address', 'link' => is_string($raw) ? json_decode($raw, true) : $raw,
             'relationship' => self::castRelationship($raw, ! empty($settings['multiple'])),
             'image', 'file' => match (true) {
                 ! empty($settings['multiple']) => is_string($raw) ? (json_decode($raw, true) ?? []) : (array) $raw,
@@ -149,7 +155,7 @@ class FieldTypes
             'date' => 'date',
             'datetime' => 'datetime',
             'relationship' => 'integer',
-            'json', 'multiselect', 'tags', 'repeater', 'address' => 'array',
+            'json', 'multiselect', 'tags', 'repeater', 'address', 'link' => 'array',
             default => 'string',
         };
     }

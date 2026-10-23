@@ -207,6 +207,7 @@ class EntityDomainService
             'json' => 'JSON object or array',
             'repeater' => 'array of objects using the repeater_subfields keys',
             'address' => 'object with keys: ' . implode(', ', (new RecordValueValidator)->addressParts($field)),
+            'link' => 'object with keys: url (absolute or relative), title, target (' . implode(' or ', FieldTypes::LINK_TARGETS) . ')',
             'relationship' => $multiple ? 'array of record IDs of the related entity' : 'record ID of the related entity',
             'image', 'file' => $multiple ? 'array of stored file paths' : 'stored file path string',
             'richtext' => 'HTML string',

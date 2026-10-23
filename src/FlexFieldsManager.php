@@ -99,6 +99,15 @@ class FlexFieldsManager
     }
 
     /**
+     * Make an entity match a code-first Schema Builder definition exactly
+     * (see Flex::sync()).
+     */
+    public function syncEntity(string $name, Closure $callback, bool $deleteMissing = false): Entity
+    {
+        return Flex::sync($name, $callback, $deleteMissing);
+    }
+
+    /**
      * Drop an entity via code-first Schema Builder.
      */
     public function dropEntity(string $slug): void

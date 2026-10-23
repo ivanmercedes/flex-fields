@@ -14,7 +14,7 @@
 ## Features
 
 - **Custom Entities:** Define any data structure (like post types) without touching database migrations.
-- **20 Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, tags, dynamic repeaters, phone (with masks), structured addresses and relationships to records of other entities.
+- **21 Custom Field Types:** Support for text, textarea, number, email, URL, date, datetime, boolean/toggle, select, multiselect, color, file, image, rich text, JSON, tags, dynamic repeaters, phone (with masks), structured addresses, links (URL, title and target) and relationships to records of other entities.
 - **Advanced Field Behavior:** Conditional visibility (`showWhen`), translatable fields (`{"en": "Hello", "es": "Hola"}`) and a visual validation rule builder.
 - **Field Groups / Sections:** Organize fields into labeled, collapsible form sections.
 - **CSV Export & CSV/Excel Import:** Export records (all, filtered or selected) and bulk import with a downloadable template and a validated preview before confirming.

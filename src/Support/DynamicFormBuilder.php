@@ -452,6 +452,11 @@ class DynamicFormBuilder
 
                     break;
 
+                case 'link':
+                    $component = self::makeLinkComponent($field, $key);
+
+                    break;
+
                 case 'relationship':
                     $component = Forms\Components\Select::make($key)
                         ->label($field->label)
@@ -555,6 +560,35 @@ class DynamicFormBuilder
             ->statePath($key)
             ->columns(12)
             ->schema($inputs);
+    }
+
+    /**
+     * Link sub-form (URL, title and target) stored as a JSON object.
+     */
+    public static function makeLinkComponent(CustomField $field, string $key): Fieldset
+    {
+        return Fieldset::make($field->label)
+            ->statePath($key)
+            ->columns(12)
+            ->schema([
+                Forms\Components\TextInput::make('url')
+                    ->label(Label::trans('flex-fields::flex-fields.link.url', default: 'URL'))
+                    ->required($field->is_required)
+                    ->maxLength(2048)
+                    ->columnSpan(5),
+                Forms\Components\TextInput::make('title')
+                    ->label(Label::trans('flex-fields::flex-fields.link.title', default: 'Title'))
+                    ->maxLength(255)
+                    ->columnSpan(4),
+                Forms\Components\Select::make('target')
+                    ->label(Label::trans('flex-fields::flex-fields.link.target', default: 'Open in'))
+                    ->options(collect(FieldTypes::LINK_TARGETS)->mapWithKeys(fn (string $target) => [
+                        $target => Label::trans("flex-fields::flex-fields.link.targets.{$target}", default: $target),
+                    ])->all())
+                    ->default('_self')
+                    ->selectablePlaceholder(false)
+                    ->columnSpan(3),
+            ]);
     }
 
     /**

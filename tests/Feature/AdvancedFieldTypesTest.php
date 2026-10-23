@@ -118,6 +118,30 @@ class AdvancedFieldTypesTest extends TestCase
         $this->records->setValues('product', $record->id, ['phone' => 'call me maybe']);
     }
 
+    public function test_link_values_are_validated_and_normalized(): void
+    {
+        $this->fields->create('product', ['label' => 'Buy', 'type' => 'link', 'is_required' => true]);
+
+        $record = $this->records->create('product', ['title' => 'Chair'], [
+            'buy' => ['url' => '/shop#chair', 'title' => 'Buy now', 'target' => '_blank', 'rel' => 'ignored'],
+        ]);
+
+        $this->assertSame(['url' => '/shop#chair', 'title' => 'Buy now', 'target' => '_blank'], $record->getValue('buy'));
+
+        $schema = collect((new EntityDomainService)->getSchema('product')['fields'])->keyBy('key');
+        $this->assertStringContainsString('target', $schema['buy']['value_format']);
+
+        try {
+            $this->records->setValues('product', $record->id, ['buy' => ['url' => '/shop', 'target' => '_parent']]);
+            $this->fail('Unknown targets must be rejected.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('buy.target', $e->errors());
+        }
+
+        $this->expectException(ValidationException::class);
+        $this->records->setValues('product', $record->id, ['buy' => ['title' => 'No URL']]);
+    }
+
     public function test_translatable_fields_store_values_per_locale(): void
     {
         $this->fields->create('product', ['label' => 'Name', 'type' => 'text', 'is_required' => true, 'settings' => ['translatable' => true]]);
@@ -238,6 +262,7 @@ class AdvancedFieldTypesTest extends TestCase
         $this->fields->create('product', ['label' => 'Type', 'type' => 'select', 'options' => ['digital' => 'Digital']]);
         $this->fields->create('product', ['label' => 'Phone', 'type' => 'phone', 'settings' => ['phone_mask' => '(999) 999-9999']]);
         $this->fields->create('product', ['label' => 'Address', 'type' => 'address']);
+        $this->fields->create('product', ['label' => 'Cta', 'type' => 'link']);
         $this->fields->create('product', ['label' => 'Brand', 'type' => 'relationship', 'settings' => ['related_entity' => 'brand']]);
         $this->fields->create('product', ['label' => 'Name', 'type' => 'text', 'settings' => ['translatable' => true]]);
         $this->fields->create('product', [
@@ -253,6 +278,8 @@ class AdvancedFieldTypesTest extends TestCase
         $this->assertTrue($components['ff_phone']->isTel());
         $this->assertInstanceOf(Fieldset::class, $components['Address']);
         $this->assertSame('ff_address', $components['Address']->getStatePath(false));
+        $this->assertInstanceOf(Fieldset::class, $components['Cta']);
+        $this->assertSame('ff_cta', $components['Cta']->getStatePath(false));
         $this->assertInstanceOf(Select::class, $components['ff_brand']);
         $this->assertSame(['Apple'], array_values(DynamicFormBuilder::relationshipOptions($fields['brand'])));
         $this->assertInstanceOf(Tabs::class, $components['Name']);
@@ -269,6 +296,7 @@ class AdvancedFieldTypesTest extends TestCase
             $table->phone('phone')->phoneMask('999-999-9999');
             $table->relationship('brand', 'brand', multiple: true);
             $table->text('tagline')->translatable();
+            $table->link('cta', 'Call to action');
             $table->url('website')->showWhen('kind', 'equals', 'online')->showWhen('phone', 'filled')->showWhenAny();
         });
 
@@ -279,6 +307,7 @@ class AdvancedFieldTypesTest extends TestCase
         $this->assertSame('999-999-9999', $fields['phone']->settings['phone_mask']);
         $this->assertSame(['related_entity' => 'brand', 'multiple' => true], $fields['brand']->settings);
         $this->assertTrue($fields['tagline']->isTranslatable());
+        $this->assertSame('link', $fields['cta']->type);
         $this->assertSame('any', $fields['website']->settings['show_when']['match']);
         $this->assertCount(2, $fields['website']->settings['show_when']['conditions']);
     }

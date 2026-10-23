@@ -355,6 +355,15 @@ return [
         'postal_code' => 'Código postal',
         'country' => 'País',
     ],
+    'link' => [
+        'url' => 'URL',
+        'title' => 'Texto',
+        'target' => 'Abrir en',
+        'targets' => [
+            '_self' => 'La misma pestaña',
+            '_blank' => 'Una pestaña nueva',
+        ],
+    ],
     'validation_rules' => [
         'min' => 'Mínimo (longitud / valor)',
         'max' => 'Máximo (longitud / valor)',
@@ -411,6 +420,7 @@ return [
         'phone' => 'Teléfono',
         'address' => 'Dirección (estructurada)',
         'relationship' => 'Relación (registros de otra entidad)',
+        'link' => 'Enlace (URL, texto y destino)',
     ],
     'dashboard' => [
         'heading' => 'Entidades',

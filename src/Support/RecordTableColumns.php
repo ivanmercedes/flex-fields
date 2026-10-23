@@ -90,6 +90,7 @@ class RecordTableColumns
             'tags' => implode(', ', (array) $value),
             'relationship' => $record->related($field->key)->pluck('title')->implode(', '),
             'address' => implode(', ', array_filter((array) $value)),
+            'link' => (string) (($value['title'] ?? '') ?: ($value['url'] ?? '')),
             'repeater', 'json' => count((array) $value) . ' ' . (count((array) $value) === 1 ? 'item' : 'items'),
             'richtext' => strip_tags((string) $value),
             'file' => static::firstPath($value),

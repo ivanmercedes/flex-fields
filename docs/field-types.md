@@ -7,6 +7,7 @@ Besides the basic types (text, textarea, number, email, URL, date, datetime, boo
 - [Visual Validation Builder](#visual-validation-builder)
 - [`phone`](#phone)
 - [`address`](#address)
+- [`link`](#link)
 - [Translatable fields](#translatable-fields)
 
 Values are validated with the same rules everywhere: Filament forms, the REST API, CSV imports and AI tools (`RecordValueValidator`).
@@ -116,6 +117,20 @@ When the field is required, `street`, `city` and `country` are required.
 $table->address('shipping_address')->addressParts(['street', 'city', 'postal_code', 'country']);
 
 $record->getValue('shipping_address'); // ['street' => 'Main St 1', 'city' => 'Santo Domingo', ...]
+```
+
+---
+
+## `link`
+
+A link (button, call to action) stored as a JSON object with the parts `url`, `title` and `target` (`_self` or `_blank`), like ACF links.
+
+The URL may be absolute or relative (`/contact`, `#pricing`). When the field is required, the URL is required.
+
+```php
+$table->link('hero_cta', 'Call to action');
+
+$record->getValue('hero_cta'); // ['url' => '/contact', 'title' => 'Contact us', 'target' => '_self']
 ```
 
 ---

@@ -188,6 +188,14 @@ class Blueprint
     }
 
     /**
+     * A link (button, call to action): URL, title and target.
+     */
+    public function link(string $key, ?string $label = null): FieldDefinition
+    {
+        return $this->addField('link', $key, $label);
+    }
+
+    /**
      * Link to records of another entity (by slug).
      */
     public function relationship(string $key, string $relatedEntity, ?string $label = null, bool $multiple = false): FieldDefinition

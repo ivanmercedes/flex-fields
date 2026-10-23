@@ -52,6 +52,7 @@ return [
         'phone' => 'flex-fields::flex-fields.field_types.phone',
         'address' => 'flex-fields::flex-fields.field_types.address',
         'relationship' => 'flex-fields::flex-fields.field_types.relationship',
+        'link' => 'flex-fields::flex-fields.field_types.link',
     ],
 
     /*

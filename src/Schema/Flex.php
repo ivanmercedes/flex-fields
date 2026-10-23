@@ -85,6 +85,58 @@ class Flex
         }
     }
 
+    /**
+     * Make an entity match the blueprint exactly: create or update the entity
+     * and its fields, in the declared order. Fields the blueprint no longer
+     * declares are deactivated, keeping their values so declaring them again
+     * brings the content back, or deleted with their values when
+     * $deleteMissing is true.
+     */
+    public static function sync(string $name, Closure $callback, bool $deleteMissing = false): Entity
+    {
+        $blueprint = new Blueprint($name);
+        $callback($blueprint);
+
+        $entityAttributes = $blueprint->getEntityAttributes();
+
+        $entity = Entity::updateOrCreate(
+            ['slug' => $entityAttributes['slug']],
+            $entityAttributes
+        );
+
+        $groupIds = static::syncFieldGroups($entity, $blueprint);
+
+        $order = 1;
+        $declaredKeys = [];
+
+        foreach ($blueprint->getFields() as $fieldDefinition) {
+            $fieldAttrs = static::resolveGroup($fieldDefinition->getAttributes(), $groupIds);
+            $fieldAttrs['order'] = $order++;
+            $declaredKeys[] = $fieldAttrs['key'];
+
+            $entity->customFields()->updateOrCreate(
+                ['key' => $fieldAttrs['key']],
+                $fieldAttrs
+            );
+        }
+
+        // One by one, so the field cache of the entity is invalidated.
+        $missingFields = $entity->customFields()->whereNotIn('key', $declaredKeys)->get();
+
+        foreach ($missingFields as $missingField) {
+            if (! $deleteMissing) {
+                $missingField->update(['is_active' => false]);
+
+                continue;
+            }
+
+            $missingField->values()->delete();
+            $missingField->delete();
+        }
+
+        return $entity;
+    }
+
     public static function drop(string $slug): void
     {
         $entity = Entity::where('slug', $slug)->first();

@@ -13,6 +13,7 @@ use IvanMercedes\FlexFields\FlexFieldsManager;
  * @method static \IvanMercedes\FlexFields\Ai\FlexFieldsAiBuilder ai(?\IvanMercedes\FlexFields\Ai\AiContext $context = null)
  * @method static void makeEntity(string $name, \Closure $callback)
  * @method static void updateEntity(string $slug, \Closure $callback)
+ * @method static \IvanMercedes\FlexFields\Models\Entity syncEntity(string $name, \Closure $callback, bool $deleteMissing = false)
  * @method static void dropEntity(string $slug)
  * @method static array form(\IvanMercedes\FlexFields\Models\Entity|string|int $entity)
  * @method static bool clearCache(?string $entitySlug = null)
