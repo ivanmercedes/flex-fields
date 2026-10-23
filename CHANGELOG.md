@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-10-23
+
+### Fixed
+- **Field cache on new Laravel applications**: the active fields of an entity are cached as plain attributes and rebuilt as models when read. New Laravel applications do not unserialize PHP classes from the cache (`cache.serializable_classes`), so the cached models came back as incomplete classes and the record forms failed with a `TypeError`. Entries cached by older versions are rebuilt.
+
 ## [0.7.0] - 2026-10-23
 
 ### Added

@@ -35,9 +35,20 @@ class FieldCache
 
         $cache = $store ? Cache::store($store) : Cache::store();
 
-        return $cache->remember($key, $ttl, function () use ($entityModel) {
-            return $entityModel->customFields()->where('is_active', true)->orderBy('order')->get();
-        });
+        // Only the raw attributes are cached: new Laravel applications do not unserialize
+        // PHP classes from the cache (`cache.serializable_classes`), so models would come
+        // back as incomplete classes. Entries cached as models by older versions are rebuilt.
+        $rows = $cache->get($key);
+
+        if (! is_array($rows)) {
+            $rows = $entityModel->customFields()->where('is_active', true)->orderBy('order')->get()
+                ->map(fn (CustomField $field): array => $field->getAttributes())
+                ->all();
+
+            $cache->put($key, $rows, $ttl);
+        }
+
+        return CustomField::hydrate($rows);
     }
 
     /**
