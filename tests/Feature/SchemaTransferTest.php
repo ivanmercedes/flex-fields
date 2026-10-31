@@ -87,6 +87,26 @@ class SchemaTransferTest extends TestCase
         $this->assertNotSame($ada->id, $this->records->findOrFail('author', 'ada', 1)->id);
     }
 
+    public function test_relationships_to_records_imported_earlier_are_set_on_creation(): void
+    {
+        $this->transfer->import($this->transfer->export(tenantId: 1, withRecords: true), 2);
+
+        $this->assertSame(['created'], $this->records->findOrFail('post', 'hello', 2)->revisions()->pluck('event')->all());
+    }
+
+    public function test_relationships_to_records_imported_later_are_linked_afterwards(): void
+    {
+        $definition = $this->transfer->export(tenantId: 1, withRecords: true);
+        $definition['entities'] = array_reverse($definition['entities']);
+
+        $this->transfer->import($definition, 2);
+
+        $this->assertSame(
+            [$this->records->findOrFail('author', 'ada', 2)->id],
+            $this->records->findOrFail('post', 'hello', 2)->getValue('authors'),
+        );
+    }
+
     public function test_importing_twice_updates_instead_of_duplicating(): void
     {
         $definition = $this->transfer->export(tenantId: 1, withRecords: true);

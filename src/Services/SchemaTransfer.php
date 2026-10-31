@@ -83,13 +83,13 @@ class SchemaTransfer
             }
 
             // Records last: relationship values reference records of any entity.
-            $created = [];
+            $deferred = [];
             foreach ($entities as $index => $entity) {
-                $created[$index] = $this->importRecords($models[$index], (array) ($entity['records'] ?? []), $tenantId);
+                $deferred[$index] = $this->importRecords($models[$index], (array) ($entity['records'] ?? []), $tenantId);
             }
 
             foreach ($entities as $index => $entity) {
-                $this->linkRelationships($models[$index], $created[$index], $tenantId);
+                $this->linkRelationships($models[$index], $deferred[$index], $tenantId);
             }
 
             return array_map(fn (Entity $entity) => $entity->fresh(), $models);
@@ -273,15 +273,15 @@ class SchemaTransfer
 
     /**
      * Create the records whose slug does not exist yet. Relationship values
-     * are left for linkRelationships().
+     * pointing to records that do not exist yet are left for linkRelationships().
      *
      * @param  array<int, mixed>  $records
      * @return array<int, array{record: EntityRecord, values: array<string, mixed>}>
      */
     protected function importRecords(Entity $entity, array $records, ?int $tenantId): array
     {
-        $relationshipKeys = $entity->customFields()->where('type', 'relationship')->pluck('key')->all();
-        $created = [];
+        $relationships = $entity->customFields()->where('type', 'relationship')->get()->keyBy('key');
+        $deferred = [];
 
         foreach (array_filter($records, 'is_array') as $record) {
             if (! empty($record['slug']) && $this->records->find($entity->id, (string) $record['slug'], $tenantId, withTrashed: true)) {
@@ -289,46 +289,78 @@ class SchemaTransfer
             }
 
             $values = (array) ($record['values'] ?? []);
+            $pending = [];
+
+            foreach (array_intersect_key($values, $relationships->all()) as $key => $value) {
+                if (blank($value)) {
+                    continue;
+                }
+
+                $resolved = $this->resolveRelated($relationships[$key], $value, $tenantId);
+
+                if ($resolved === null) {
+                    $pending[$key] = $value;
+                    unset($values[$key]);
+                } else {
+                    $values[$key] = $resolved;
+                }
+            }
 
             $model = $this->records->create(
                 $entity->id,
                 array_intersect_key($record, array_flip(['title', 'slug', 'status', 'publish_at', 'order'])),
-                array_diff_key($values, array_flip($relationshipKeys)),
+                $values,
                 (array) ($record['categories'] ?? []),
                 $tenantId,
             );
 
-            $created[] = ['record' => $model, 'values' => array_intersect_key($values, array_flip($relationshipKeys))];
+            if ($pending !== []) {
+                $deferred[] = ['record' => $model, 'values' => $pending];
+            }
         }
 
-        return $created;
+        return $deferred;
     }
 
     /**
-     * Resolve relationship values given as slugs (or IDs) of the related records.
+     * Link the relationship values that referenced records imported later.
      *
-     * @param  array<int, array{record: EntityRecord, values: array<string, mixed>}>  $created
+     * @param  array<int, array{record: EntityRecord, values: array<string, mixed>}>  $deferred
      */
-    protected function linkRelationships(Entity $entity, array $created, ?int $tenantId): void
+    protected function linkRelationships(Entity $entity, array $deferred, ?int $tenantId): void
     {
-        $fields = $entity->customFields()->where('type', 'relationship')->get()->keyBy('key');
+        $relationships = $entity->customFields()->where('type', 'relationship')->get()->keyBy('key');
 
-        foreach ($created as ['record' => $record, 'values' => $values]) {
+        foreach ($deferred as ['record' => $record, 'values' => $values]) {
             $resolved = [];
 
             foreach ($values as $key => $value) {
-                $related = (string) ($fields[$key]->settings['related_entity'] ?? '');
-                $ids = array_values(array_filter(array_map(
-                    fn ($reference) => $this->records->find($related, (string) $reference, $tenantId)?->id,
-                    (array) $value,
-                )));
-
-                $resolved[$key] = is_array($value) ? $ids : ($ids[0] ?? null);
+                $resolved[$key] = $this->resolveRelated($relationships[$key], $value, $tenantId, partial: true);
             }
 
-            if ($resolved !== []) {
-                $this->records->update($entity->id, $record->id, fieldValues: $resolved, tenantId: $tenantId);
-            }
+            $this->records->update($entity->id, $record->id, fieldValues: $resolved, tenantId: $tenantId);
         }
+    }
+
+    /**
+     * Resolve related record slugs (or IDs) to IDs. Returns null when a
+     * reference does not exist yet, unless $partial keeps the ones found.
+     *
+     * @return int|array<int, int>|null
+     */
+    protected function resolveRelated(CustomField $field, mixed $value, ?int $tenantId, bool $partial = false): int | array | null
+    {
+        $related = (string) ($field->settings['related_entity'] ?? '');
+        $references = array_values(array_filter((array) $value, fn ($reference) => $reference !== null && $reference !== ''));
+        $ids = array_values(array_filter(array_map(
+            fn ($reference) => $this->records->find($related, (string) $reference, $tenantId)?->id,
+            $references,
+        )));
+
+        if (! $partial && count($ids) < count($references)) {
+            return null;
+        }
+
+        return is_array($value) ? $ids : ($ids[0] ?? null);
     }
 }
