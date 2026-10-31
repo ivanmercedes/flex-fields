@@ -16,6 +16,7 @@ use IvanMercedes\FlexFields\Http\Resources\RecordResource;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Services\RecordDomainService;
+use IvanMercedes\FlexFields\Support\FieldTypes;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -27,7 +28,7 @@ class RecordApiController extends Controller
     public function __construct(protected RecordDomainService $records) {}
 
     /**
-     * GET /api/flex/{entity}?status=&search=&category=&per_page=&page=&trashed=with|only
+     * GET /api/flex/{entity}?status=&search=&category=&per_page=&page=&trashed=with|only&locale=&fields=&include=
      */
     public function index(Request $request, string $entity): ResourceCollection
     {
@@ -42,6 +43,7 @@ class RecordApiController extends Controller
             'per_page' => ['sometimes', 'integer', 'min:1'],
             'page' => ['sometimes', 'integer', 'min:1'],
             'trashed' => ['sometimes', 'nullable', Rule::in(['with', 'only'])],
+            ...$this->presentationRules(),
         ]);
 
         if (! empty($validated['trashed'])) {
@@ -77,6 +79,7 @@ class RecordApiController extends Controller
         FlexApi::authorizeToken($request, 'read');
         $model = FlexApi::entity($request, $entity);
         FlexApi::authorize($request, FlexPermissions::VIEW, $model);
+        $request->validate($this->presentationRules());
 
         return $this->makeResource($this->findRecord($model, $record));
     }
@@ -169,6 +172,20 @@ class RecordApiController extends Controller
         $existing = $this->findRecord($model, $record, withTrashed: true);
 
         return $this->makeResource($this->records->restore($model->id, $existing->id, $model->tenant_id));
+    }
+
+    /**
+     * Query options that change how records are presented (see RecordResource).
+     *
+     * @return array<string, mixed>
+     */
+    protected function presentationRules(): array
+    {
+        return [
+            'locale' => ['sometimes', 'nullable', 'string', Rule::in(FieldTypes::locales())],
+            'fields' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'include' => ['sometimes', 'nullable', 'string', 'max:255'],
+        ];
     }
 
     /**
