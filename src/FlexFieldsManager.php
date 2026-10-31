@@ -18,6 +18,7 @@ use IvanMercedes\FlexFields\Services\FieldGroupDomainService;
 use IvanMercedes\FlexFields\Services\RecordExporter;
 use IvanMercedes\FlexFields\Services\RecordHistoryService;
 use IvanMercedes\FlexFields\Services\RecordImporter;
+use IvanMercedes\FlexFields\Services\SchemaTransfer;
 use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
 use IvanMercedes\FlexFields\Support\EntityQuery;
 use IvanMercedes\FlexFields\Support\FieldCache;
@@ -72,6 +73,14 @@ class FlexFieldsManager
     public function fieldGroups(): FieldGroupDomainService
     {
         return app(FieldGroupDomainService::class);
+    }
+
+    /**
+     * Export / import content models (entities, fields, groups, categories, records).
+     */
+    public function schemaTransfer(): SchemaTransfer
+    {
+        return app(SchemaTransfer::class);
     }
 
     /**

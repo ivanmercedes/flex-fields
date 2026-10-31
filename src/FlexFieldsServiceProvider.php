@@ -10,9 +10,11 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
+use IvanMercedes\FlexFields\Commands\ExportSchemaCommand;
 use IvanMercedes\FlexFields\Commands\FlexFieldsAgentCommand;
 use IvanMercedes\FlexFields\Commands\FlexPermissionsCommand;
 use IvanMercedes\FlexFields\Commands\FlexStatusCommand;
+use IvanMercedes\FlexFields\Commands\ImportSchemaCommand;
 use IvanMercedes\FlexFields\Commands\InstallFlexFieldsCommand;
 use IvanMercedes\FlexFields\Commands\MakeSchemaCommand;
 use IvanMercedes\FlexFields\Commands\MigrateSchemasCommand;
@@ -80,6 +82,8 @@ class FlexFieldsServiceProvider extends ServiceProvider
                 FlexStatusCommand::class,
                 FlexPermissionsCommand::class,
                 PublishScheduledRecordsCommand::class,
+                ExportSchemaCommand::class,
+                ImportSchemaCommand::class,
             ];
 
             if (interface_exists(Agent::class)) {

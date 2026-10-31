@@ -22,6 +22,7 @@ use IvanMercedes\FlexFields\FlexFieldsManager;
  * @method static \IvanMercedes\FlexFields\Services\RecordImporter importer()
  * @method static \IvanMercedes\FlexFields\Services\RecordHistoryService history()
  * @method static \IvanMercedes\FlexFields\Services\FieldGroupDomainService fieldGroups()
+ * @method static \IvanMercedes\FlexFields\Services\SchemaTransfer schemaTransfer()
  *
  * @see FlexFieldsManager
  */
