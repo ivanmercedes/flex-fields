@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Authorization;
 
+use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -18,6 +19,8 @@ use IvanMercedes\FlexFields\Models\Entity;
  * Gate::define()/Gate::before() logic of the host application.
  *
  * The same checks are used by Filament resources, AI tools and the REST API.
+ * Applications with their own authorization model (team roles, API keys,
+ * plans...) can answer the checks directly with resolveUsing().
  */
 class FlexPermissions
 {
@@ -42,6 +45,11 @@ class FlexPermissions
     public const EXPORT = 'export';
 
     /**
+     * Pseudo-ability passed to the resolver for structural changes.
+     */
+    public const STRUCTURE = 'structure';
+
+    /**
      * Map of Filament/Laravel policy methods to FlexFields abilities.
      *
      * @var array<string, string>
@@ -60,6 +68,26 @@ class FlexPermissions
         'forceDelete' => self::FORCE_DELETE,
         'forceDeleteAny' => self::FORCE_DELETE,
     ];
+
+    /**
+     * @var (Closure(Authenticatable, string, Entity|string|null): ?bool)|null
+     */
+    protected static ?Closure $resolver = null;
+
+    /**
+     * Answer permission checks without going through permission names, e.g.:
+     *   FlexPermissions::resolveUsing(fn (Authenticatable $user, string $ability, Entity|string|null $entity) => ...);
+     *
+     * $ability is a FlexPermissions ability (view_any, publish...) and $entity
+     * the entity model or slug, or FlexPermissions::STRUCTURE with a null
+     * entity. Return null to fall back to the Gate check of the permission name.
+     *
+     * @param  (Closure(Authenticatable, string, Entity|string|null): ?bool)|null  $resolver
+     */
+    public static function resolveUsing(?Closure $resolver): void
+    {
+        static::$resolver = $resolver;
+    }
 
     public static function enabled(): bool
     {
@@ -129,6 +157,14 @@ class FlexPermissions
             return false;
         }
 
+        if (static::$resolver !== null) {
+            $resolved = (static::$resolver)($user, $ability, $entity);
+
+            if ($resolved !== null) {
+                return $resolved;
+            }
+        }
+
         return Gate::forUser($user)->check(self::permissionName($ability, $entity));
     }
 
@@ -143,7 +179,15 @@ class FlexPermissions
 
         $user ??= Auth::user();
 
-        return $user !== null && Gate::forUser($user)->check(self::structurePermission());
+        if (! $user) {
+            return false;
+        }
+
+        if (static::$resolver !== null && ($resolved = (static::$resolver)($user, self::STRUCTURE, null)) !== null) {
+            return $resolved;
+        }
+
+        return Gate::forUser($user)->check(self::structurePermission());
     }
 
     /**

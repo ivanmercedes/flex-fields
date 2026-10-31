@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Tests\Feature;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Gate;
 use IvanMercedes\FlexFields\Ai\AiContext;
 use IvanMercedes\FlexFields\Ai\Tools\CreateFieldTool;
@@ -73,6 +74,38 @@ class PermissionsTest extends TestCase
 
         Gate::define('manage_flex_structure', fn () => true);
         $this->assertTrue(FlexPermissions::allowsStructure($user));
+    }
+
+    public function test_a_resolver_answers_checks_before_the_gate(): void
+    {
+        config(['flex-fields.permissions.enabled' => true]);
+        $user = $this->makeUser();
+        $this->granted = ['delete_flex_blog_posts'];
+        $checks = [];
+
+        FlexPermissions::resolveUsing(function (Authenticatable $user, string $ability, Entity | string | null $entity) use (&$checks): ?bool {
+            $checks[] = [$ability, $entity instanceof Entity ? $entity->slug : $entity];
+
+            return match ($ability) {
+                FlexPermissions::VIEW_ANY, FlexPermissions::STRUCTURE => true,
+                FlexPermissions::PUBLISH => false,
+                default => null,
+            };
+        });
+
+        try {
+            $this->assertTrue(FlexPermissions::allows($user, 'view_any', $this->entity));
+            $this->assertFalse(FlexPermissions::allows($user, 'publish', 'blog-posts'));
+            $this->assertTrue(FlexPermissions::allows($user, 'delete', $this->entity), 'Null falls back to the Gate.');
+            $this->assertFalse(FlexPermissions::allows($user, 'create', $this->entity));
+            $this->assertTrue(FlexPermissions::allowsStructure($user));
+            $this->assertFalse(FlexPermissions::allows(null, 'view_any', $this->entity), 'Guests are denied before the resolver.');
+
+            $this->assertContains(['publish', 'blog-posts'], $checks);
+            $this->assertContains(['structure', null], $checks);
+        } finally {
+            FlexPermissions::resolveUsing(null);
+        }
     }
 
     public function test_filament_resources_respect_permissions(): void
