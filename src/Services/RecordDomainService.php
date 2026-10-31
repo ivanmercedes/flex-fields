@@ -15,6 +15,7 @@ use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Support\FieldTypes;
 use IvanMercedes\FlexFields\Support\MediaLibrary;
+use IvanMercedes\FlexFields\Support\RecordEvents;
 use RuntimeException;
 
 class RecordDomainService
@@ -186,7 +187,11 @@ class RecordDomainService
 
         $this->history()->record($record, RecordHistoryService::EVENT_CREATED);
 
-        return $record->load(['entity', 'categories', 'fieldValues.customField']);
+        $record->load(['entity', 'categories', 'fieldValues.customField']);
+
+        RecordEvents::created($record);
+
+        return $record;
     }
 
     /**
@@ -208,6 +213,7 @@ class RecordDomainService
     ): EntityRecord {
         $record = $this->findOrFail($entityIdOrSlug, $recordIdOrSlug, $tenantId);
         $entity = $record->entity;
+        $previousStatus = $record->status;
 
         $data = [];
         if (array_key_exists('title', $attributes)) {
@@ -257,7 +263,11 @@ class RecordDomainService
 
         $this->history()->record($record, RecordHistoryService::EVENT_UPDATED);
 
-        return $record->fresh(['entity', 'categories', 'fieldValues.customField']);
+        $record = $record->fresh(['entity', 'categories', 'fieldValues.customField']);
+
+        RecordEvents::updated($record, $previousStatus);
+
+        return $record;
     }
 
     /**

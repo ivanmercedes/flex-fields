@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use IvanMercedes\FlexFields\Events\EntitySchemaChanged;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 use IvanMercedes\FlexFields\Support\FieldCache;
 
@@ -51,6 +52,10 @@ class FieldGroup extends Model
         $invalidateCache = function (FieldGroup $group) {
             if ($group->entity_id) {
                 FieldCache::forgetForEntity($group->entity_id);
+            }
+
+            if ($group->entity) {
+                EntitySchemaChanged::dispatch($group->entity);
             }
         };
 

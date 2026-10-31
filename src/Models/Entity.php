@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use IvanMercedes\FlexFields\Events\EntitySchemaChanged;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 use IvanMercedes\FlexFields\Support\FieldCache;
 use IvanMercedes\FlexFields\Support\FlexModels;
@@ -162,14 +163,19 @@ class Entity extends Model
             }
         };
 
-        $invalidateCache = function (Entity $entity) {
-            FieldCache::forgetForEntity($entity);
-        };
-
         static::creating($generateUniqueSlug);
         static::updating($generateUniqueSlug);
 
-        static::saved($invalidateCache);
-        static::deleted($invalidateCache);
+        static::saved(function (Entity $entity) {
+            FieldCache::forgetForEntity($entity);
+
+            EntitySchemaChanged::dispatch($entity);
+        });
+
+        static::deleted(function (Entity $entity) {
+            FieldCache::forgetForEntity($entity);
+
+            EntitySchemaChanged::dispatch($entity, deleted: true);
+        });
     }
 }

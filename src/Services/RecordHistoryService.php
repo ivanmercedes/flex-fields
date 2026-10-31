@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Models\RecordRevision;
 use IvanMercedes\FlexFields\Support\FlexSchema;
+use IvanMercedes\FlexFields\Support\RecordEvents;
 
 /**
  * Record History / Audit Log: stores a snapshot and a diff of a record each
@@ -150,7 +151,9 @@ class RecordHistoryService
         $record = $revision->record()->firstOrFail();
         $snapshot = (array) $revision->snapshot;
 
-        return DB::transaction(function () use ($record, $snapshot, $user) {
+        $previousStatus = $record->status;
+
+        $reverted = DB::transaction(function () use ($record, $snapshot, $user) {
             if ($record->trashed()) {
                 $record->restore();
             }
@@ -179,6 +182,10 @@ class RecordHistoryService
 
             return $record->fresh(['categories', 'fieldValues.customField']);
         });
+
+        RecordEvents::updated($reverted, $previousStatus);
+
+        return $reverted;
     }
 
     /**

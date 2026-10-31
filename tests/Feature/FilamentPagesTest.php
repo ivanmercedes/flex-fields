@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace IvanMercedes\FlexFields\Tests\Feature;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use IvanMercedes\FlexFields\Events\RecordCreated;
+use IvanMercedes\FlexFields\Events\RecordPublished;
+use IvanMercedes\FlexFields\Events\RecordUnpublished;
+use IvanMercedes\FlexFields\Events\RecordUpdated;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Resources\CustomFieldResource\Pages\CreateCustomField;
@@ -147,6 +152,22 @@ class FilamentPagesTest extends FilamentTestCase
 
         $this->assertSame('Silla', $record->fresh()->getTranslation('name', 'es'));
         $this->assertSame('updated', $record->revisions()->first()->event);
+    }
+
+    public function test_saving_records_in_the_panel_dispatches_lifecycle_events(): void
+    {
+        Event::fake([RecordCreated::class, RecordUpdated::class, RecordPublished::class, RecordUnpublished::class]);
+
+        $record = (new RecordDomainService)->create('product', ['title' => 'Chair', 'status' => 'draft']);
+
+        Livewire::test(EditEntityData::class, ['record' => $record->getKey()])
+            ->fillForm(['status' => 'published'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        Event::assertDispatched(RecordUpdated::class, fn (RecordUpdated $event) => $event->recordId === $record->id);
+        Event::assertDispatched(RecordPublished::class, fn (RecordPublished $event) => $event->recordId === $record->id);
+        Event::assertNotDispatched(RecordUnpublished::class);
     }
 
     public function test_revisions_relation_manager_lists_and_reverts(): void

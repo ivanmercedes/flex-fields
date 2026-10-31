@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use IvanMercedes\FlexFields\Events\RecordDeleted;
+use IvanMercedes\FlexFields\Events\RecordRestored;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 use IvanMercedes\FlexFields\Services\RecordHistoryService;
 use IvanMercedes\FlexFields\Support\FieldTypes;
@@ -186,14 +188,20 @@ class EntityRecord extends Model
         static::deleted(function (EntityRecord $record) {
             if (! $record->isForceDeleting()) {
                 app(RecordHistoryService::class)->record($record, RecordHistoryService::EVENT_DELETED);
+
+                RecordDeleted::dispatch($record);
             }
         });
 
         static::restored(function (EntityRecord $record) {
             app(RecordHistoryService::class)->record($record, RecordHistoryService::EVENT_RESTORED);
+
+            RecordRestored::dispatch($record);
         });
 
         static::forceDeleted(function (EntityRecord $record) {
+            RecordDeleted::dispatch($record, force: true);
+
             if (! FlexSchema::hasRevisions()) {
                 return;
             }

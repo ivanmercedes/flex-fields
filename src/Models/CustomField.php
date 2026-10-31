@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use IvanMercedes\FlexFields\Events\EntitySchemaChanged;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 use IvanMercedes\FlexFields\Support\FieldCache;
 use IvanMercedes\FlexFields\Support\FieldTypes;
@@ -134,6 +135,10 @@ class CustomField extends Model
         $invalidateCache = function (CustomField $field) {
             if ($field->entity_id) {
                 FieldCache::forgetForEntity($field->entity_id);
+            }
+
+            if ($field->entity) {
+                EntitySchemaChanged::dispatch($field->entity);
             }
         };
 
