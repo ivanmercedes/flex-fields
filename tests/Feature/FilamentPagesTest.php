@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Tests\Feature;
 
+use Filament\Forms\Components\FileUpload;
+use Filament\Schemas\Components\Component;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +27,7 @@ use IvanMercedes\FlexFields\Resources\EntityResource\RelationManagers\FieldGroup
 use IvanMercedes\FlexFields\Services\FieldDomainService;
 use IvanMercedes\FlexFields\Services\FieldGroupDomainService;
 use IvanMercedes\FlexFields\Services\RecordDomainService;
+use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
 use IvanMercedes\FlexFields\Tests\FilamentTestCase;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
@@ -152,6 +155,31 @@ class FilamentPagesTest extends FilamentTestCase
 
         $this->assertSame('Silla', $record->fresh()->getTranslation('name', 'es'));
         $this->assertSame('updated', $record->revisions()->first()->event);
+    }
+
+    public function test_applications_can_configure_the_field_components(): void
+    {
+        $configured = [];
+
+        DynamicFormBuilder::configureComponentsUsing(function (Component $component, CustomField $field) use (&$configured) {
+            if ($component instanceof FileUpload) {
+                $configured[] = $field->key;
+                $component->hint('From the library');
+            }
+        });
+
+        try {
+            $image = new CustomField(['label' => 'Cover', 'key' => 'cover', 'type' => 'image', 'width' => 'full']);
+            $text = new CustomField(['label' => 'Name', 'key' => 'name', 'type' => 'text', 'width' => 'full']);
+
+            $component = DynamicFormBuilder::makeComponent($image);
+            DynamicFormBuilder::makeComponent($text);
+
+            $this->assertSame(['cover'], $configured);
+            $this->assertSame('From the library', $component->getHint());
+        } finally {
+            DynamicFormBuilder::flushComponentConfigurators();
+        }
     }
 
     public function test_the_preview_action_appears_when_a_preview_url_is_configured(): void

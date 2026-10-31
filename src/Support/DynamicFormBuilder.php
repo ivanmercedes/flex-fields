@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Support;
 
+use Closure;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Schemas\Components\Component as SchemaComponent;
@@ -24,6 +25,30 @@ use IvanMercedes\FlexFields\Services\RecordValueValidator;
 class DynamicFormBuilder
 {
     use Macroable;
+
+    /**
+     * @var array<int, Closure(SchemaComponent, CustomField): void>
+     */
+    protected static array $componentConfigurators = [];
+
+    /**
+     * Customize the form component of every custom field (repeater sub-fields
+     * included) once it is built, e.g. to plug a media picker into uploads:
+     *   DynamicFormBuilder::configureComponentsUsing(function (SchemaComponent $component, CustomField $field) {
+     *       if ($component instanceof FileUpload) { ... }
+     *   });
+     *
+     * @param  Closure(SchemaComponent, CustomField): void  $callback
+     */
+    public static function configureComponentsUsing(Closure $callback): void
+    {
+        static::$componentConfigurators[] = $callback;
+    }
+
+    public static function flushComponentConfigurators(): void
+    {
+        static::$componentConfigurators = [];
+    }
 
     /**
      * @return SchemaComponent[]
@@ -506,6 +531,10 @@ class DynamicFormBuilder
         }
 
         $component->columnSpan($colSpan);
+
+        foreach (static::$componentConfigurators as $configure) {
+            $configure($component, $field);
+        }
 
         return $component;
     }
