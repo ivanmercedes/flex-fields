@@ -28,6 +28,7 @@
     },
     "suggest": {
         "laravel/ai": "Required to enable AI tools and Laravel AI SDK integration.",
+        "laravel/mcp": "Required to expose the AI tools through an MCP server (FlexFieldsAi::configure()->mcpTools()).",
         "laravel/sanctum": "Recommended to authenticate the optional headless REST API (default middleware: auth:sanctum).",
         "filament/spatie-laravel-media-library-plugin": "Required to store image/file fields with Spatie Media Library (media.driver = spatie).",
         "bezhansalleh/filament-shield": "Manage the per-entity permissions (flex:permissions --sync) from a UI."
@@ -56,6 +57,7 @@
     "prefer-stable": true,
     "require-dev": {
         "laravel/ai": "^0.11.2 || ^1.0.0",
+        "laravel/mcp": "^1.0",
         "laravel/pint": "^1.29",
         "orchestra/testbench": "^11.1"
     }

@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace IvanMercedes\FlexFields\Ai;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use IvanMercedes\FlexFields\Mcp\FlexFieldsMcpTool;
 use Laravel\Ai\Contracts\Tool;
+use Laravel\Mcp\Server\Tool as McpTool;
+use RuntimeException;
 
 class FlexFieldsAiBuilder
 {
@@ -135,6 +138,21 @@ class FlexFieldsAiBuilder
             excludedToolClasses: $this->excludedToolClasses,
             context: $this->context
         );
+    }
+
+    /**
+     * The configured tools wrapped for a laravel/mcp server:
+     *   protected function boot(): void { $this->tools = FlexFieldsAi::configure()->forTenant($id)->mcpTools(); }
+     *
+     * @return array<int, FlexFieldsMcpTool>
+     */
+    public function mcpTools(): array
+    {
+        if (! class_exists(McpTool::class)) {
+            throw new RuntimeException('FlexFields MCP tools require the laravel/mcp package.');
+        }
+
+        return array_values(array_map(fn (Tool $tool) => new FlexFieldsMcpTool($tool), $this->tools()));
     }
 
     /**
