@@ -21,7 +21,7 @@ class ListRecordsTool implements Tool
 
     public function description(): string
     {
-        return 'List content records/entries for an entity with optional filters (status, search query, category, pagination).';
+        return 'List content records/entries for an entity with optional filters (status, search query, category, field values), sorting and pagination.';
     }
 
     public function toolCategory(): AiToolCategory
@@ -46,6 +46,10 @@ class ListRecordsTool implements Tool
                 ->description('Maximum number of records to return (1 to 100, default 25).'),
             'offset' => $schema->integer()
                 ->description('Number of records to skip for pagination (default 0).'),
+            'filters' => $schema->string()
+                ->description('JSON object filtering by field values, e.g. {"price": {"gte": 10}, "kind": "physical", "tags": {"contains": "red"}}. Operators: eq, ne, gt, gte, lt, lte, in, contains, null.'),
+            'sort' => $schema->string()
+                ->description('Comma separated field keys or columns (title, slug, created_at, updated_at...), "-" prefix for descending, e.g. "-price,title".'),
         ];
     }
 
@@ -58,7 +62,11 @@ class ListRecordsTool implements Tool
             'category_id' => ['sometimes', 'nullable', 'integer'],
             'limit' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:100'],
             'offset' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'filters' => ['sometimes', 'nullable', 'json'],
+            'sort' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
+
+        $validated['where'] = (array) json_decode((string) ($validated['filters'] ?? '{}'), true);
 
         $entitySlug = $validated['entity'];
 

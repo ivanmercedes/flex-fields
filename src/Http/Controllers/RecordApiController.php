@@ -28,7 +28,8 @@ class RecordApiController extends Controller
     public function __construct(protected RecordDomainService $records) {}
 
     /**
-     * GET /api/flex/{entity}?status=&search=&category=&per_page=&page=&trashed=with|only&locale=&fields=&include=
+     * GET /api/flex/{entity}?status=&search=&category=&per_page=&page=&trashed=with|only
+     *     &filter[field][operator]=value&sort=-field,title&locale=&fields=&include=
      */
     public function index(Request $request, string $entity): ResourceCollection
     {
@@ -43,6 +44,8 @@ class RecordApiController extends Controller
             'per_page' => ['sometimes', 'integer', 'min:1'],
             'page' => ['sometimes', 'integer', 'min:1'],
             'trashed' => ['sometimes', 'nullable', Rule::in(['with', 'only'])],
+            'filter' => ['sometimes', 'array'],
+            'sort' => ['sometimes', 'nullable', 'string', 'max:255'],
             ...$this->presentationRules(),
         ]);
 
@@ -62,6 +65,8 @@ class RecordApiController extends Controller
                 'search' => $validated['search'] ?? null,
                 'category_id' => $validated['category'] ?? null,
                 'trashed' => $validated['trashed'] ?? null,
+                'where' => $validated['filter'] ?? [],
+                'sort' => $validated['sort'] ?? null,
             ],
             $perPage,
             (int) ($validated['page'] ?? 1),

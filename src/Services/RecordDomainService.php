@@ -16,6 +16,7 @@ use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Support\FieldTypes;
 use IvanMercedes\FlexFields\Support\MediaLibrary;
 use IvanMercedes\FlexFields\Support\RecordEvents;
+use IvanMercedes\FlexFields\Support\RecordFilters;
 use RuntimeException;
 
 class RecordDomainService
@@ -31,7 +32,7 @@ class RecordDomainService
     /**
      * List records for an entity with filtering.
      *
-     * @param  array{status?: ?string, search?: ?string, category_id?: ?int, limit?: ?int, offset?: ?int, trashed?: ?string}  $filters
+     * @param  array{status?: ?string, search?: ?string, category_id?: ?int, limit?: ?int, offset?: ?int, trashed?: ?string, where?: array<string, mixed>, sort?: ?string}  $filters
      * @return Collection<int, EntityRecord>
      */
     public function list(int | string $entityIdOrSlug, array $filters = [], ?int $tenantId = null): Collection
@@ -47,7 +48,7 @@ class RecordDomainService
     /**
      * Paginate records for an entity with filtering.
      *
-     * @param  array{status?: ?string, search?: ?string, category_id?: ?int, trashed?: ?string}  $filters
+     * @param  array{status?: ?string, search?: ?string, category_id?: ?int, trashed?: ?string, where?: array<string, mixed>, sort?: ?string}  $filters
      */
     public function paginate(int | string $entityIdOrSlug, array $filters = [], int $perPage = 25, int $page = 1, ?int $tenantId = null): LengthAwarePaginator
     {
@@ -58,8 +59,11 @@ class RecordDomainService
 
     /**
      * Base query for an entity's records with the standard filters applied.
+     * "where" filters and "sort" by field values (see RecordFilters).
      *
-     * @param  array<string, mixed>  $filters
+     * @param  array{status?: ?string, search?: ?string, category_id?: ?int, trashed?: ?string, where?: array<string, mixed>, sort?: ?string}  $filters
+     *
+     * @throws ValidationException
      */
     public function query(Entity $entity, array $filters = []): HasMany | Builder
     {
@@ -82,11 +86,19 @@ class RecordDomainService
             });
         }
 
+        if (! empty($filters['where'])) {
+            RecordFilters::apply($query, $entity, (array) $filters['where']);
+        }
+
         match ($filters['trashed'] ?? null) {
             'with' => $query->withTrashed(),
             'only' => $query->onlyTrashed(),
             default => null,
         };
+
+        if (! empty($filters['sort'])) {
+            RecordFilters::sort($query, $entity, (string) $filters['sort']);
+        }
 
         return $query->orderBy('order')->orderByDesc('id');
     }
