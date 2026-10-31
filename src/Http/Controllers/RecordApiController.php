@@ -17,6 +17,7 @@ use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Services\RecordDomainService;
 use IvanMercedes\FlexFields\Support\FieldTypes;
+use IvanMercedes\FlexFields\Support\RecordPreview;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -93,6 +94,28 @@ class RecordApiController extends Controller
         $request->validate($this->presentationRules());
 
         return $this->makeResource($this->findRecord($model, $record));
+    }
+
+    /**
+     * GET /api/flex/_preview/{token} — the record of a RecordPreview token,
+     * whatever its status, for the tenant of the request.
+     */
+    public function preview(Request $request, string $token): JsonResource
+    {
+        FlexApi::authorizeToken($request, 'read');
+        $request->validate($this->presentationRules());
+
+        $record = RecordPreview::resolve($token);
+        $tenant = FlexApi::resolveTenant($request);
+
+        if (! $record || ($tenant !== null && (int) $record->tenant_id !== $tenant)) {
+            throw new HttpException(404, 'The preview link is invalid or has expired.');
+        }
+
+        $model = FlexApi::entity($request, (string) $record->entity_id);
+        FlexApi::authorize($request, FlexPermissions::VIEW, $model);
+
+        return $this->makeResource($record);
     }
 
     /**

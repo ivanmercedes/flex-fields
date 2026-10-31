@@ -42,6 +42,7 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('flex-fields.tenancy.enabled', false);
         $app['config']->set('flex-fields.cache.enabled', false);
         $app['config']->set('auth.providers.users.model', User::class);
+        $app['config']->set('app.key', 'base64:' . base64_encode(str_repeat('k', 32)));
     }
 
     /**

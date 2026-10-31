@@ -9,6 +9,8 @@ use Filament\Resources\Pages\EditRecord;
 use IvanMercedes\FlexFields\Resources\EntityDataResource;
 use IvanMercedes\FlexFields\Resources\EntityDataResource\Concerns\SavesFlexFieldValues;
 use IvanMercedes\FlexFields\Services\RecordHistoryService;
+use IvanMercedes\FlexFields\Support\Label;
+use IvanMercedes\FlexFields\Support\RecordPreview;
 
 class EditEntityData extends EditRecord
 {
@@ -19,6 +21,12 @@ class EditEntityData extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('preview')
+                ->label(Label::trans('flex-fields::flex-fields.record.actions.preview'))
+                ->icon('heroicon-o-eye')
+                ->color('gray')
+                ->url(fn (): ?string => RecordPreview::url($this->record), shouldOpenInNewTab: true)
+                ->visible(fn (): bool => RecordPreview::url($this->record) !== null),
             Actions\DeleteAction::make(),
             Actions\RestoreAction::make(),
             Actions\ForceDeleteAction::make(),

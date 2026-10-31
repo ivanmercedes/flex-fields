@@ -12,6 +12,8 @@ Route::prefix(config('flex-fields.api.prefix', 'api/flex'))
     ->group(function () {
         Route::get('entities', [EntityApiController::class, 'index'])->name('entities.index');
         Route::get('{entity}/schema', [EntityApiController::class, 'schema'])->name('entities.schema');
+        // Entity and record slugs never contain "_", so this cannot shadow them.
+        Route::get('_preview/{token}', [RecordApiController::class, 'preview'])->name('records.preview');
 
         Route::get('{entity}', [RecordApiController::class, 'index'])->name('records.index');
         Route::post('{entity}', [RecordApiController::class, 'store'])->name('records.store');

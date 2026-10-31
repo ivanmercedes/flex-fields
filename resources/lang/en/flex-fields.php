@@ -212,6 +212,9 @@ return [
         'created' => 'Record saved.',
         'updated' => 'Record updated.',
         'deleted' => 'Record deleted.',
+        'actions' => [
+            'preview' => 'Preview',
+        ],
         'navigation_label' => 'Entity Data',
         'sections' => [
             'fields_suffix' => 'Fields',

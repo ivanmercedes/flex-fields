@@ -154,6 +154,19 @@ class FilamentPagesTest extends FilamentTestCase
         $this->assertSame('updated', $record->revisions()->first()->event);
     }
 
+    public function test_the_preview_action_appears_when_a_preview_url_is_configured(): void
+    {
+        $record = (new RecordDomainService)->create('product', ['title' => 'Chair', 'status' => 'draft']);
+
+        Livewire::test(EditEntityData::class, ['record' => $record->getKey()])->assertActionHidden('preview');
+
+        config(['flex-fields.preview.url' => 'https://site.test/{entity}/{slug}']);
+
+        Livewire::test(EditEntityData::class, ['record' => $record->getKey()])
+            ->assertActionVisible('preview')
+            ->assertActionHasUrl('preview', 'https://site.test/product/chair');
+    }
+
     public function test_records_can_be_scheduled_in_the_panel(): void
     {
         Livewire::withQueryParams(['entity' => $this->entity->id])

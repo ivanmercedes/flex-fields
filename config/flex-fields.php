@@ -99,6 +99,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Draft Previews
+    |--------------------------------------------------------------------------
+    |
+    | Signed preview tokens let a website show records that are not published.
+    | When 'url' is set (or RecordPreview::urlUsing() is used), records get a
+    | "Preview" button. Placeholders: {token}, {entity}, {slug}, {id}. The
+    | website exchanges the token at GET {api prefix}/_preview/{token}.
+    |
+    */
+    'preview' => [
+        'url' => env('FLEX_FIELDS_PREVIEW_URL'),
+        'ttl' => (int) env('FLEX_FIELDS_PREVIEW_TTL', 60), // minutes
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Record History / Audit Log
     |--------------------------------------------------------------------------
     |

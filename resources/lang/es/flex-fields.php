@@ -213,6 +213,9 @@ return [
         'created' => 'Registro guardado.',
         'updated' => 'Registro actualizado.',
         'deleted' => 'Registro eliminado.',
+        'actions' => [
+            'preview' => 'Vista previa',
+        ],
         'navigation_label' => 'Datos de la entidad',
         'sections' => [
             'fields_suffix' => 'Campos',
