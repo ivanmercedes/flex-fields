@@ -1,5 +1,10 @@
-@import "tailwindcss/theme";
-@import "tailwindcss/utilities";
+/*
+ * Layered so a panel theme always wins: theme utilities (including responsive
+ * variants such as md:w-auto) override these, which only fill in classes the
+ * theme does not compile.
+ */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(components);
 
 @custom-variant dark (&:where(.dark, .dark *));
 
