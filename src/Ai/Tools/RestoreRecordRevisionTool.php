@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use IvanMercedes\FlexFields\Models\RecordRevision;
 use Laravel\Ai\Approvals\Approval;
@@ -48,7 +49,7 @@ class RestoreRecordRevisionTool implements Approvable, Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         if ($guard = $this->guardAgainstReadOnly()) {
             return $guard;
@@ -81,7 +82,7 @@ class RestoreRecordRevisionTool implements Approvable, Tool
                 'record' => $this->recordService()->formatRecord($restored),
             ]);
         } catch (Throwable $e) {
-            return "Failed to restore revision [{$validated['revision_id']}] of record [{$validated['record']}]: {$this->describeException($e)}";
+            return $this->error("Failed to restore revision [{$validated['revision_id']}] of record [{$validated['record']}]: {$this->describeException($e)}");
         }
     }
 

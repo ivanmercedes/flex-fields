@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use Laravel\Ai\Approvals\Approval;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Concerns\InteractsWithApprovals;
@@ -46,7 +47,7 @@ class DeleteFieldGroupTool implements Approvable, Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         if ($guard = $this->guardAgainstReadOnly()) {
             return $guard;
@@ -68,7 +69,7 @@ class DeleteFieldGroupTool implements Approvable, Tool
 
             return "Field group [{$validated['group']}] on entity [{$entity}] was deleted. Its fields are now ungrouped.";
         } catch (Throwable $e) {
-            return "Failed to delete field group [{$validated['group']}] on entity [{$entity}]: {$this->describeException($e)}";
+            return $this->error("Failed to delete field group [{$validated['group']}] on entity [{$entity}]: {$this->describeException($e)}");
         }
     }
 

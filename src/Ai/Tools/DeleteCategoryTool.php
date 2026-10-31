@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use Laravel\Ai\Approvals\Approval;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Concerns\InteractsWithApprovals;
@@ -46,7 +47,7 @@ class DeleteCategoryTool implements Approvable, Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         if ($guard = $this->guardAgainstReadOnly()) {
             return $guard;
@@ -69,7 +70,7 @@ class DeleteCategoryTool implements Approvable, Tool
 
             return "Category [{$categoryIdOrSlug}] on entity [{$entitySlug}] was successfully deleted.";
         } catch (Throwable $e) {
-            return "Failed to delete category [{$categoryIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}";
+            return $this->error("Failed to delete category [{$categoryIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}");
         }
     }
 

@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
@@ -37,7 +38,7 @@ class GetEntitySchemaTool implements Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         $validated = $request->validate([
             'entity' => ['required', 'string'],
@@ -54,7 +55,7 @@ class GetEntitySchemaTool implements Tool
 
             return $this->asJson($schema);
         } catch (Throwable $e) {
-            return "Error retrieving schema for entity [{$entityIdOrSlug}]: {$this->describeException($e)}";
+            return $this->error("Error retrieving schema for entity [{$entityIdOrSlug}]: {$this->describeException($e)}");
         }
     }
 }

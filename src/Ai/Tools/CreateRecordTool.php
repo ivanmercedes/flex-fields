@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
@@ -50,7 +51,7 @@ class CreateRecordTool implements Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         if ($guard = $this->guardAgainstReadOnly()) {
             return $guard;
@@ -95,7 +96,7 @@ class CreateRecordTool implements Tool
                 'record' => $this->recordService()->formatRecord($record),
             ]);
         } catch (Throwable $e) {
-            return "Failed to create record for entity [{$entitySlug}]: {$this->describeException($e)}";
+            return $this->error("Failed to create record for entity [{$entitySlug}]: {$this->describeException($e)}");
         }
     }
 }

@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use IvanMercedes\FlexFields\Support\ConditionEvaluator;
 use IvanMercedes\FlexFields\Support\FieldTypes;
 use Laravel\Ai\Attributes\Strict;
@@ -82,7 +83,7 @@ class CreateFieldTool implements Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         if ($guard = $this->guardAgainstReadOnly()) {
             return $guard;
@@ -132,7 +133,7 @@ class CreateFieldTool implements Tool
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to create field on entity [{$entitySlug}]: {$this->describeException($e)}";
+            return $this->error("Failed to create field on entity [{$entitySlug}]: {$this->describeException($e)}");
         }
     }
 }

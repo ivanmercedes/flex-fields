@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Ai\Concerns;
 
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use IvanMercedes\FlexFields\Ai\AiContext;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use IvanMercedes\FlexFields\Services\CategoryDomainService;
 use IvanMercedes\FlexFields\Services\EntityDomainService;
@@ -14,6 +16,7 @@ use IvanMercedes\FlexFields\Services\FieldDomainService;
 use IvanMercedes\FlexFields\Services\FieldGroupDomainService;
 use IvanMercedes\FlexFields\Services\RecordDomainService;
 use IvanMercedes\FlexFields\Services\RecordHistoryService;
+use Laravel\Ai\Tools\Request;
 use Throwable;
 
 trait InteractsWithFlexDomain
@@ -34,6 +37,46 @@ trait InteractsWithFlexDomain
      * @return array<AiToolCategory>|AiToolCategory
      */
     abstract public function toolCategory(): array | AiToolCategory;
+
+    /**
+     * Perform the tool's operation. Failures are returned as ToolResult::error().
+     */
+    abstract protected function execute(Request $request): ToolResult | string;
+
+    /**
+     * Laravel AI SDK entry point: the result as text for the model.
+     */
+    public function handle(Request $request): string
+    {
+        return (string) $this->run($request);
+    }
+
+    /**
+     * Run the tool and get a typed result that tells failures apart.
+     * Invalid arguments still throw a ValidationException.
+     */
+    public function run(Request $request): ToolResult
+    {
+        $result = $this->execute($request);
+
+        return $result instanceof ToolResult ? $result : ToolResult::success($result);
+    }
+
+    /**
+     * Snake-case identifier of the tool, e.g. "get_entity_schema".
+     */
+    public function toolName(): string
+    {
+        return Str::of(class_basename($this))->beforeLast('Tool')->snake()->toString();
+    }
+
+    /**
+     * Human readable title of the tool, e.g. "Get Entity Schema".
+     */
+    public function toolTitle(): string
+    {
+        return Str::of(class_basename($this))->beforeLast('Tool')->headline()->toString();
+    }
 
     public function setContext(AiContext $context): static
     {
@@ -77,6 +120,11 @@ trait InteractsWithFlexDomain
         return app(RecordHistoryService::class);
     }
 
+    protected function error(string $message): ToolResult
+    {
+        return ToolResult::error($message);
+    }
+
     /**
      * Turn a validation exception into a readable message for the model.
      */
@@ -99,10 +147,10 @@ trait InteractsWithFlexDomain
     /**
      * Check whether mutations are allowed in the current context.
      */
-    protected function guardAgainstReadOnly(): ?string
+    protected function guardAgainstReadOnly(): ?ToolResult
     {
         if ($this->context()->isReadOnly()) {
-            return 'Operation rejected: FlexFields AI context is configured in read-only mode.';
+            return $this->error('Operation rejected: FlexFields AI context is configured in read-only mode.');
         }
 
         return null;
@@ -113,10 +161,10 @@ trait InteractsWithFlexDomain
      * when permissions are enabled, whether the context user holds the ability
      * (a FlexPermissions ability such as "view_any", or "structure").
      */
-    protected function guardEntityAllowed(string $entitySlug, ?string $ability = null): ?string
+    protected function guardEntityAllowed(string $entitySlug, ?string $ability = null): ?ToolResult
     {
         if (! $this->context()->isEntityAllowed($entitySlug)) {
-            return "Operation rejected: Access to entity [{$entitySlug}] is not permitted by current AI context.";
+            return $this->error("Operation rejected: Access to entity [{$entitySlug}] is not permitted by current AI context.");
         }
 
         if ($ability === 'structure') {
@@ -127,7 +175,7 @@ trait InteractsWithFlexDomain
             $entity = $this->entityService()->find($entitySlug, $this->tenantId());
 
             if ($entity && ! FlexPermissions::allows($this->context()->getUser(), $ability, $entity)) {
-                return 'Operation rejected: the current user lacks the [' . FlexPermissions::permissionName($ability, $entity) . '] permission.';
+                return $this->error('Operation rejected: the current user lacks the [' . FlexPermissions::permissionName($ability, $entity) . '] permission.');
             }
         }
 
@@ -137,10 +185,10 @@ trait InteractsWithFlexDomain
     /**
      * Structural changes (entities, fields, groups, categories) require the structure permission.
      */
-    protected function guardStructure(): ?string
+    protected function guardStructure(): ?ToolResult
     {
         if (! FlexPermissions::allowsStructure($this->context()->getUser())) {
-            return 'Operation rejected: the current user lacks the [' . FlexPermissions::structurePermission() . '] permission required for structural changes.';
+            return $this->error('Operation rejected: the current user lacks the [' . FlexPermissions::structurePermission() . '] permission required for structural changes.');
         }
 
         return null;

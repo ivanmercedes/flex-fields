@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
@@ -40,7 +41,7 @@ class GetFieldTool implements Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         $validated = $request->validate([
             'entity' => ['required', 'string'],
@@ -79,7 +80,7 @@ class GetFieldTool implements Tool
                 'category_ids' => $field->category_ids ?? [],
             ]);
         } catch (Throwable $e) {
-            return "Error retrieving field [{$fieldKey}] on entity [{$entitySlug}]: {$this->describeException($e)}";
+            return $this->error("Error retrieving field [{$fieldKey}] on entity [{$entitySlug}]: {$this->describeException($e)}");
         }
     }
 }

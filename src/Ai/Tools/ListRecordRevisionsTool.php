@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use IvanMercedes\FlexFields\Authorization\FlexPermissions;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
@@ -44,7 +45,7 @@ class ListRecordRevisionsTool implements Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         $validated = $request->validate([
             'entity' => ['required', 'string'],
@@ -69,7 +70,7 @@ class ListRecordRevisionsTool implements Tool
                 'revisions' => $revisions->map(fn ($revision) => $this->historyService()->format($revision, (bool) ($validated['with_snapshot'] ?? false)))->all(),
             ]);
         } catch (Throwable $e) {
-            return "Error reading history of record [{$validated['record']}] on entity [{$entity}]: {$this->describeException($e)}";
+            return $this->error("Error reading history of record [{$validated['record']}] on entity [{$entity}]: {$this->describeException($e)}");
         }
     }
 }

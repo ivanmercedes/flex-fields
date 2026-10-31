@@ -7,6 +7,7 @@ namespace IvanMercedes\FlexFields\Ai\Tools;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use IvanMercedes\FlexFields\Ai\Concerns\InteractsWithFlexDomain;
+use IvanMercedes\FlexFields\Ai\ToolResult;
 use Laravel\Ai\Attributes\Strict;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
@@ -47,7 +48,7 @@ class UpdateCategoryTool implements Tool
         ];
     }
 
-    public function handle(Request $request): string
+    protected function execute(Request $request): ToolResult | string
     {
         if ($guard = $this->guardAgainstReadOnly()) {
             return $guard;
@@ -82,7 +83,7 @@ class UpdateCategoryTool implements Tool
                 ],
             ]);
         } catch (Throwable $e) {
-            return "Failed to update category [{$categoryIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}";
+            return $this->error("Failed to update category [{$categoryIdOrSlug}] on entity [{$entitySlug}]: {$this->describeException($e)}");
         }
     }
 }
