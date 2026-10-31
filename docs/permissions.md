@@ -52,6 +52,26 @@ FlexPermissions::permissionName('create', 'products'); // create_flex_products
 FlexPermissions::all();                                   // every permission name
 ```
 
+### Resolving permissions in your application
+
+Applications with their own authorization model (team roles, API keys, plans) can answer the checks directly instead of mapping permission names in a `Gate::before()` callback:
+
+```php
+use Illuminate\Contracts\Auth\Authenticatable;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
+use IvanMercedes\FlexFields\Models\Entity;
+
+FlexPermissions::resolveUsing(function (Authenticatable $user, string $ability, Entity|string|null $entity): ?bool {
+    if ($ability === FlexPermissions::STRUCTURE) {
+        return $user->isAdmin();
+    }
+
+    return $user->role->allows($ability); // view_any, create, publish...
+});
+```
+
+`$entity` is the entity model or slug (`null` for `FlexPermissions::STRUCTURE`). Return `null` to fall back to the Gate check of the permission name. Guests are always denied.
+
 ## Filament Shield
 
 List or create the permissions:

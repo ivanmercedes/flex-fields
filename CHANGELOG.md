@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+> **Upgrading:** run `php artisan migrate` (adds `ff_entity_records.publish_at`) and review [UPGRADE.md](UPGRADE.md).
+
+### Added
+- **Events**: `RecordCreated`, `RecordUpdated`, `RecordPublished`, `RecordUnpublished`, `RecordDeleted`, `RecordRestored` and `EntitySchemaChanged` (`IvanMercedes\FlexFields\Events`), dispatched from every write path: Filament, REST API, AI tools, imports, revision restores and scheduled publishing.
+- **Scheduled publishing**: new `scheduled` status with a `publish_at` date, published by `flex:publish-scheduled` (registered in the scheduler every minute; `scheduling.enabled`). Available in the panel, the REST API and the record AI tools.
+- **Draft previews**: signed, expiring tokens (`RecordPreview::token()`), `GET {api prefix}/_preview/{token}` and a "Preview" action on the record edit page when `preview.url` or `RecordPreview::urlUsing()` is set.
+- **REST API**: filters and sorting by field values (`filter[price][gte]=10`, `sort=-price,title`), `?locale=` to resolve translatable values, `?fields=` for sparse values, `?include=relations.values`, a `media` map with absolute URLs of image/file fields and `publish_at` in the record payload.
+- **`RecordResource::extend()`** to add keys to every record representation without replacing the resource.
+- **`FlexPermissions::resolveUsing()`** to answer permission checks from the application's own authorization model (falls back to the Gate when it returns `null`).
+- **Typed AI tool results**: `run()` returns a `ToolResult` (`isError`, `content`); `handle()` keeps returning text for the AI SDK. Tools expose `toolName()` and `toolTitle()`. `ListRecords` accepts `filters` and `sort`.
+- **MCP adapter** (optional, requires `laravel/mcp`): `FlexFieldsAi::configure()->...->mcpTools()` wraps the configured tools for a `laravel/mcp` server.
+- **Content model export / import**: `SchemaTransfer` / `FlexFields::schemaTransfer()` and the `flex:export` / `flex:import` commands move entities, categories, field groups, fields and optionally records between environments and tenants, referencing slugs and keys instead of IDs.
+- **`DynamicFormBuilder::configureComponentsUsing()`** to customize the generated Filament component of every custom field.
+
+### Fixed
+- The plugin stylesheet is now layered below the panel theme, so its utilities no longer override the theme's (e.g. responsive variants).
+
 ## [0.7.1] - 2026-10-23
 
 ### Fixed

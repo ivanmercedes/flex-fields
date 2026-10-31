@@ -1,5 +1,24 @@
 # Upgrade Guide
 
+## Upgrading to the next release from 0.7.x
+
+### 1. Run the migrations (required)
+
+```bash
+php artisan migrate
+```
+
+Adds the nullable `ff_entity_records.publish_at` column. Until it exists, everything keeps working and the `scheduled` status is rejected.
+
+### 2. Behavior changes
+
+- **New record status `scheduled`.** `RecordDomainService::STATUSES` now includes it. Code that assumes only `draft`, `published` and `archived` (e.g. `match` expressions, frontends filtering by status) should handle it.
+- **Scheduler.** `flex:publish-scheduled` is added to the application's scheduler every minute. Make sure `schedule:run` runs (cron or `schedule:work`), or disable it with `FLEX_FIELDS_SCHEDULING_ENABLED=false`.
+- **REST API payload.** Records now include `publish_at` and a `media` object (absolute URLs of image/file fields, `{}` when empty). Custom resources extending `RecordResource` inherit them; use `RecordResource::extend()` to add keys instead of overriding `toArray()`.
+- **`_preview` route.** `GET {api prefix}/_preview/{token}` is registered before the record routes. Slugs never contain `_`, so it cannot shadow an entity.
+- **AI tools.** Custom tools using `InteractsWithFlexDomain` must implement `execute(Request $request): ToolResult|string` instead of `handle()` (the trait now provides `handle()` and `run()`), and the `guard*()` helpers return `?ToolResult`.
+- **Plugin stylesheet.** Its utilities moved to a CSS layer below the panel theme. If you disabled the stylesheet to work around overrides, you can load it again.
+
 ## Upgrading to 0.6.0 from 0.5.x
 
 0.6.0 completes the Data Management, Advanced Field Types and Headless & Integrations roadmap milestones. Most features are additive or opt-in, but please read this guide before deploying.

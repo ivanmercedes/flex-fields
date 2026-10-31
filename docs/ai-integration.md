@@ -268,6 +268,40 @@ $tools = FlexFieldsAi::configure()->forUser($request->user())->tools();
 
 ---
 
+## Typed Results
+
+`handle()` returns text for the Laravel AI SDK. To know whether an operation failed without parsing that text, call `run()`, which returns a `ToolResult`:
+
+```php
+$result = $tool->run(new \Laravel\Ai\Tools\Request(['entity' => 'posts', 'record' => 'hello']));
+
+$result->isError;   // true when the operation failed or was rejected
+$result->content;   // JSON for successful reads, a message otherwise
+```
+
+Invalid arguments still throw a `ValidationException`. Every tool also exposes `toolName()` (`get_entity_schema`) and `toolTitle()` (`Get Entity Schema`).
+
+## MCP Server
+
+With `laravel/mcp` installed, the configured catalog can be served over MCP. Tools keep their schema, validation, tenancy, entity whitelist and permission checks, and are annotated as read-only or destructive from their categories:
+
+```php
+use IvanMercedes\FlexFields\Ai\FlexFieldsAi;
+use Laravel\Mcp\Server;
+
+class ContentServer extends Server
+{
+    protected function boot(): void
+    {
+        $this->tools = FlexFieldsAi::configure()
+            ->forTenant(request()->user()->current_team_id)
+            ->forUser(request()->user())
+            ->withoutApprovals()
+            ->mcpTools();
+    }
+}
+```
+
 ## Registering Custom AI Tools
 
 You can register custom domain tools into the `FlexFieldsAi` catalog:

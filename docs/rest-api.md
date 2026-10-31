@@ -36,14 +36,37 @@ FLEX_FIELDS_API_ENABLED=true
 |---|---|---|
 | GET | `/api/flex/entities` | Active entities the caller can read |
 | GET | `/api/flex/{entity}/schema` | Fields, groups, categories, locales |
-| GET | `/api/flex/{entity}` | Paginated records (`status`, `search`, `category`, `per_page`, `page`, `trashed=with\|only`) |
+| GET | `/api/flex/{entity}` | Paginated records (`status`, `search`, `category`, `filter`, `sort`, `per_page`, `page`, `trashed=with\|only`) |
 | POST | `/api/flex/{entity}` | Create a record |
-| GET | `/api/flex/{entity}/{record}` | Record by ID or slug (`?include=relations`) |
+| GET | `/api/flex/{entity}/{record}` | Record by ID or slug |
+| GET | `/api/flex/_preview/{token}` | Record of a [preview token](#draft-previews), whatever its status |
 | PUT/PATCH | `/api/flex/{entity}/{record}` | Update a record (partial) |
 | DELETE | `/api/flex/{entity}/{record}` | Soft delete (`?force=1` to delete permanently) |
 | POST | `/api/flex/{entity}/{record}/restore` | Restore a soft-deleted record |
 
 `{entity}` accepts the slug or ID. Inactive entities and entities outside `allowed_entities` return 404.
+
+### Filtering and sorting by field values
+
+```
+GET /api/flex/products?filter[price][gte]=10&filter[kind]=physical&filter[tags][contains]=sale&sort=-price,title
+```
+
+- `filter[field]=value` is an equality check; `filter[field][operator]=value` uses `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in` (comma separated), `contains` or `null` (`true` / `false`).
+- Numbers are compared numerically and dates as `Y-m-d`. `tags` / `multiselect` match by element and `relationship` by related record ID. Booleans without a value count as `false`.
+- Translatable fields support `contains` and `null`; rich text, JSON, repeater, address, link and media fields only `null`.
+- `sort` takes field keys or `id`, `title`, `slug`, `order`, `status`, `publish_at`, `created_at`, `updated_at`; prefix with `-` for descending.
+
+Unknown fields or unsupported operators return `422`. The same filters are available in PHP (`RecordDomainService::query($entity, ['where' => [...], 'sort' => '-price'])`) and in the `ListRecords` AI tool.
+
+### Presentation options (lists and single records)
+
+| Query | Effect |
+|---|---|
+| `?locale=es` | Translatable values resolved to that locale, falling back to `translations.fallback_locale` |
+| `?fields=price,cover` | Only these field keys in `values` and `media` |
+| `?include=relations` | Expand relationship fields (`id`, `title`, `slug`, `status`) |
+| `?include=relations.values` | ...including the related records' `values` and `media` |
 
 ### Create / update payload
 
@@ -52,6 +75,7 @@ FLEX_FIELDS_API_ENABLED=true
   "title": "iPhone 16",
   "slug": "iphone-16",
   "status": "published",
+  "publish_at": null,
   "categories": ["phones"],
   "values": {
     "price": 999,
@@ -63,6 +87,8 @@ FLEX_FIELDS_API_ENABLED=true
 
 `data` is accepted as an alias of `values`. Values are validated against the entity schema; errors return `422` with the usual Laravel `errors` object.
 
+`status` is `draft`, `published`, `archived` or `scheduled`. A `scheduled` record needs a `publish_at` date and is published by the `flex:publish-scheduled` command (added to the scheduler every minute, see `scheduling.enabled`) once that date passes; a date in the past publishes it right away.
+
 ### Response
 
 ```json
@@ -73,8 +99,10 @@ FLEX_FIELDS_API_ENABLED=true
     "title": "iPhone 16",
     "slug": "iphone-16",
     "status": "published",
+    "publish_at": null,
     "categories": [{"id": 1, "name": "Phones", "slug": "phones"}],
-    "values": {"price": 999, "brand": 12},
+    "values": {"price": 999, "brand": 12, "cover": "flex-fields/acme/products/cover/iphone.jpg"},
+    "media": {"cover": "https://cdn.example.com/flex-fields/acme/products/cover/iphone.jpg"},
     "created_at": "2026-10-10T10:00:00+00:00",
     "updated_at": "2026-10-10T10:00:00+00:00",
     "deleted_at": null
@@ -83,6 +111,8 @@ FLEX_FIELDS_API_ENABLED=true
 ```
 
 Lists include Laravel's `links` and `meta` pagination keys.
+
+`values` keep the stored file paths of `image` / `file` fields (send them back when writing); `media` mirrors them with absolute URLs on the uploads disk, including translatable fields (per locale) and the media sub-fields of repeaters. It is an empty object when the record has no files.
 
 ## Authentication with Sanctum
 
@@ -113,7 +143,31 @@ or set `'tenant_resolver' => App\Support\ResolveFlexTenant::class` (an invokable
 
 ## Permissions
 
-When [per-entity permissions](permissions.md) are enabled, every endpoint checks them (`view_any`, `view`, `create`, `update`, `delete`, `force_delete`, `restore`). Creating or changing the status to/from `published` also requires `publish`; without it new records default to `draft`.
+When [per-entity permissions](permissions.md) are enabled, every endpoint checks them (`view_any`, `view`, `create`, `update`, `delete`, `force_delete`, `restore`). Creating or changing the status to/from `published` or `scheduled`, or rescheduling, also requires `publish`; without it new records default to `draft`.
+
+## Draft previews
+
+`RecordPreview::token($record)` returns a signed, URL safe token that expires after `preview.ttl` minutes. A website exchanges it for the record (whatever its status) at `GET /api/flex/_preview/{token}`, with the same authentication, tenant and `view` permission checks as the other endpoints, so it never has to trust a plain `?preview=1&id=5` parameter.
+
+Set `preview.url` (`{token}`, `{entity}`, `{slug}` and `{id}` placeholders) or register a resolver to show a **Preview** button on the record edit page:
+
+```php
+use IvanMercedes\FlexFields\Support\RecordPreview;
+
+RecordPreview::urlUsing(fn (EntityRecord $record, string $token) => "https://{$record->tenant->domain}/preview?token={$token}");
+```
+
+## Extending the record representation
+
+Add keys to every record without replacing the resource:
+
+```php
+use IvanMercedes\FlexFields\Http\Resources\RecordResource;
+
+RecordResource::extend(fn (array $data, EntityRecord $record, Request $request) => $data + [
+    'url' => route('products.show', $record->slug),
+]);
+```
 
 ## Custom transformers
 

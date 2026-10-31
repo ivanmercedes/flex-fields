@@ -160,3 +160,21 @@ $record->getTranslation('title', 'fr');     // 'Hello' (fallback)
 ```
 
 When a field is required, the fallback locale is required. Values saved before a field became translatable are read as the fallback locale.
+
+## Customizing the generated components
+
+Register a callback to adjust the Filament component of every custom field (repeater sub-fields included) after FlexFields builds it, e.g. to plug a media picker into the upload fields:
+
+```php
+use Filament\Forms\Components\FileUpload;
+use Filament\Schemas\Components\Component;
+use IvanMercedes\FlexFields\Models\CustomField;
+use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
+
+DynamicFormBuilder::configureComponentsUsing(function (Component $component, CustomField $field) {
+    if ($component instanceof FileUpload) {
+        $component->hint('Max 5 MB')->maxSize(5120);
+    }
+});
+```
+
