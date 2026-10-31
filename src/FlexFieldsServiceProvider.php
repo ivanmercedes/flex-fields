@@ -8,6 +8,7 @@ namespace IvanMercedes\FlexFields;
 use Filament\Support\Assets\Css;
 // use Filament\View\PanelsRenderHook;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use IvanMercedes\FlexFields\Commands\FlexFieldsAgentCommand;
 use IvanMercedes\FlexFields\Commands\FlexPermissionsCommand;
@@ -15,6 +16,7 @@ use IvanMercedes\FlexFields\Commands\FlexStatusCommand;
 use IvanMercedes\FlexFields\Commands\InstallFlexFieldsCommand;
 use IvanMercedes\FlexFields\Commands\MakeSchemaCommand;
 use IvanMercedes\FlexFields\Commands\MigrateSchemasCommand;
+use IvanMercedes\FlexFields\Commands\PublishScheduledRecordsCommand;
 use IvanMercedes\FlexFields\Commands\RollbackSchemasCommand;
 use IvanMercedes\FlexFields\Services\RecordHistoryService;
 use Laravel\Ai\Contracts\Agent;
@@ -47,6 +49,12 @@ class FlexFieldsServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
         }
 
+        if (config('flex-fields.scheduling.enabled', true)) {
+            $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+                $schedule->command('flex:publish-scheduled')->everyMinute()->withoutOverlapping();
+            });
+        }
+
         FilamentAsset::register([
             Css::make('flex-fields', __DIR__ . '/../resources/dist/flex-fields.css'),
         ], package: 'ivanmercedes/flex-fields');
@@ -71,6 +79,7 @@ class FlexFieldsServiceProvider extends ServiceProvider
                 RollbackSchemasCommand::class,
                 FlexStatusCommand::class,
                 FlexPermissionsCommand::class,
+                PublishScheduledRecordsCommand::class,
             ];
 
             if (interface_exists(Agent::class)) {

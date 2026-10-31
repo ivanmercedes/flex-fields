@@ -25,6 +25,12 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class RecordApiController extends Controller
 {
+    /**
+     * Statuses that make a record public now or later: setting or leaving
+     * them requires the "publish" permission.
+     */
+    protected const PUBLISHING_STATUSES = ['published', RecordDomainService::SCHEDULED];
+
     public function __construct(protected RecordDomainService $records) {}
 
     /**
@@ -104,13 +110,13 @@ class RecordApiController extends Controller
 
         $validated['status'] ??= $canPublish ? 'published' : 'draft';
 
-        if ($validated['status'] === 'published' && ! $canPublish) {
+        if (in_array($validated['status'], self::PUBLISHING_STATUSES, true) && ! $canPublish) {
             FlexApi::authorize($request, FlexPermissions::PUBLISH, $model);
         }
 
         $record = $this->domain(fn () => $this->records->create(
             $model->id,
-            array_intersect_key($validated, array_flip(['title', 'slug', 'status', 'order'])),
+            array_intersect_key($validated, array_flip(['title', 'slug', 'status', 'publish_at', 'order'])),
             $validated['values'] ?? [],
             $validated['categories'] ?? [],
             $model->tenant_id,
@@ -131,15 +137,19 @@ class RecordApiController extends Controller
         $existing = $this->findRecord($model, $record);
         $validated = $this->validatePayload($request, creating: false);
 
-        if (isset($validated['status']) && $validated['status'] !== $existing->status
-            && in_array('published', [$validated['status'], $existing->status], true)) {
+        $changesStatus = isset($validated['status']) && $validated['status'] !== $existing->status
+            && array_intersect(self::PUBLISHING_STATUSES, [$validated['status'], $existing->status]) !== [];
+        $reschedules = array_key_exists('publish_at', $validated)
+            && in_array(RecordDomainService::SCHEDULED, [$validated['status'] ?? null, $existing->status], true);
+
+        if ($changesStatus || $reschedules) {
             FlexApi::authorize($request, FlexPermissions::PUBLISH, $model);
         }
 
         $updated = $this->domain(fn () => $this->records->update(
             $model->id,
             $existing->id,
-            array_intersect_key($validated, array_flip(['title', 'slug', 'status', 'order'])),
+            array_intersect_key($validated, array_flip(['title', 'slug', 'status', 'publish_at', 'order'])),
             $validated['values'] ?? [],
             array_key_exists('categories', $validated) ? (array) $validated['categories'] : null,
             $model->tenant_id,
@@ -207,6 +217,7 @@ class RecordApiController extends Controller
             'title' => ['sometimes', 'nullable', 'string', 'max:255'],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255'],
             'status' => ['sometimes', Rule::in(RecordDomainService::STATUSES)],
+            'publish_at' => ['sometimes', 'nullable', 'date'],
             'order' => ['sometimes', 'integer'],
             'categories' => ['sometimes', 'array'],
             'categories.*' => ['nullable'],

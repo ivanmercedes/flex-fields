@@ -41,8 +41,10 @@ class CreateRecordTool implements Tool
             'slug' => $schema->string()
                 ->description('Optional slug for the record. Auto-generated from title if omitted.'),
             'status' => $schema->string()
-                ->description('Record publishing status: "published", "draft", or "archived". Defaults to "published".')
-                ->enum(['published', 'draft', 'archived']),
+                ->description('Record publishing status: "published", "draft", "scheduled" (published automatically at publish_at), or "archived". Defaults to "published".')
+                ->enum(['published', 'draft', 'scheduled', 'archived']),
+            'publish_at' => $schema->string()
+                ->description('ISO 8601 date and time to publish the record at. Required when status is "scheduled".'),
             'field_values' => $schema->object()
                 ->description('Key-value dictionary mapping custom field keys to their values, e.g. {"price": 29.99, "color": "blue"}. Call GetEntitySchema first to know valid field keys.'),
             'category_ids' => $schema->array()
@@ -61,7 +63,8 @@ class CreateRecordTool implements Tool
             'entity' => ['required', 'string'],
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'status' => ['sometimes', 'string', 'in:published,draft,archived'],
+            'status' => ['sometimes', 'string', 'in:published,draft,scheduled,archived'],
+            'publish_at' => ['sometimes', 'nullable', 'date'],
             'field_values' => ['sometimes', 'nullable', 'array'],
             'category_ids' => ['sometimes', 'nullable', 'array'],
         ]);
@@ -76,7 +79,7 @@ class CreateRecordTool implements Tool
         $canPublish = $this->guardEntityAllowed($entitySlug, FlexPermissions::PUBLISH) === null;
         $status = $validated['status'] ?? ($canPublish ? 'published' : 'draft');
 
-        if ($status === 'published' && ! $canPublish) {
+        if (in_array($status, ['published', 'scheduled'], true) && ! $canPublish) {
             return $this->guardEntityAllowed($entitySlug, FlexPermissions::PUBLISH);
         }
 
@@ -85,6 +88,7 @@ class CreateRecordTool implements Tool
                 'title' => $validated['title'],
                 'slug' => $validated['slug'] ?? null,
                 'status' => $status,
+                'publish_at' => $validated['publish_at'] ?? null,
             ];
             $fieldValues = $validated['field_values'] ?? [];
             $categoryIds = $validated['category_ids'] ?? [];

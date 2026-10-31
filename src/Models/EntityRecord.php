@@ -37,7 +37,8 @@ class EntityRecord extends Model
         'entity_id',
         'title',
         'slug',
-        'status',   // draft | published | archived
+        'status',   // draft | published | scheduled | archived
+        'publish_at', // when a "scheduled" record gets published
         'order',
         'meta',     // JSON: any extra metadata
         'created_at',
@@ -47,6 +48,7 @@ class EntityRecord extends Model
     protected $casts = [
         'order' => 'integer',
         'meta' => 'array',
+        'publish_at' => 'datetime',
     ];
 
     public function entity(): BelongsTo

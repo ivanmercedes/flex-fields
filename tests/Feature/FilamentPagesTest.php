@@ -154,6 +154,24 @@ class FilamentPagesTest extends FilamentTestCase
         $this->assertSame('updated', $record->revisions()->first()->event);
     }
 
+    public function test_records_can_be_scheduled_in_the_panel(): void
+    {
+        Livewire::withQueryParams(['entity' => $this->entity->id])
+            ->test(CreateEntityData::class)
+            ->fillForm(['title' => 'Launch', 'status' => 'scheduled'])
+            ->assertFormFieldIsVisible('publish_at')
+            ->call('create')
+            ->assertHasFormErrors(['publish_at' => 'required'])
+            ->fillForm(['publish_at' => now()->addDay()->toDateTimeString()])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $record = $this->entity->records()->where('title', 'Launch')->first();
+
+        $this->assertSame('scheduled', $record->status);
+        $this->assertTrue($record->publish_at->isFuture());
+    }
+
     public function test_saving_records_in_the_panel_dispatches_lifecycle_events(): void
     {
         Event::fake([RecordCreated::class, RecordUpdated::class, RecordPublished::class, RecordUnpublished::class]);

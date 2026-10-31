@@ -27,7 +27,7 @@ class RecordFilters
     public const OPERATORS = ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'in', 'contains', 'null'];
 
     /** Record columns that can be sorted by. */
-    public const SORTABLE_COLUMNS = ['id', 'title', 'slug', 'order', 'status', 'created_at', 'updated_at'];
+    public const SORTABLE_COLUMNS = ['id', 'title', 'slug', 'order', 'status', 'publish_at', 'created_at', 'updated_at'];
 
     /** Types whose values can be compared (the others only support "null"). */
     public const COMPARABLE_TYPES = [

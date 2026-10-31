@@ -226,6 +226,7 @@ return [
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
             'categories' => 'Categories',
+            'publish_at' => 'Publish At',
         ],
         'placeholders' => [
             'title' => 'Optional title / identifier',
@@ -240,6 +241,7 @@ return [
         'statuses' => [
             'draft' => 'Draft',
             'published' => 'Published',
+            'scheduled' => 'Scheduled',
             'archived' => 'Archived',
         ],
         'table' => [

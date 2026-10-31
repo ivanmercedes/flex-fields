@@ -60,6 +60,7 @@ abstract class TestCase extends OrchestraTestCase
             __DIR__ . '/../database/migrations/2024_01_01_000008_add_is_shown_in_list_to_ff_custom_fields_table.php',
             __DIR__ . '/../database/migrations/2024_01_01_000009_create_ff_field_groups_table.php',
             __DIR__ . '/../database/migrations/2024_01_01_000010_create_ff_record_revisions_table.php',
+            __DIR__ . '/../database/migrations/2024_01_01_000011_add_publish_at_to_ff_entity_records_table.php',
         ];
     }
 

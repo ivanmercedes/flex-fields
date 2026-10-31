@@ -36,8 +36,8 @@ class ListRecordsTool implements Tool
                 ->description('The slug or numeric ID of the entity.')
                 ->required(),
             'status' => $schema->string()
-                ->description('Filter by record status: published, draft, or archived.')
-                ->enum(['published', 'draft', 'archived']),
+                ->description('Filter by record status: published, draft, scheduled, or archived.')
+                ->enum(['published', 'draft', 'scheduled', 'archived']),
             'search' => $schema->string()
                 ->description('Filter records by matching title or slug.'),
             'category_id' => $schema->integer()
@@ -57,7 +57,7 @@ class ListRecordsTool implements Tool
     {
         $validated = $request->validate([
             'entity' => ['required', 'string'],
-            'status' => ['sometimes', 'nullable', 'string', 'in:published,draft,archived'],
+            'status' => ['sometimes', 'nullable', 'string', 'in:published,draft,scheduled,archived'],
             'search' => ['sometimes', 'nullable', 'string'],
             'category_id' => ['sometimes', 'nullable', 'integer'],
             'limit' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:100'],

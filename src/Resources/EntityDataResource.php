@@ -36,9 +36,11 @@ use IvanMercedes\FlexFields\Models\EntityCategory;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Resources\EntityDataResource\Pages;
 use IvanMercedes\FlexFields\Resources\EntityDataResource\RelationManagers\RevisionsRelationManager;
+use IvanMercedes\FlexFields\Services\RecordDomainService;
 use IvanMercedes\FlexFields\Services\RecordExporter;
 use IvanMercedes\FlexFields\Support\DynamicFormBuilder;
 use IvanMercedes\FlexFields\Support\FlexModels;
+use IvanMercedes\FlexFields\Support\FlexSchema;
 use IvanMercedes\FlexFields\Support\Label;
 use IvanMercedes\FlexFields\Support\RecordTableColumns;
 use Throwable;
@@ -149,7 +151,13 @@ class EntityDataResource extends Resource
                 ->label(Label::trans('flex-fields::flex-fields.record.fields.status'))
                 ->options(static::getStatusOptions())
                 ->default('published')
+                ->live()
                 ->required(),
+
+            Forms\Components\DateTimePicker::make('publish_at')
+                ->label(Label::trans('flex-fields::flex-fields.record.fields.publish_at'))
+                ->visible(fn ($get) => $get('status') === RecordDomainService::SCHEDULED && FlexSchema::hasScheduling())
+                ->required(fn ($get) => $get('status') === RecordDomainService::SCHEDULED),
 
             Forms\Components\Select::make('categories')
                 ->label(Label::trans('flex-fields::flex-fields.record.fields.categories'))
@@ -265,6 +273,7 @@ class EntityDataResource extends Resource
                     ->color(fn (string $state): string => match ($state) {
                         'published' => 'success',
                         'draft' => 'warning',
+                        'scheduled' => 'info',
                         'archived' => 'gray',
                         default => 'gray',
                     }),
@@ -512,6 +521,7 @@ class EntityDataResource extends Resource
         return [
             'draft' => Label::trans('flex-fields::flex-fields.record.statuses.draft'),
             'published' => Label::trans('flex-fields::flex-fields.record.statuses.published'),
+            'scheduled' => Label::trans('flex-fields::flex-fields.record.statuses.scheduled'),
             'archived' => Label::trans('flex-fields::flex-fields.record.statuses.archived'),
         ];
     }

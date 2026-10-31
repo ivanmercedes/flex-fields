@@ -8,20 +8,26 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Support\FieldTypes;
+use IvanMercedes\FlexFields\Support\FlexModels;
+use IvanMercedes\FlexFields\Support\FlexSchema;
 use IvanMercedes\FlexFields\Support\MediaLibrary;
 use IvanMercedes\FlexFields\Support\RecordEvents;
 use IvanMercedes\FlexFields\Support\RecordFilters;
 use RuntimeException;
+use Throwable;
 
 class RecordDomainService
 {
-    public const STATUSES = ['draft', 'published', 'archived'];
+    public const STATUSES = ['draft', 'published', 'scheduled', 'archived'];
+
+    public const SCHEDULED = 'scheduled';
 
     public function __construct(
         protected EntityDomainService $entityService = new EntityDomainService,
@@ -159,6 +165,7 @@ class RecordDomainService
 
         $status = (string) ($attributes['status'] ?? 'published');
         $this->ensureValidStatus($status);
+        [$status, $schedule] = $this->resolveSchedule($status, $attributes, null);
 
         $fieldValues = $this->validator()->validate($entity, $fieldValues, creating: true);
         $categoryIds = $this->resolveCategoryIds($entity, $categoryIds);
@@ -175,9 +182,9 @@ class RecordDomainService
             $counter++;
         }
 
-        $record = DB::transaction(function () use ($entity, $title, $slug, $status, $attributes, $fieldValues, $categoryIds) {
+        $record = DB::transaction(function () use ($entity, $title, $slug, $status, $schedule, $attributes, $fieldValues, $categoryIds) {
             /** @var EntityRecord $record */
-            $record = $entity->records()->create([
+            $record = $entity->records()->create($schedule + [
                 'tenant_id' => $entity->tenant_id,
                 'title' => $title,
                 'slug' => $slug,
@@ -249,6 +256,10 @@ class RecordDomainService
             $this->ensureValidStatus($status);
             $data['status'] = $status;
         }
+        if (array_key_exists('status', $attributes) || array_key_exists('publish_at', $attributes)) {
+            [$status, $schedule] = $this->resolveSchedule((string) ($data['status'] ?? $record->status), $attributes, $record);
+            $data = $schedule + ['status' => $status] + $data;
+        }
         if (array_key_exists('order', $attributes)) {
             $data['order'] = (int) $attributes['order'];
         }
@@ -315,6 +326,35 @@ class RecordDomainService
     }
 
     /**
+     * Publish the scheduled records whose publish_at has passed, through the
+     * regular update path so history and the RecordPublished event follow.
+     *
+     * @return int The number of published records.
+     */
+    public function publishDue(): int
+    {
+        if (! FlexSchema::hasScheduling()) {
+            return 0;
+        }
+
+        $published = 0;
+
+        FlexModels::record()::query()
+            ->where('status', self::SCHEDULED)
+            ->where('publish_at', '<=', now())
+            ->chunkById(100, function (Collection $records) use (&$published) {
+                foreach ($records as $record) {
+                    $tenantId = $record->tenant_id === null ? null : (int) $record->tenant_id;
+
+                    $this->update($record->entity_id, $record->id, ['status' => 'published'], tenantId: $tenantId);
+                    $published++;
+                }
+            });
+
+        return $published;
+    }
+
+    /**
      * Delete a record (soft-delete by default, or force-delete).
      */
     public function delete(
@@ -369,6 +409,7 @@ class RecordDomainService
             'title' => $record->title,
             'slug' => $record->slug,
             'status' => $record->status,
+            'publish_at' => $record->publish_at?->toIso8601String(),
             'order' => $record->order,
             'categories' => $categories,
             'data' => array_merge($record->data, MediaLibrary::urls($record)),
@@ -440,6 +481,44 @@ class RecordDomainService
         }
 
         return $resolved;
+    }
+
+    /**
+     * Resolve the status and publish_at to store. A "scheduled" record needs a
+     * publish_at date, and is published right away when that date has passed.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @return array{0: string, 1: array<string, mixed>}
+     */
+    protected function resolveSchedule(string $status, array $attributes, ?EntityRecord $record): array
+    {
+        if (! FlexSchema::hasScheduling()) {
+            if ($status === self::SCHEDULED) {
+                throw new RuntimeException('Scheduled publishing requires the FlexFields migrations to be run.');
+            }
+
+            return [$status, []];
+        }
+
+        $publishAt = array_key_exists('publish_at', $attributes) ? $attributes['publish_at'] : $record?->publish_at;
+
+        try {
+            $publishAt = blank($publishAt) ? null : Carbon::parse($publishAt);
+        } catch (Throwable) {
+            throw new RuntimeException("Invalid publish_at date [{$publishAt}].");
+        }
+
+        if ($status === self::SCHEDULED) {
+            if ($publishAt === null) {
+                throw new RuntimeException('A scheduled record needs a publish_at date.');
+            }
+
+            if ($publishAt->isPast()) {
+                $status = 'published';
+            }
+        }
+
+        return [$status, ['publish_at' => $publishAt]];
     }
 
     protected function ensureValidStatus(string $status): void

@@ -43,8 +43,10 @@ class UpdateRecordTool implements Tool
             'slug' => $schema->string()
                 ->description('New slug for the record.'),
             'status' => $schema->string()
-                ->description('New status: published, draft, or archived.')
-                ->enum(['published', 'draft', 'archived']),
+                ->description('New status: published, draft, scheduled (published automatically at publish_at), or archived.')
+                ->enum(['published', 'draft', 'scheduled', 'archived']),
+            'publish_at' => $schema->string()
+                ->description('ISO 8601 date and time to publish the record at. Required when status is "scheduled".'),
             'field_values' => $schema->object()
                 ->description('Key-value dictionary mapping custom field keys to updated values.'),
             'category_ids' => $schema->array()
@@ -64,7 +66,8 @@ class UpdateRecordTool implements Tool
             'record' => ['required', 'string'],
             'title' => ['sometimes', 'string', 'max:255'],
             'slug' => ['sometimes', 'string', 'max:255'],
-            'status' => ['sometimes', 'string', 'in:published,draft,archived'],
+            'status' => ['sometimes', 'string', 'in:published,draft,scheduled,archived'],
+            'publish_at' => ['sometimes', 'nullable', 'date'],
             'field_values' => ['sometimes', 'nullable', 'array'],
             'category_ids' => ['sometimes', 'nullable', 'array'],
         ]);
@@ -77,12 +80,12 @@ class UpdateRecordTool implements Tool
         }
 
         // Changing the publication state is a publishing operation.
-        if (isset($validated['status']) && ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::PUBLISH))) {
+        if ((isset($validated['status']) || array_key_exists('publish_at', $validated)) && ($guard = $this->guardEntityAllowed($entitySlug, FlexPermissions::PUBLISH))) {
             return $guard;
         }
 
         try {
-            $attributes = array_intersect_key($validated, array_flip(['title', 'slug', 'status']));
+            $attributes = array_intersect_key($validated, array_flip(['title', 'slug', 'status', 'publish_at']));
             $fieldValues = $validated['field_values'] ?? [];
             $categoryIds = $validated['category_ids'] ?? null;
 

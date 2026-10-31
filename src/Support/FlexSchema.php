@@ -34,6 +34,14 @@ class FlexSchema
         return static::remember('revisions', fn () => Schema::hasTable('ff_record_revisions'));
     }
 
+    /**
+     * Scheduled publishing (ff_entity_records.publish_at).
+     */
+    public static function hasScheduling(): bool
+    {
+        return static::remember('scheduling', fn () => Schema::hasColumn('ff_entity_records', 'publish_at'));
+    }
+
     public static function flush(): void
     {
         static::$cache = [];

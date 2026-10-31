@@ -85,6 +85,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Scheduled Publishing
+    |--------------------------------------------------------------------------
+    |
+    | Records with the "scheduled" status are published once their publish_at
+    | date passes by the flex:publish-scheduled command, which is added to the
+    | application's scheduler every minute (requires `schedule:run` / `schedule:work`).
+    |
+    */
+    'scheduling' => [
+        'enabled' => env('FLEX_FIELDS_SCHEDULING_ENABLED', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Record History / Audit Log
     |--------------------------------------------------------------------------
     |

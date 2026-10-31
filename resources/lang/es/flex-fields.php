@@ -227,6 +227,7 @@ return [
             'created_at' => 'Fecha de creación',
             'updated_at' => 'Última actualización',
             'categories' => 'Categorías',
+            'publish_at' => 'Fecha de publicación',
         ],
         'placeholders' => [
             'title' => 'Título o identificador opcional',
@@ -241,6 +242,7 @@ return [
         'statuses' => [
             'draft' => 'Borrador',
             'published' => 'Publicado',
+            'scheduled' => 'Programado',
             'archived' => 'Archivado',
         ],
         'table' => [
