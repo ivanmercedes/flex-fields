@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-## Upgrading to the next release from 0.7.x
+## Upgrading to 0.8.0 from 0.7.x
 
 ### 1. Run the migrations (required)
 
