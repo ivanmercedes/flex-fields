@@ -1,5 +1,14 @@
 # Upgrade Guide
 
+## Upgrading to 0.8.1 from 0.8.0
+
+A security release with no migrations or signature changes. Behavior changes:
+
+- **File values are tied to their tenant.** With tenancy enabled, image/file values sent through the REST API, the AI tools or imports must be absolute URLs or paths under the tenant's upload directory (the part of `uploads.directory_pattern` up to its tenant placeholder). If you changed `directory_pattern` or `tenant_key_attribute`, values stored under the old directories are refused when sent again; move the files or keep the previous settings.
+- **Expanded relationships.** `?include=relations` leaves out relationship fields whose entity the caller cannot read (outside `api.allowed_entities`, inactive, or without `view`), instead of returning their records.
+- **Categories.** Saving a category whose entity belongs to another tenant, or whose parent belongs to another entity, throws a `ValidationException`.
+- **Database errors.** API responses, AI tool results and MCP responses show a generic message instead of the database error; the exception is reported.
+
 ## Upgrading to 0.8.0 from 0.7.x
 
 ### 1. Run the migrations (required)
