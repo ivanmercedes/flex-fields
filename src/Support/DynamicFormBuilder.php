@@ -15,6 +15,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use IvanMercedes\FlexFields\Models\CustomField;
@@ -307,7 +308,9 @@ class DynamicFormBuilder
                         ->label($field->label)
                         ->disk($disk)
                         ->visibility($visibility)
-                        ->directory(self::resolveUploadDirectory($field));
+                        ->directory(self::resolveUploadDirectory($field))
+                        // Paths are client-controlled form state: only the tenant's own files.
+                        ->preventFilePathTampering(allowFilePathUsing: static fn (string $file): bool => UploadPaths::allows($field->tenant_id, $file));
 
                     if (! empty($field->settings['multiple'])) {
                         $component->multiple()->reorderable();
@@ -332,7 +335,9 @@ class DynamicFormBuilder
                         ->imageEditor()
                         ->disk($disk)
                         ->visibility($visibility)
-                        ->directory(self::resolveUploadDirectory($field));
+                        ->directory(self::resolveUploadDirectory($field))
+                        // Paths are client-controlled form state: only the tenant's own files.
+                        ->preventFilePathTampering(allowFilePathUsing: static fn (string $file): bool => UploadPaths::allows($field->tenant_id, $file));
 
                     if (! empty($field->settings['multiple'])) {
                         $component->multiple()->reorderable();
@@ -674,23 +679,8 @@ class DynamicFormBuilder
             $tenant = Filament::getTenant();
         }
 
-        $tenantKeyAttr = (string) config('flex-fields.uploads.tenant_key_attribute', 'slug');
-
-        $tenantId = '';
-        $tenantSlug = '';
-
-        if ($tenant) {
-            $tenantId = (string) ($tenant->getKey() ?? '');
-            $rawSlug = $tenant->{$tenantKeyAttr} ?? $tenant->slug ?? $tenant->id ?? $tenantId;
-            $tenantSlug = Str::slug((string) $rawSlug);
-        }
-
-        $tenantKey = $tenantSlug ?: $tenantId;
-
         $replacements = [
-            '{tenant_id}' => $tenantId,
-            '{tenant_slug}' => $tenantSlug,
-            '{tenant_key}' => $tenantKey,
+            ...UploadPaths::tenantReplacements($tenant instanceof Model ? $tenant : null),
             '{entity_id}' => $entityId,
             '{entity_slug}' => $entitySlug,
             '{field_key}' => $fieldKey,

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use IvanMercedes\FlexFields\FlexFieldsServiceProvider;
 use IvanMercedes\FlexFields\Tests\Fixtures\User;
 use Laravel\Ai\AiServiceProvider;
+use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
@@ -25,6 +26,7 @@ abstract class TestCase extends OrchestraTestCase
     {
         return [
             FilamentServiceProvider::class,
+            LivewireServiceProvider::class,
             AiServiceProvider::class,
             FlexFieldsServiceProvider::class,
         ];

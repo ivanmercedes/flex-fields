@@ -152,16 +152,30 @@ class EntityRecord extends Model
             return new Collection;
         }
 
-        $relatedEntity = Entity::query()
-            ->where('slug', $field->settings['related_entity'] ?? null)
-            ->when($this->tenant_id !== null, fn ($q) => $q->where('tenant_id', $this->tenant_id))
-            ->first();
+        $relatedEntity = $this->relatedEntity($key);
 
         if (! $relatedEntity) {
             return new Collection;
         }
 
         return $relatedEntity->records()->whereIn('id', $ids)->get();
+    }
+
+    /**
+     * The entity a "relationship" field points to, in the record's tenant.
+     */
+    public function relatedEntity(string $key): ?Entity
+    {
+        $field = $this->entity?->customFields()->where('key', $key)->first();
+
+        if (! $field || $field->type !== 'relationship') {
+            return null;
+        }
+
+        return Entity::query()
+            ->where('slug', $field->settings['related_entity'] ?? null)
+            ->when($this->tenant_id !== null, fn ($q) => $q->where('tenant_id', $this->tenant_id))
+            ->first();
     }
 
     protected static function booted(): void

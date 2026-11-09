@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-11-09
+
+### Security
+- **REST API**: `?include=relations` / `relations.values` no longer expands relationships to entities the caller cannot read (outside `api.allowed_entities`, inactive, or without the `view` permission). New `RecordResource::canExpand()` and `EntityRecord::relatedEntity()`.
+- **AI / MCP tools**: `CreateFieldTool` and `UpdateFieldTool` reject a `settings.related_entity` outside the context's allowed entities, so a scoped key cannot link an allowed entity to another one and read its records.
+- **Categories**: `EntityCategory` refuses an `entity_id` of another tenant and a parent of another entity, whatever saves it. The category resource sets `entity_id` server-side and only resolves entities of the current tenant (it was taken from a hidden field and an unscoped `?entity=`).
+- **File values**: with tenancy enabled, image/file values (REST API, AI tools, imports) must be absolute URLs or paths under the tenant's upload directory (`UploadPaths`), and the generated upload fields prevent file path tampering. Previously a tenant could store another tenant's path and have the panel sign or delete that file.
+- **Error messages**: database errors are reported and replaced by a generic message in REST API responses, AI tool results and MCP responses, instead of exposing SQL and connection details.
+
+> **Upgrading:** file values are now validated against the tenant upload directory. If you changed `uploads.directory_pattern` or `uploads.tenant_key_attribute`, values stored under the previous directories are refused when they are sent again.
+
 ## [0.8.0] - 2026-11-05
 
 > **Upgrading:** run `php artisan migrate` (adds `ff_entity_records.publish_at`) and review [UPGRADE.md](UPGRADE.md).

@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 use IvanMercedes\FlexFields\Models\CustomField;
 use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Support\FieldTypes;
+use IvanMercedes\FlexFields\Support\UploadPaths;
 use IvanMercedes\FlexFields\Support\ValidationRules;
 
 /**
@@ -145,8 +146,8 @@ class RecordValueValidator
                 ]
                 : [$key => [...$presence, 'integer', $this->relationshipRule($entity, $field)]],
             'image', 'file' => $multiple
-                ? [$key => [...$presence, 'array'], "{$key}.*" => ['string']]
-                : [$key => [...$presence, 'string']],
+                ? [$key => [...$presence, 'array'], "{$key}.*" => ['string', $this->tenantFileRule($entity)]]
+                : [$key => [...$presence, 'string', $this->tenantFileRule($entity)]],
             default => [$key => [...$presence, ...$custom]],
         };
     }
@@ -204,6 +205,20 @@ class RecordValueValidator
         $parts = array_values(array_intersect((array) ($field->settings['address_parts'] ?? []), FieldTypes::ADDRESS_PARTS));
 
         return $parts ?: FieldTypes::ADDRESS_PARTS;
+    }
+
+    /**
+     * File values are paths on the uploads disk: they must point to the entity
+     * tenant's own files (or be absolute URLs), or the panel would sign and could
+     * delete the files of another tenant.
+     */
+    protected function tenantFileRule(Entity $entity): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($entity): void {
+            if (is_string($value) && ! UploadPaths::allows($entity->tenant_id, $value)) {
+                $fail("The file [{$value}] does not belong to this tenant.");
+            }
+        };
     }
 
     /**
