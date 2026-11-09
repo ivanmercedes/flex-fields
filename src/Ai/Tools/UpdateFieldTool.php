@@ -117,6 +117,10 @@ class UpdateFieldTool implements Tool
             return $guard;
         }
 
+        if ($guard = $this->guardRelatedEntityAllowed($validated)) {
+            return $guard;
+        }
+
         try {
             $field = $this->fieldService()->update($entitySlug, $fieldKey, $validated, $this->tenantId());
 

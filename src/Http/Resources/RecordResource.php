@@ -7,6 +7,8 @@ namespace IvanMercedes\FlexFields\Http\Resources;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use IvanMercedes\FlexFields\Authorization\FlexPermissions;
+use IvanMercedes\FlexFields\Models\Entity;
 use IvanMercedes\FlexFields\Models\EntityRecord;
 use IvanMercedes\FlexFields\Services\RecordDomainService;
 use IvanMercedes\FlexFields\Support\FieldCache;
@@ -71,6 +73,18 @@ class RecordResource extends JsonResource
         }
 
         return array_values(array_filter(array_map('trim', explode(',', $fields))));
+    }
+
+    /**
+     * Whether the records of a related entity may be included for this request.
+     */
+    public static function canExpand(Request $request, Entity $entity): bool
+    {
+        $allowed = config('flex-fields.api.allowed_entities');
+
+        return $entity->is_active
+            && ($allowed === null || in_array($entity->slug, (array) $allowed, true))
+            && FlexPermissions::allows($request->user(), FlexPermissions::VIEW, $entity);
     }
 
     /**
@@ -152,6 +166,14 @@ class RecordResource extends JsonResource
         $relations = [];
 
         foreach ($this->resource->entity->customFields->where('type', 'relationship') as $field) {
+            $target = $this->resource->relatedEntity($field->key);
+
+            // Expanding a relationship must not reach records the caller could not
+            // read directly (allowed_entities, inactive entities, permissions).
+            if (! $target || ! static::canExpand(request(), $target)) {
+                continue;
+            }
+
             $relations[$field->key] = $this->resource->related($field->key)
                 ->map(function (EntityRecord $record) use ($withValues, $locale) {
                     $related = [

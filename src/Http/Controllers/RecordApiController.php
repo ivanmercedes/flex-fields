@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Http\Controllers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -266,6 +267,11 @@ class RecordApiController extends Controller
     {
         try {
             return $operation();
+        } catch (QueryException $e) {
+            // Database errors carry SQL and connection details: report them, never show them.
+            report($e);
+
+            throw new HttpException(422, 'The record could not be saved.', $e);
         } catch (RuntimeException $e) {
             throw new HttpException(422, $e->getMessage(), $e);
         }

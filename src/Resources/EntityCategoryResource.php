@@ -56,8 +56,10 @@ class EntityCategoryResource extends Resource
         $entity = static::getCurrentEntity();
 
         return $schema->components([
+            // Set server-side on create (see CreateEntityCategory): a hidden field is client-controlled.
             Forms\Components\Hidden::make('entity_id')
-                ->default($entity?->id),
+                ->default($entity?->id)
+                ->dehydrated(false),
 
             Section::make(Label::trans('flex-fields::flex-fields.category.sections.details'))
                 ->description(Label::trans('flex-fields::flex-fields.category.descriptions.details'))
@@ -191,9 +193,14 @@ class EntityCategoryResource extends Resource
     public static function getCurrentEntity(): ?Entity
     {
         if ($entityId = self::resolveEntityId()) {
-            session(['ff_current_entity' => $entityId]);
+            // The id comes from the URL or the session: only entities of the current tenant.
+            $entity = Entity::query()->currentTenant()->find($entityId);
 
-            return Entity::find($entityId);
+            if ($entity) {
+                session(['ff_current_entity' => $entity->getKey()]);
+
+                return $entity;
+            }
         }
 
         return self::getDefaultEntity();
@@ -285,7 +292,7 @@ class EntityCategoryResource extends Resource
 
     protected static function getDefaultEntity(): ?Entity
     {
-        $entity = Entity::where('is_active', true)->first();
+        $entity = Entity::query()->currentTenant()->where('is_active', true)->first();
 
         if ($entity) {
             session(['ff_current_entity' => $entity->id]);

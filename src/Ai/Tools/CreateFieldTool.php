@@ -114,6 +114,10 @@ class CreateFieldTool implements Tool
             return $guard;
         }
 
+        if ($guard = $this->guardRelatedEntityAllowed($validated)) {
+            return $guard;
+        }
+
         try {
             $field = $this->fieldService()->create($entitySlug, $validated, $this->tenantId());
 

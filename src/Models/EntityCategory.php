@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use IvanMercedes\FlexFields\Models\Traits\BelongsToFlexTenant;
 use IvanMercedes\FlexFields\Support\FlexModels;
 
@@ -76,5 +77,26 @@ class EntityCategory extends Model
 
         static::creating($generateUniqueSlug);
         static::updating($generateUniqueSlug);
+        static::saving(static::ensureSameTenant(...));
+    }
+
+    /**
+     * A category can only belong to an entity (and parent) of its own tenant,
+     * whatever saved it: panel forms, the API or the AI tools.
+     */
+    protected static function ensureSameTenant(EntityCategory $category): void
+    {
+        $column = (string) config('flex-fields.tenancy.tenant_column', 'tenant_id');
+        $tenant = $category->getAttribute($column);
+
+        $entityTenant = Entity::query()->whereKey($category->entity_id)->value($column);
+
+        if ($category->entity_id !== null && $entityTenant !== null && (string) $entityTenant !== (string) $tenant) {
+            throw ValidationException::withMessages(['entity_id' => 'The selected entity belongs to another tenant.']);
+        }
+
+        if ($category->parent_id !== null && ! static::query()->whereKey($category->parent_id)->where('entity_id', $category->entity_id)->exists()) {
+            throw ValidationException::withMessages(['parent_id' => 'The parent category must belong to the same entity.']);
+        }
     }
 }

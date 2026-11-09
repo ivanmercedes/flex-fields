@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace IvanMercedes\FlexFields\Mcp;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use IvanMercedes\FlexFields\Ai\AiToolCategory;
 use Laravel\Ai\Contracts\Tool as AiTool;
@@ -55,7 +56,9 @@ class FlexFieldsMcpTool extends Tool
         } catch (Throwable $exception) {
             report($exception);
 
-            return Response::error('The tool failed: ' . $exception->getMessage());
+            return Response::error($exception instanceof QueryException
+                ? 'The tool failed because of a database error.'
+                : 'The tool failed: ' . $exception->getMessage());
         }
 
         return $result->isError ? Response::error($result->content) : Response::text($result->content);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IvanMercedes\FlexFields\Ai\Concerns;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use IvanMercedes\FlexFields\Ai\AiContext;
@@ -136,6 +137,13 @@ trait InteractsWithFlexDomain
                 ->implode('; ');
         }
 
+        // Database errors carry SQL and connection details: never hand them to the model.
+        if ($e instanceof QueryException) {
+            report($e);
+
+            return 'The operation could not be completed because of a database error.';
+        }
+
         return $e->getMessage();
     }
 
@@ -151,6 +159,23 @@ trait InteractsWithFlexDomain
     {
         if ($this->context()->isReadOnly()) {
             return $this->error('Operation rejected: FlexFields AI context is configured in read-only mode.');
+        }
+
+        return null;
+    }
+
+    /**
+     * A relationship field exposes the records of its related entity, so a context
+     * limited to some entities cannot point a field at another one.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function guardRelatedEntityAllowed(array $attributes): ?ToolResult
+    {
+        $related = $attributes['settings']['related_entity'] ?? null;
+
+        if (is_string($related) && $related !== '' && ! $this->context()->isEntityAllowed($related)) {
+            return $this->error("Operation rejected: Access to entity [{$related}] is not permitted by current AI context.");
         }
 
         return null;
